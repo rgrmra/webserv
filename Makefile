@@ -6,7 +6,7 @@
 #    By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2024/12/13 20:16:04 by rde-mour         ###   ########.org.br    #
+#    Updated: 2024/12/17 18:44:28 by rde-mour         ###   ########.org.br    #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ FILES				= $(shell find . -type f -name '*.cpp')
 
 OBJS				= $(FILES:%.cpp=%.o)
 
-HEADERS				= -I ./
+HEADERS				= $(addprefix -I, $(shell find . -type d))
 
 COMPILER			= c++
 
