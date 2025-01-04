@@ -6,7 +6,7 @@
 #    By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2024/12/17 18:44:28 by rde-mour         ###   ########.org.br    #
+#    Updated: 2025/01/04 17:10:40 by rde-mour         ###   ########.org.br    #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ HEADERS				= $(addprefix -I, $(shell find . -type d))
 
 COMPILER			= c++
 
-CFLAGS				= -Wall -Wextra -Werror -std=c++98
+CFLAGS				= -Wall -Wextra -Werror -std=c++98 -g3
 
 all: 				$(NAME)
 
