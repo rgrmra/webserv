@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/04 20:00:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/05 14:38:24 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/08 20:17:20 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <sys/types.h>
 
 Server::Server(void) {
 
@@ -27,7 +28,7 @@ Server::Server(void) {
 
 Server::Server(string configuration_file) {
 
-	ifstream file(configuration_file);
+	ifstream file(configuration_file.c_str());
 
 	if (not file)
 		throw runtime_error(strerror(errno));
@@ -35,17 +36,27 @@ Server::Server(string configuration_file) {
 	string buffer;
 	string line;
 	while(getline(file, line)) {
-
+		
+		// ignore empty line
 		if (not line.size())
-			continue ;
+			continue;
 
-		line = line.substr(
-				line.find_first_not_of(" \t\r\n\v\f"),
-				line.find_last_not_of(" \t\r\n\v\f") + 1
-			);
+		// remove comment
+		if (static_cast<ssize_t>(line.find_first_of("#")) > -1)
+			line = line.substr(0, line.find_first_of("#"));
 
-		if (line.at(0) != '#')
-			buffer.append(line);
+		// ignore blank line
+		if (static_cast<ssize_t>(line.find_first_not_of(" \n\t\r\v\f")) == -1)
+			continue;
+
+		// remove blank line at start
+		line = line.substr(line.find_first_not_of(" \n\t\r\v\f"), line.size());
+
+		// remove black line at end
+		line = line.substr(0, line.find_last_not_of(" \n\t\r\v\f") + 1);
+
+		// concat string
+		buffer.append(line);
 	}
 
 	file.close();
