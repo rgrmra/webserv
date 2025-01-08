@@ -3,7 +3,7 @@
 int main(void) {
 
 
-	Server server = Server("teste");
+	Server server = Server("/home/rgrmra/webserv/configurations/default.conf");
 
 	std::cout << server << std::endl;
 
