@@ -6,11 +6,11 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/08 18:53:57 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/11 18:34:00 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./src/parsers/Configuration/Server.hpp"
+#include "Server.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
