@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/11 21:17:50 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/15 18:39:45 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Http {
 
 	public:
 		Http(void);
-		Http(string configuration_file);
+		Http(string &configuration_file);
 		Http(const Http &src);
 		Http &operator=(const Http &rhs);
 		~Http(void);

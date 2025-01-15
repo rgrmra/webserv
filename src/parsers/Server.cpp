@@ -6,14 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/11 21:17:02 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/15 18:18:36 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Location.hpp"
 #include <cstring>
-#include <fstream>
 #include <iostream>
 
 using namespace std;
@@ -25,40 +24,7 @@ Server::Server(void) {
 
 Server::Server(string configuration_file) {
 
-	ifstream file(configuration_file.c_str());
-
-	if (not file)
-		throw runtime_error(strerror(errno));
-
-	string buffer;
-	string line;
-	while(getline(file, line)) {
-		
-		// ignore empty line
-		if (not line.size())
-			continue;
-
-		// remove comment
-		if (static_cast<ssize_t>(line.find_first_of("#")) > -1)
-			line = line.substr(0, line.find_first_of("#"));
-
-		// ignore blank line
-		if (static_cast<ssize_t>(line.find_first_not_of(" \n\t\r\v\f")) == -1)
-			continue;
-
-		// remove blank line at start
-		line = line.substr(line.find_first_not_of(" \n\t\r\v\f"), line.size());
-
-		// remove black line at end
-		line = line.substr(0, line.find_last_not_of(" \n\t\r\v\f") + 1);
-
-		// concat string
-		buffer.append(line);
-	}
-
-	file.close();
-
-	cout << buffer << endl;
+	(void) configuration_file;
 }
 
 Server::Server(const Server &src) {
@@ -98,9 +64,10 @@ Server &Server::operator=(const Server &rhs) {
 Server::~Server(void) {
 
 }
-bool Server::operator<(Server &server) {
+
+bool Server::operator<(const Server &rhs) const {
 	
-	return (_host < server._host) && (_port < server._port);
+	return _port < rhs._port;
 }
 
 void Server::setName(string name) {

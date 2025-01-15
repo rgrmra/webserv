@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/11 21:16:51 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/15 18:09:22 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class Server {
 		Server &operator=(const Server &rhs);
 		~Server(void);
 
-		bool operator<(Server &server);
+		bool operator<(const Server &rhs) const;
 
 		void setName(string name);
 		string getName(void) const;

@@ -6,11 +6,11 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/11 18:34:00 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/15 18:23:18 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include "Http.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 		else
 		 	throw std::runtime_error("");
 
-		Server servers = Server(configuration_file);
+		Http servers = Http(configuration_file);
 
 		cout << "WebReq: " << configuration_file << endl;
 		cout << servers << endl;

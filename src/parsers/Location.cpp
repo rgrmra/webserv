@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/11 16:59:33 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/15 18:14:46 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,5 +87,6 @@ bool Location::getAutoIndex(void) const {
 
 ostream &operator<<(ostream &os, const Location &src) {
 
+	(void) src;
 	return os;
 }
