@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 14:07:04 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 16:18:58 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ Location &Location::operator=(const Location &rhs) {
 	if (this == &rhs)
 		return *this;
 
+	_path = rhs._path;
 	_index = rhs._index;
 	_root = rhs._root;
 
@@ -105,18 +106,18 @@ bool Location::getAutoIndex(void) const {
 ostream &operator<<(ostream &os, const Location &src) {
 
 	os << "LOCATION:" << endl;
-	os << "path: " << src.getPath() << endl;
-	os << "index: " << src.getIndex() << endl;
-	os << "root: " << src.getRoot() << endl;
+	os << "\tpath: " << src.getPath() << endl;
+	os << "\tindex: " << src.getIndex() << endl;
+	os << "\troot: " << src.getRoot() << endl;
 
 	set<string> methods = src.getMethod();
 
 	set<string>::iterator it = methods.begin();
 
-	os << "allow_methods: ";
+	os << "\tallow_methods: ";
 	for (; it != methods.end(); it++)
 		os << *it;
 	os << endl;
-	os << "autoindex: " << src.getAutoIndex();
+	os << "\tautoindex: " << src.getAutoIndex();
 	return os;
 }

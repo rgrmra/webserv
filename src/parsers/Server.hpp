@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 14:08:55 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 15:49:09 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Server {
 		size_t getMaxBodySize(void) const;
 		void addErrorPage(string code, string path);
 		string getErrorPage(string code) const;
+		map<string, string> getErrorPages(void) const;
 		void addLocation(Location location);
 		Location getLocation(string code) const;
 		map<string, Location> getLocations(void) const;

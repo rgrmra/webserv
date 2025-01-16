@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 15:10:22 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 16:49:53 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,8 @@ string Parser::find(string key, string &configuration_file, string delimiter) {
 
 void Parser::http(Http &http, string &configuration_file) {
 
-	if (strncmp("http{", configuration_file.c_str(), 5) != 0)
-		return ;
-
-	// remove http
-	configuration_file.erase(0, 5);
+	if (strncmp("http{", configuration_file.c_str(), 5) == 0)
+		configuration_file.erase(0, 5);
 	
 	static string keys[5] = {
 		"client_max_body_size ",
@@ -109,11 +106,13 @@ void Parser::server(Server &server, string &configuration_file) {
 
 	configuration_file.erase(0, 7);
 	
-	static string keys[5] = {
+	static string keys[7] = {
 		"listen ",
 		"server_name ",
 		"root ",
-		"error_page",
+		"error_page ",
+		"index ",
+		"client_max_body_size ",
 		"location "
 	};
 
@@ -139,7 +138,15 @@ void Parser::server(Server &server, string &configuration_file) {
 		if (not tmp.empty())
 			server.addErrorPage(tmp, tmp);
 
-		if (strncmp(keys[4].c_str(), configuration_file.c_str(), keys[4].size()) == 0)
+		tmp = Parser::find(keys[4], configuration_file, ";");
+		if (not tmp.empty())
+			server.setIndex(tmp);
+
+		tmp = Parser::find(keys[5], configuration_file, ";");
+		if (not tmp.empty())
+			server.setMaxBodySize(tmp);
+
+		if (strncmp(keys[6].c_str(), configuration_file.c_str(), keys[4].size()) == 0)
 			server.addLocation(Location(configuration_file));
 
 		if (configuration_file.at(0) == '}') {
@@ -150,8 +157,6 @@ void Parser::server(Server &server, string &configuration_file) {
 }
 
 void Parser::location(Location &location, string &configuration_file) {
-
-	//configuration_file.erase(0, 8);
 
 	static string keys[4] = {
 		"index ",
@@ -164,7 +169,6 @@ void Parser::location(Location &location, string &configuration_file) {
 
 	tmp = Parser::find("location ", configuration_file, "{");
 
-	cout << "\033[091m" << tmp << "\033[0m" << endl;
 	if (not tmp.empty())
 		location.setPath(tmp);
 

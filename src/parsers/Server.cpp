@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 15:13:45 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 16:51:03 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,6 +146,11 @@ string Server::getErrorPage(string code) const {
 	return _error_pages.find(code)->second;
 }
 
+map<string, string> Server::getErrorPages(void) const {
+
+	return _error_pages;
+}
+
 void Server::addLocation(Location location) {
 
 	_locations[location.getPath()] = location;
@@ -161,13 +166,24 @@ map<string, Location> Server::getLocations(void) const {
 
 	return _locations;
 }
+
 ostream &operator<<(ostream &os, const Server &src) {
 
 	os << "SERVER:" << endl;
-	os << "host: " << src.getHost() << endl;
-	os << "port: " << src.getPort() << endl;
-	os << "server_name: " << src.getName() << endl;
-	os << "root: " << src.getRoot() << endl;
+	os << "\thost: " << src.getHost() << endl;
+	os << "\tport: " << src.getPort() << endl;
+	os << "\tserver_name: " << src.getName() << endl;
+	os << "\troot: " << src.getRoot() << endl;
+	os << "\tindex: " << src.getIndex() << endl;
+	os << "\tclient_max_body_size: " << src.getMaxBodySize() << endl;
+
+	os << "ERROR PAGES: " << endl;
+	map<string, string> error_pages = src.getErrorPages();
+
+	map<string, string>::iterator ite = error_pages.begin();
+
+	for (; ite != error_pages.end(); ite++)
+		os << "\tcode: " << (*ite).first << ", page: " << (*ite).second << endl;
 
 	map<string, Location> locations = src.getLocations();
 
@@ -176,7 +192,6 @@ ostream &operator<<(ostream &os, const Server &src) {
 	for (; it != locations.end(); it++) {
 		os << (*it).second << endl;
 	}
-
 	return os;
 }
 

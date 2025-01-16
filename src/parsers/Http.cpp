@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 10:58:13 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 16:51:22 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,10 +193,10 @@ set<Server> Http::getServers(void) const {
 ostream &operator<<(ostream &os, const Http &src) {
 
 	os << "HTTP:" << endl;
-	os << "client_max_body_size: " << src.getMaxBodySize() << endl;
-	os << "access_log: " << src.getAcessLog() << endl;
-	os << "error_log: " << src.getErrorLog() << endl;
-	os << "root: " << src.getRoot() << endl;
+	os << "\tclient_max_body_size: " << src.getMaxBodySize() << endl;
+	os << "\taccess_log: " << src.getAcessLog() << endl;
+	os << "\terror_log: " << src.getErrorLog() << endl;
+	os << "\troot: " << src.getRoot() << endl;
 
 	set<Server> servers = src.getServers();
 
