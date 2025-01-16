@@ -6,13 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/15 18:09:22 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 14:08:55 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include "Http.hpp"
 #include <map>
 #include <ostream>
 
@@ -31,10 +32,10 @@ class Server {
 		map<string, string> _error_pages;
 		map<string, Location> _locations;
 
-		Server(void);
 
 	public:
-		Server(string configuration_file);
+		Server(void);
+		Server(string &configuration_file);
 		Server(const Server &src);
 		Server &operator=(const Server &rhs);
 		~Server(void);
@@ -55,8 +56,9 @@ class Server {
 		size_t getMaxBodySize(void) const;
 		void addErrorPage(string code, string path);
 		string getErrorPage(string code) const;
-		void addLocation(string path, Location location);
+		void addLocation(Location location);
 		Location getLocation(string code) const;
+		map<string, Location> getLocations(void) const;
 };
 
 ostream &operator<<(ostream &os, const Server &src);

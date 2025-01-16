@@ -6,12 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/15 18:18:36 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 15:13:45 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Http.hpp"
 #include "Location.hpp"
+#include "Parser.hpp"
 #include <cstring>
 #include <iostream>
 
@@ -22,9 +24,9 @@ Server::Server(void) {
 
 }
 
-Server::Server(string configuration_file) {
+Server::Server(string &configuration_file) {
 
-	(void) configuration_file;
+	Parser::server(*this, configuration_file);
 }
 
 Server::Server(const Server &src) {
@@ -144,9 +146,9 @@ string Server::getErrorPage(string code) const {
 	return _error_pages.find(code)->second;
 }
 
-void Server::addLocation(string path, Location location) {
+void Server::addLocation(Location location) {
 
-	_locations[path] = location;
+	_locations[location.getPath()] = location;
 }
 
 Location Server::getLocation(string code) const {
@@ -155,9 +157,26 @@ Location Server::getLocation(string code) const {
 	return Location();
 }
 
+map<string, Location> Server::getLocations(void) const {
+
+	return _locations;
+}
 ostream &operator<<(ostream &os, const Server &src) {
 
-	(void) src;
+	os << "SERVER:" << endl;
+	os << "host: " << src.getHost() << endl;
+	os << "port: " << src.getPort() << endl;
+	os << "server_name: " << src.getName() << endl;
+	os << "root: " << src.getRoot() << endl;
+
+	map<string, Location> locations = src.getLocations();
+
+	map<string, Location>::iterator it = locations.begin();
+
+	for (; it != locations.end(); it++) {
+		os << (*it).second << endl;
+	}
+
 	return os;
 }
 

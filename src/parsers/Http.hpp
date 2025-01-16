@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/15 18:39:45 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 10:55:33 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class Http {
 		Server getServerByHost(string host, string port) const;
 		void removeServerByName(string name, string port);
 		void removeServerByHost(string host, string port);
+		set<Server> getServers(void) const;
 };
 
 ostream &operator<<(ostream &os, const Http &src);

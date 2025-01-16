@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 18:50:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/15 19:41:53 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 09:35:59 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class Parser {
 		~Parser(void);
 
 	public:
+		static string find(string key, string &configuration_file, string delimiter);
 		static void http(Http &http, string &configuration_file);
 		static void server(Server &server, string &configuration_file);
 		static void location(Location &location, string &configuration_file);

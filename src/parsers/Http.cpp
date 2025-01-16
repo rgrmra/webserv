@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/15 20:20:51 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/16 10:58:13 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,11 +115,12 @@ Http::~Http(void) {
 void Http::setMaxBodySize(string max_body_size) {
 
 	(void) max_body_size;
+	_max_body_size = 1000;
 }
 
 size_t Http::getMaxBodySize(void) const {
 		
-	return 0;
+	return _max_body_size;
 }
 
 void Http::setAcessLog(string access_log) {
@@ -162,14 +163,14 @@ Server Http::getServerByName(string name, string port) const {
 
 	(void)name;
 	(void)port;
-	return Server("");
+	return Server();
 }
 
 Server Http::getServerByHost(string host, string port) const {
 
 	(void)host;
 	(void)port;
-	return Server("");
+	return Server();
 }
 
 void Http::removeServerByName(string name, string port) {
@@ -184,9 +185,27 @@ void Http::removeServerByHost(string host, string port) {
 	(void)port;
 }
 
+set<Server> Http::getServers(void) const {
+
+	return _servers;
+}
+
 ostream &operator<<(ostream &os, const Http &src) {
 
-	(void) src;
+	os << "HTTP:" << endl;
+	os << "client_max_body_size: " << src.getMaxBodySize() << endl;
+	os << "access_log: " << src.getAcessLog() << endl;
+	os << "error_log: " << src.getErrorLog() << endl;
+	os << "root: " << src.getRoot() << endl;
+
+	set<Server> servers = src.getServers();
+
+	set<Server>::iterator it = servers.begin();
+
+	for (; it != servers.end(); it++) {
+		os << *it << endl;
+	}
+
 	return os;
 }
 
