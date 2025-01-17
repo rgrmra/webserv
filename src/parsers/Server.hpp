@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 15:49:09 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 08:06:12 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ class Server {
 		size_t _max_body_size;
 		map<string, string> _error_pages;
 		map<string, Location> _locations;
-
+		string _return_code;
+		string _return_path;
 
 	public:
 		Server(void);
@@ -60,6 +61,9 @@ class Server {
 		void addLocation(Location location);
 		Location getLocation(string code) const;
 		map<string, Location> getLocations(void) const;
+		void setReturn(string value);
+		string getReturnCode(void) const;
+		string getReturnPath(void) const;
 };
 
 ostream &operator<<(ostream &os, const Server &src);

@@ -6,12 +6,12 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 16:49:53 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 10:06:53 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Parser.hpp"
-#include <cstring>
+#include <functional>
 #include <iostream>
 #include <stdexcept>
 
@@ -38,61 +38,67 @@ Parser::~Parser(void) {
 
 }
 
+bool Parser::compare(string key, string &configuration_file) {
+
+	if (configuration_file.empty())
+		return false;
+
+	if (configuration_file.compare(0, key.size(), key) == 0)
+		return true;
+
+	return false;
+}
+
 string Parser::find(string key, string &configuration_file, string delimiter) {
+
+	if (configuration_file.empty())
+		return "";
+
+	if (not Parser::compare(key, configuration_file))
+		return "";
 	
-	if (strncmp(key.c_str(), configuration_file.c_str(), key.size()) == 0) {
-		configuration_file.erase(0, key.size());
+	configuration_file.erase(0, key.size());
 
-		size_t pos = configuration_file.find(delimiter);
+	size_t pos = configuration_file.find(delimiter);
 
-		if (pos != string::npos) {
-			string tmp = configuration_file.substr(0, pos);
-			configuration_file.erase(0, pos + 1);
-			
-			return tmp;
-		}
-	}
+	if (pos == string::npos)
+		return "";
 
-	return "";
+	string tmp = configuration_file.substr(0, pos);
+	configuration_file.erase(0, pos + 1);
+		
+	return tmp;
 }
 
 void Parser::http(Http &http, string &configuration_file) {
 
-	if (strncmp("http{", configuration_file.c_str(), 5) == 0)
+	if (Parser::compare("http{", configuration_file))
 		configuration_file.erase(0, 5);
 	
-	static string keys[5] = {
-		"client_max_body_size ",
-		"access_log ",
-		"error_log ",
-		"root ",
-		"server{"
-	};
-
 	string tmp;
 
 	for (size_t i = 0; i < configuration_file.size(); i++) {
 
-		tmp = Parser::find(keys[0], configuration_file, ";");
+		tmp = Parser::find("client_max_body_size ", configuration_file, ";");
 		if (not tmp.empty())
 			http.setMaxBodySize(tmp);
 
-		tmp = Parser::find(keys[1], configuration_file, ";");
+		tmp = Parser::find("access_log ", configuration_file, ";");
 		if (not tmp.empty())
 			http.setAcessLog(tmp);
 
-		tmp = Parser::find(keys[2], configuration_file, ";");
+		tmp = Parser::find("error_log ", configuration_file, ";");
 		if (not tmp.empty())
 			http.setErrorLog(tmp);
 
-		tmp = Parser::find(keys[3], configuration_file, ";");
+		tmp = Parser::find("root ", configuration_file, ";");
 		if (not tmp.empty())
 			http.setRoot(tmp);
 
-		if (strncmp(keys[4].c_str(), configuration_file.c_str(), keys[4].size()) == 0)
+		if (Parser::compare("server{", configuration_file))
 			http.addServer(Server(configuration_file));
 
-		if (configuration_file.at(0) == '}') {
+		if (Parser::compare("}", configuration_file)) {
 			configuration_file.erase(0, 1);
 			break;
 		}
@@ -106,50 +112,44 @@ void Parser::server(Server &server, string &configuration_file) {
 
 	configuration_file.erase(0, 7);
 	
-	static string keys[7] = {
-		"listen ",
-		"server_name ",
-		"root ",
-		"error_page ",
-		"index ",
-		"client_max_body_size ",
-		"location "
-	};
-
 	string tmp;
 
 	for (size_t i = 0; i < configuration_file.size(); i++) {
 
-		tmp = Parser::find(keys[0], configuration_file, ";");
+		tmp = Parser::find("listen ", configuration_file, ";");
 		if (not tmp.empty()) {
 			server.setHost(tmp);
 			server.setPort(tmp);
 		}
 
-		tmp = Parser::find(keys[1], configuration_file, ";");
+		tmp = Parser::find("server_name ", configuration_file, ";");
 		if (not tmp.empty())
 			server.setName(tmp);
 			
-		tmp = Parser::find(keys[2], configuration_file, ";");
+		tmp = Parser::find("root ", configuration_file, ";");
 		if (not tmp.empty())
 			server.setRoot(tmp);
 
-		tmp = Parser::find(keys[3], configuration_file, ";");
+		tmp = Parser::find("error_page ", configuration_file, ";");
 		if (not tmp.empty())
 			server.addErrorPage(tmp, tmp);
 
-		tmp = Parser::find(keys[4], configuration_file, ";");
+		tmp = Parser::find("index ", configuration_file, ";");
 		if (not tmp.empty())
 			server.setIndex(tmp);
 
-		tmp = Parser::find(keys[5], configuration_file, ";");
+		tmp = Parser::find("client_max_body_size ", configuration_file, ";");
 		if (not tmp.empty())
 			server.setMaxBodySize(tmp);
 
-		if (strncmp(keys[6].c_str(), configuration_file.c_str(), keys[4].size()) == 0)
+		tmp = Parser::find("return ", configuration_file, ";");
+		if (not tmp.empty())
+			server.setReturn(tmp);
+
+		if (Parser::compare("location ", configuration_file))
 			server.addLocation(Location(configuration_file));
 
-		if (configuration_file.at(0) == '}') {
+		if (Parser::compare("}", configuration_file)) {
 			configuration_file.erase(0, 1);
 			break;
 		}
@@ -158,39 +158,35 @@ void Parser::server(Server &server, string &configuration_file) {
 
 void Parser::location(Location &location, string &configuration_file) {
 
-	static string keys[4] = {
-		"index ",
-		"root ",
-		"allow_methods",
-		"autoindex "
-	};
-
 	string tmp;
 
 	tmp = Parser::find("location ", configuration_file, "{");
-
 	if (not tmp.empty())
 		location.setPath(tmp);
 
 	for (size_t i = 0; i < configuration_file.size(); i++) {
 
-		tmp = Parser::find(keys[0], configuration_file, ";");
+		tmp = Parser::find("index ", configuration_file, ";");
 		if (not tmp.empty())
 			location.setIndex(tmp);
 
-		tmp = Parser::find(keys[1], configuration_file, ";");
+		tmp = Parser::find("root ", configuration_file, ";");
 		if (not tmp.empty())
 			location.setRoot(tmp);
 
-		tmp = Parser::find(keys[2], configuration_file, ";");
+		tmp = Parser::find("allow_methods ", configuration_file, ";");
 		if (not tmp.empty())
 			location.addMethod(tmp);
 
-		tmp = Parser::find(keys[3], configuration_file, ";");
+		tmp = Parser::find("autoindex ", configuration_file, ";");
 		if (not tmp.empty())
 			location.setAutoIndex(tmp);
+
+		tmp = Parser::find("return ", configuration_file, ";");
+		if (not tmp.empty())
+			location.setReturn(tmp);
 			
-		if (configuration_file.at(0) == '}') {
+		if (Parser::compare("}", configuration_file)) {
 			configuration_file.erase(0, 1);
 			break;
 		}

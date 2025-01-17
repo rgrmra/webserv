@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 16:18:58 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 08:14:11 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,24 @@ void Location::setAutoIndex(string autoindex) {
 bool Location::getAutoIndex(void) const {
 
 	return _autoindex;
+}
+
+void Location::setReturn(string value) {
+
+	(void) value;
+
+	_return_code = "";
+	_return_path = "";
+}
+
+string Location::getReturnCode() const {
+
+	return _return_code;
+}
+
+string Location::getReturnPath() const {
+
+	return _return_path;
 }
 
 ostream &operator<<(ostream &os, const Location &src) {

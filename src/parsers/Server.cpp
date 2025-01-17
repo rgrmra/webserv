@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 16:51:03 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 08:05:56 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,24 @@ Location Server::getLocation(string code) const {
 map<string, Location> Server::getLocations(void) const {
 
 	return _locations;
+}
+
+void Server::setReturn(string value) {
+
+	(void) value;
+
+	_return_code = "";
+	_return_path = "";
+}
+
+string Server::getReturnCode(void) const {
+
+	return _return_code;
+}
+
+string Server::getReturnPath(void) const {
+
+	return _return_path;
 }
 
 ostream &operator<<(ostream &os, const Server &src) {
