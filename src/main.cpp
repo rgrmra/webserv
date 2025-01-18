@@ -6,11 +6,12 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/16 15:19:24 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 11:02:55 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parsers/Http.hpp"
+#include "services/Logger/Logger.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -21,25 +22,24 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	string configuration_file;
+	string filename;
 
 	try {
 
 		if (argc == 1)
-			configuration_file = "./configurations/default.conf";
+			filename = "./configurations/default.conf";
 		else if (argc == 2)
-			configuration_file = argv[1];
+			filename = argv[1];
 		else
 		 	throw std::runtime_error("");
 
-		Http servers = Http(configuration_file);
+		Http servers = Http(filename);
 
-		cout << "WebReq: " << configuration_file << endl;
 		cout << servers << endl;
 
 	} catch (std::exception &exception) {
 
-		cerr << exception.what() << endl;
+		Logger::error(exception.what());
 
 		return EXIT_FAILURE;
 	}

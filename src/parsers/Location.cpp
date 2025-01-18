@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 08:14:11 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 16:16:46 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ Location &Location::operator=(const Location &rhs) {
 	_path = rhs._path;
 	_index = rhs._index;
 	_root = rhs._root;
+	_return_code = rhs._return_code;
+	_return_path = rhs._return_path;
 
 	set<string> allow_methods= rhs._allow_methods;
 
@@ -105,10 +107,8 @@ bool Location::getAutoIndex(void) const {
 
 void Location::setReturn(string value) {
 
-	(void) value;
-
-	_return_code = "";
-	_return_path = "";
+	_return_code = value;
+	_return_path = value;
 }
 
 string Location::getReturnCode() const {
@@ -136,6 +136,7 @@ ostream &operator<<(ostream &os, const Location &src) {
 	for (; it != methods.end(); it++)
 		os << *it;
 	os << endl;
-	os << "\tautoindex: " << src.getAutoIndex();
+	os << "\tautoindex: " << src.getAutoIndex() << endl;
+	os << "\treturn: " + src.getReturnCode() + " " + src.getReturnPath() << endl;
 	return os;
 }

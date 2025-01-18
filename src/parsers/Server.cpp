@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 08:05:56 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 16:16:06 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ Server &Server::operator=(const Server &rhs) {
 	_root = rhs._root;
 	_index = rhs._index;
 	_max_body_size = rhs._max_body_size;
+	_return_code = rhs._return_code;
+	_return_path = rhs._return_path;
 
 	map<string, string> error_pages = rhs._error_pages;
 
@@ -169,10 +171,8 @@ map<string, Location> Server::getLocations(void) const {
 
 void Server::setReturn(string value) {
 
-	(void) value;
-
-	_return_code = "";
-	_return_path = "";
+	_return_code = value;
+	_return_path = value;
 }
 
 string Server::getReturnCode(void) const {
@@ -207,9 +207,10 @@ ostream &operator<<(ostream &os, const Server &src) {
 
 	map<string, Location>::iterator it = locations.begin();
 
-	for (; it != locations.end(); it++) {
+	for (; it != locations.end(); it++)
 		os << (*it).second << endl;
-	}
+
+	os << "\treturn: " + src.getReturnCode() + " " + src.getReturnPath() << endl;
 	return os;
 }
 

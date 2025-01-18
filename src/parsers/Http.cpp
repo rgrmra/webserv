@@ -6,13 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 09:47:10 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/17 14:54:51 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 #include "Server.hpp"
 #include "Parser.hpp"
+#include "Logger.hpp"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -24,63 +25,37 @@ Http::Http(void) {
 
 }
 
-Http::Http(string &configuration_file) {
+Http::Http(string &filename) {
 
-	ifstream file(configuration_file.c_str());
-
+	ifstream file(filename.c_str());
 	if (not file)
-		throw runtime_error(strerror(errno));
+		throw runtime_error("invalid configuration file: " + filename);
 
+	static string set = " \n\t\r\v\f";
 	string buffer;
-	string line;
-	while(getline(file, line)) {
-		
-		// ignore empty line
-		if (not line.size())
-			continue;
 
-		// remove comment
-		if (static_cast<ssize_t>(line.find_first_of("#")) > -1)
+	for (string line; getline(file, line);) {
+		
+		if (line.find("#") != string::npos)
 			line = line.substr(0, line.find_first_of("#"));
 
-		// ignore blank line
-		if (static_cast<ssize_t>(line.find_first_not_of(" \n\t\r\v\f")) == -1)
-			continue;
+		Parser::trim(line, set);
 
-		// remove blank line at start
-		line = line.substr(line.find_first_not_of(" \n\t\r\v\f"), line.size());
-
-		// remove black line at end
-		line = line.substr(0, line.find_last_not_of(" \n\t\r\v\f") + 1);
-
-		// concat string
 		buffer.append(line);
 	}
 
-	// replace tab by space
-	for (size_t i = 0; i < buffer.length(); i++)
-		if (buffer.at(i) == '\t')
-			buffer.at(i) = ' ';
-
-	// erase double spaces
-	for (size_t pos = buffer.find("  "); pos != string::npos; pos = buffer.find("  "))
-		buffer.erase(pos, 1);
-
-	for (size_t pos = buffer.find(" {"); pos != string::npos; pos = buffer.find(" {"))
-		buffer.erase(pos, 1);
-
-	for (size_t pos = buffer.find(" }"); pos != string::npos; pos = buffer.find(" }"))
-		buffer.erase(pos, 1);
-
-	for (size_t pos = buffer.find(" ;"); pos != string::npos; pos = buffer.find(" ;"))
-		buffer.erase(pos, 1);
-
-	// close file
 	file.close();
 
+	Parser::replace(buffer, '\t', ' ');
+
+	Parser::erase(buffer, "  ", 1);
+	Parser::erase(buffer, " {", 1);
+	Parser::erase(buffer, " }", 1);
+	Parser::erase(buffer, " ;", 1);
+
 	Parser::http(*this, buffer);
-	// print formated configuration
-	cout << buffer << endl;
+
+	Logger::info("configuration file parsed: " + filename);
 }
 
 Http::Http(const Http &src) {
