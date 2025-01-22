@@ -6,13 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 16:16:06 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 12:47:02 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
+#include "Logger.hpp"
 #include "Parser.hpp"
 #include <cstring>
 #include <iostream>

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 21:09:06 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 14:14:20 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 16:52:22 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,31 +52,30 @@ std::string Logger::_getTime(void) {
 	return buffer;
 }
 
-void Logger::_print(std::string color, std::string level, std::string message) {
-	std::cout
-		<< color + _getTime() + " " + level + ": " + message << Color::reset()
-		<< std::endl;
+void Logger::_print(string color, string level, string message) {
+	cout << color + _getTime() + " " + level + ": " + message
+		<< Color::reset() << endl;
 }
 
-void Logger::debug(std::string message) {
+void Logger::debug(string message) {
 	if (not LOGGER_DEBUG)
 		return;
 
 	_print(Color::blue(), "DEBUG", message);
 }
 
-void Logger::info(std::string message) {
+void Logger::info(string message) {
 	_print(Color::green(), "INFO", message);
 }
 
-void Logger::warning(std::string message) {
+void Logger::warning(string message) {
 	Logger::_print(Color::yellow(), "WARNING", message);
 }
 
-void Logger::error(std::string message) {
+void Logger::error(string message) {
 	_print(Color::red(), "ERROR", message);
 }
 
-void Logger::fatal(std::string message) {
+void Logger::fatal(string message) {
 	_print(Color::magenta(), "FATAL", message);
 }

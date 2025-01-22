@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 18:50:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 11:10:59 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 18:27:52 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "Location.hpp"
 #include <functional>
 #include <string>
+#include <list>
 
 using namespace std;
 
@@ -33,6 +34,7 @@ class Parser {
 		static bool compare(string key, string &configuration_file);
 
 	public:
+		static list<string> split(string text);
 		static void erase(string &buffer, string text, size_t quantity);
 		static void replace(string &buffer, char from, char to);
 		static void trim(string &buffer, string set);

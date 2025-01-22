@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 14:54:51 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 19:05:31 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,6 @@ Http &Http::operator=(const Http &rhs) {
 		_servers.insert(*it);
 
 	return *this;
-
 }
 
 Http::~Http(void) {
@@ -100,6 +99,9 @@ size_t Http::getMaxBodySize(void) const {
 
 void Http::setAcessLog(string access_log) {
 
+	if (access_log.empty() || not _access_log.empty())
+		return;
+
 	_access_log = access_log;
 }
 
@@ -109,6 +111,9 @@ string Http::getAcessLog(void) const {
 }
 
 void Http::setErrorLog(string error_log) {
+
+	if (error_log.empty() || not _error_log.empty())
+		return;
 
 	_error_log = error_log;
 }

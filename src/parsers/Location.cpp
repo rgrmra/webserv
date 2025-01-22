@@ -6,12 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 16:16:46 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 18:31:09 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
+#include "Logger.hpp"
 #include "Parser.hpp"
+#include <algorithm>
 
 Location::Location(void) {
 
@@ -103,6 +105,16 @@ void Location::setAutoIndex(string autoindex) {
 bool Location::getAutoIndex(void) const {
 
 	return _autoindex;
+}
+void Location::setMaxBodySize(string max_body_size) {
+
+	(void) max_body_size;
+	_max_body_size = 1000;
+}
+
+size_t Location::getMaxBodySize(void) const {
+
+	return _max_body_size;
 }
 
 void Location::setReturn(string value) {

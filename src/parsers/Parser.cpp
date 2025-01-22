@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 14:53:06 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/21 18:27:42 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <list>
 #include <stdexcept>
 #include <string>
-#include "Logger.hpp"
+#include "Location.hpp"
 
 using namespace std;
 
@@ -102,6 +103,29 @@ string Parser::find(string key, string &buffer, string delimiter) {
 	return tmp;
 }
 
+list<string> Parser::split(std::string text) {
+
+	list<string> tmp;
+
+	for (size_t i = 0; i < text.size(); i++) {
+		
+		Parser::trim(text, " ");
+		size_t pos = text.find_first_of(" ");
+
+		if (not text.empty() && pos == string::npos) {
+			tmp.push_back(text.substr(0, text.size()));
+			text.erase(0, text.size());
+		}
+		else if (not text.empty() && pos != string::npos) {
+			tmp.push_back(text.substr(0, pos));
+			text.erase(0, pos);
+		}
+		cout << text << endl;
+	}
+
+	return tmp;
+}
+
 void Parser::http(Http &http, string &buffer) {
 
 	if (Parser::compare("http{", buffer))
@@ -137,7 +161,7 @@ void Parser::http(Http &http, string &buffer) {
 	}
 
 	if (not buffer.empty()) {
-		throw runtime_error("invalid configuration file");
+		throw runtime_error("failed to parse http at: " + buffer);
 	}
 }
 
@@ -187,6 +211,8 @@ void Parser::server(Server &server, string &buffer) {
 			return;
 		}
 	}
+
+	throw runtime_error("failed to parser server at: " + buffer);
 }
 
 void Parser::location(Location &location, string &buffer) {
@@ -215,6 +241,10 @@ void Parser::location(Location &location, string &buffer) {
 		if (not tmp.empty())
 			location.setAutoIndex(tmp);
 
+		tmp = Parser::find("client_max_body_size ", buffer, ";");
+		if (not tmp.empty())
+			location.setMaxBodySize(tmp);
+
 		tmp = Parser::find("return ", buffer, ";");
 		if (not tmp.empty())
 			location.setReturn(tmp);
@@ -227,5 +257,3 @@ void Parser::location(Location &location, string &buffer) {
 
 	throw runtime_error("failed to parse location at: " + buffer);
 }
-
-
