@@ -6,14 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 18:31:09 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 11:14:15 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
 #include "Logger.hpp"
 #include "Parser.hpp"
-#include <algorithm>
 
 Location::Location(void) {
 
@@ -39,14 +38,7 @@ Location &Location::operator=(const Location &rhs) {
 	_root = rhs._root;
 	_return_code = rhs._return_code;
 	_return_path = rhs._return_path;
-
-	set<string> allow_methods= rhs._allow_methods;
-
-	set<string>::iterator it = allow_methods.begin();
-
-	for (; it != allow_methods.end(); it++)
-		_allow_methods.insert(*it);
-
+	_allow_methods = rhs._allow_methods;
 	_autoindex = rhs._autoindex;
 
 	return *this;

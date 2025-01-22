@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 09:29:07 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 11:48:50 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,6 @@ class Http {
 		void addServer(Server server);
 		Server getServerByName(string name, string port) const;
 		Server getServerByHost(string host, string port) const;
-		void removeServerByName(string name, string port);
-		void removeServerByHost(string host, string port);
 		set<Server> getServers(void) const;
 };
 

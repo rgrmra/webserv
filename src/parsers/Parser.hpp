@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 18:50:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 18:27:52 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 14:26:08 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ class Parser {
 		static void erase(string &buffer, string text, size_t quantity);
 		static void replace(string &buffer, char from, char to);
 		static void trim(string &buffer, string set);
+		static string basename(string text);
+		static size_t stringToSizeT(string text);
 		static void http(Http &http, string &configuration_file);
 		static void server(Server &server, string &configuration_file);
 		static void location(Location &location, string &configuration_file);

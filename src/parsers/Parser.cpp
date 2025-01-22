@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 18:27:42 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 14:25:49 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,29 @@ list<string> Parser::split(std::string text) {
 		}
 		cout << text << endl;
 	}
+
+	return tmp;
+}
+
+string Parser::basename(string text) {
+
+	if (text.empty())
+		return "";
+
+	size_t pos = text.find_last_of(".");
+
+	if (pos == string::npos)
+		return "";
+
+	return text.substr(pos, text.size() - pos);
+}
+
+size_t	Parser::stringToSizeT(string text) {
+	
+	size_t	tmp = 0;
+
+	for (size_t i = 0; i < text.size(); i++)
+		tmp += text.at(i);
 
 	return tmp;
 }

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 19:05:31 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 14:34:52 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,11 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 #include "Logger.hpp"
-#include <cstring>
+#include <cstdlib>
 #include <fstream>
-#include <iostream>
 #include <set>
 #include <string>
-#include <sys/types.h>
+#include <cmath>
 
 Http::Http(void) {
 
@@ -27,21 +26,21 @@ Http::Http(void) {
 
 Http::Http(string &filename) {
 
+	if (Parser::basename(filename) != ".conf")
+		throw runtime_error("invalid .conf file format: " + filename);
+
 	ifstream file(filename.c_str());
 	if (not file)
-		throw runtime_error("invalid configuration file: " + filename);
+		throw runtime_error("failed to open configuration file: " + filename);
 
-	static string set = " \n\t\r\v\f";
 	string buffer;
 
-	for (string line; getline(file, line);) {
+	for (string line; getline(file, line); buffer.append(line)) {
 		
 		if (line.find("#") != string::npos)
 			line = line.substr(0, line.find_first_of("#"));
 
-		Parser::trim(line, set);
-
-		buffer.append(line);
+		Parser::trim(line, " \n\t\r\v\f");
 	}
 
 	file.close();
@@ -72,11 +71,7 @@ Http &Http::operator=(const Http &rhs) {
 	_error_log = rhs._error_log;
 	_access_log = rhs._access_log;
 	_root = rhs._root;
-
-	set<Server>::iterator it = rhs._servers.begin();
-
-	for (; it != rhs._servers.end(); it++)
-		_servers.insert(*it);
+	_servers = rhs._servers;
 
 	return *this;
 }
@@ -88,8 +83,26 @@ Http::~Http(void) {
 
 void Http::setMaxBodySize(string max_body_size) {
 
-	(void) max_body_size;
-	_max_body_size = 1000;
+	if (max_body_size.empty())
+		return;
+
+	size_t pos = max_body_size.find_first_not_of("0123456789");
+
+	if (pos == string::npos)
+		return;
+
+	string format = max_body_size.substr(pos, max_body_size.size() - pos);
+
+	_max_body_size = strtol(max_body_size.c_str(), NULL, 10);
+
+	if (format == "KB" || format == "K")
+		_max_body_size *= 1024;
+	else if (format == "MB" || format == "M")
+		_max_body_size *= pow(1024, 2);
+	else if (format == "GB" || format == "G")
+		_max_body_size *= pow(1024, 2);
+	else
+		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
 
 size_t Http::getMaxBodySize(void) const {
@@ -151,18 +164,6 @@ Server Http::getServerByHost(string host, string port) const {
 	(void)host;
 	(void)port;
 	return Server();
-}
-
-void Http::removeServerByName(string name, string port) {
-
-	(void)name;
-	(void)port;
-}
-
-void Http::removeServerByHost(string host, string port) {
-
-	(void)host;
-	(void)port;
 }
 
 set<Server> Http::getServers(void) const {

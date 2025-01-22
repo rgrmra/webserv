@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 12:47:02 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 11:14:06 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "Location.hpp"
 #include "Logger.hpp"
 #include "Parser.hpp"
-#include <cstring>
 #include <iostream>
 
 using namespace std;
@@ -48,21 +47,9 @@ Server &Server::operator=(const Server &rhs) {
 	_max_body_size = rhs._max_body_size;
 	_return_code = rhs._return_code;
 	_return_path = rhs._return_path;
+	_error_pages = rhs._error_pages;
+	_locations = rhs._locations;
 
-	map<string, string> error_pages = rhs._error_pages;
-
-	map<string, string>::iterator it = error_pages.begin();
-
-	for (; it != error_pages.end(); it++)
-		_error_pages[it->first] = it->second;
-
-	map<string, Location> locations = rhs._locations;
-
-	map<string, Location>::iterator itl = locations.begin();
-
-	for (; itl != locations.end(); itl++)
-		_locations[itl->first] = itl->second;
-	
 	return *this;
 }
 
