@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 14:25:49 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 15:05:38 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,28 +151,17 @@ size_t	Parser::stringToSizeT(string text) {
 
 void Parser::http(Http &http, string &buffer) {
 
-	if (Parser::compare("http{", buffer))
+	if (Parser::compare("http{", buffer)) {
 		buffer.erase(0, 5);
+		buffer.erase(buffer.size() - 1, buffer.size());
+	}
 	
-	string tmp;
-
 	for (size_t i = 0; i < buffer.size(); i++) {
 
-		tmp = Parser::find("client_max_body_size ", buffer, ";");
-		if (not tmp.empty())
-			http.setMaxBodySize(tmp);
-
-		tmp = Parser::find("access_log ", buffer, ";");
-		if (not tmp.empty())
-			http.setAcessLog(tmp);
-
-		tmp = Parser::find("error_log ", buffer, ";");
-		if (not tmp.empty())
-			http.setErrorLog(tmp);
-
-		tmp = Parser::find("root ", buffer, ";");
-		if (not tmp.empty())
-			http.setRoot(tmp);
+		http.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
+		http.setAcessLog(find("access_log ", buffer, ";"));
+		http.setErrorLog(find("error_log ", buffer, ";"));
+		http.setRoot(find("root ", buffer, ";"));
 
 		if (Parser::compare("server{", buffer))
 			http.addServer(Server(buffer));
@@ -183,9 +172,7 @@ void Parser::http(Http &http, string &buffer) {
 		}
 	}
 
-	if (not buffer.empty()) {
-		throw runtime_error("failed to parse http at: " + buffer);
-	}
+	throw runtime_error("failed to parse http at: " + buffer);
 }
 
 void Parser::server(Server &server, string &buffer) {

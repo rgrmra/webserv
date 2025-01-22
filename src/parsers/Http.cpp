@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 14:34:52 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 15:01:54 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ Http::~Http(void) {
 
 }
 
-
 void Http::setMaxBodySize(string max_body_size) {
 
 	if (max_body_size.empty())
@@ -100,7 +99,7 @@ void Http::setMaxBodySize(string max_body_size) {
 	else if (format == "MB" || format == "M")
 		_max_body_size *= pow(1024, 2);
 	else if (format == "GB" || format == "G")
-		_max_body_size *= pow(1024, 2);
+		_max_body_size *= pow(1024, 3);
 	else
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
@@ -137,6 +136,9 @@ string Http::getErrorLog(void) const {
 }
 
 void Http::setRoot(string root) {
+
+	if (root.empty())
+		return;
 
 	_root = root;
 }
@@ -189,4 +191,3 @@ ostream &operator<<(ostream &os, const Http &src) {
 
 	return os;
 }
-
