@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 17:53:01 by rde-mour          #+#    #+#             */
-/*   Updated: 2024/12/17 18:14:52 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 10:22:28 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,20 +15,22 @@
 
 #include <string>
 
-class Color : public std::string {
+using namespace std;
+
+class Color : public string {
 	public:
 
-		static std::string red(void);
-		static std::string red(std::string message);
-		static std::string green(void);
-		static std::string green(std::string message);
-		static std::string yellow(void);
-		static std::string yellow(std::string message);
-		static std::string blue(void);
-		static std::string blue(std::string message);
-		static std::string magenta(void);
-		static std::string magenta(std::string message);
-		static std::string reset(void);
+		static string red(void);
+		static string red(string message);
+		static string green(void);
+		static string green(string message);
+		static string yellow(void);
+		static string yellow(string message);
+		static string blue(void);
+		static string blue(string message);
+		static string magenta(void);
+		static string magenta(string message);
+		static string reset(void);
 
 };
 
