@@ -6,13 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 15:01:54 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 21:31:54 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 #include "Server.hpp"
-#include "Parser.hpp"
+#include "parser.hpp"
 #include "Logger.hpp"
 #include <cstdlib>
 #include <fstream>
@@ -26,7 +26,7 @@ Http::Http(void) {
 
 Http::Http(string &filename) {
 
-	if (Parser::basename(filename) != ".conf")
+	if (parser::basename(filename) != ".conf")
 		throw runtime_error("invalid .conf file format: " + filename);
 
 	ifstream file(filename.c_str());
@@ -40,19 +40,19 @@ Http::Http(string &filename) {
 		if (line.find("#") != string::npos)
 			line = line.substr(0, line.find_first_of("#"));
 
-		Parser::trim(line, " \n\t\r\v\f");
+		parser::trim(line, " \n\t\r\v\f");
 	}
 
 	file.close();
 
-	Parser::replace(buffer, '\t', ' ');
+	parser::replace(buffer, '\t', ' ');
 
-	Parser::erase(buffer, "  ", 1);
-	Parser::erase(buffer, " {", 1);
-	Parser::erase(buffer, " }", 1);
-	Parser::erase(buffer, " ;", 1);
+	parser::erase(buffer, "  ", 1);
+	parser::erase(buffer, " {", 1);
+	parser::erase(buffer, " }", 1);
+	parser::erase(buffer, " ;", 1);
 
-	Parser::http(*this, buffer);
+	parser::http(*this, buffer);
 
 	Logger::info("configuration file parsed: " + filename);
 }

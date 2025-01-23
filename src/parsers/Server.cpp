@@ -6,16 +6,18 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 11:14:06 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 21:32:14 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "directive.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
 #include "Logger.hpp"
-#include "Parser.hpp"
+#include "parser.hpp"
 #include <iostream>
+#include <list>
 
 using namespace std;
 
@@ -26,7 +28,7 @@ Server::Server(void) {
 
 Server::Server(string &configuration_file) {
 
-	Parser::server(*this, configuration_file);
+	parser::server(*this, configuration_file);
 }
 
 Server::Server(const Server &src) {
@@ -159,8 +161,14 @@ map<string, Location> Server::getLocations(void) const {
 
 void Server::setReturn(string value) {
 
-	_return_code = value;
-	_return_path = value;
+	list<string> tmp = directive::setReturn(value);
+
+	_return_code = tmp.front();
+
+	if (tmp.size() != 2)
+		return;
+
+	_return_path = tmp.back();
 }
 
 string Server::getReturnCode(void) const {

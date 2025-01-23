@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:25:37 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 17:01:08 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/22 20:51:31 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ using namespace std;
 class Location {
 	private:
 		string _path;
-		string _index;
+		set<string> _index;
 		string _root;
 		set<string> _allow_methods;
 		bool _autoindex;
@@ -41,7 +41,7 @@ class Location {
 		void setPath(string path);
 		string getPath(void) const;
 		void setIndex(string index);
-		string getIndex(void) const;
+		set<string> getIndex(void) const;
 		void setRoot(string root);
 		string getRoot(void) const;
 		void addMethod(string method);
