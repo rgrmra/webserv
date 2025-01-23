@@ -6,20 +6,20 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 14:30:49 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 20:36:54 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "directive.hpp"
 #include "parser.hpp"
 #include <cmath>
-#include <iostream>
+#include <cstdlib>
 #include <map>
 #include <stdexcept>
 
 void directive::setAcessLog(string access_log, string &_access_log) {
 
-	if (access_log.empty() || not _access_log.empty())
+	if (access_log.empty())
 		return;
 
 	if (access_log.find_first_of(" ") != string::npos)
@@ -30,7 +30,7 @@ void directive::setAcessLog(string access_log, string &_access_log) {
 
 void directive::setErrorLog(string error_log, string &_error_log) {
 
-	if (error_log.empty() || not _error_log.empty())
+	if (error_log.empty())
 		return;
 
 	if (error_log.find_first_of(" ") != string::npos)
@@ -62,6 +62,9 @@ void directive::setListen(string listen, string &_host, string &_port) {
 
 	if (tmp.back().find_first_not_of("0123456789") != string::npos)
 		throw runtime_error("invalid listen port: " + tmp.back());
+
+	if (strtol(tmp.back().c_str(), NULL, 10) > 65535)
+		throw runtime_error("invalid listen port range: " + tmp.back());
 	
 	_port = tmp.back();
 
@@ -100,6 +103,8 @@ void directive::setIndex(string index, set<string> &_index) {
 		return;
 
 	list<string> indexes = parser::split(index, ' ');
+
+	_index.clear();
 
 	for (list<string>::iterator it = indexes.begin(); it != indexes.end(); it++)
 		_index.insert(*it);
@@ -157,7 +162,8 @@ void directive::addErrorPage(string error_page, map<string, string> &_error_page
 		if ((*it).find_first_not_of("0123456789") != string::npos)
 			throw runtime_error("invalid error code: " + *it);
 
-		if (*it < "100" || *it > "599")
+		size_t code = strtol((*it).c_str(), NULL, 10);
+		if (code < 100 || code > 599)
 			throw runtime_error("invalid error code: " + *it);
 
 		_error_pages[*it] = path;
@@ -170,6 +176,8 @@ void directive::addMethod(string method, set<string> &_allow_methods) {
 		return;
 
 	list<string> methods = parser::split(method, ' ');
+
+	_allow_methods.clear();
 
 	for (list<string>::iterator it = methods.begin(); it != methods.end(); it++) {
 		if (*it != "GET" && *it != "POST" && *it != "DELETE")

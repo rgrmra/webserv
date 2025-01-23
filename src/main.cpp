@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/*test ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 14:54:10 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 17:58:26 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <set>
 #include <string>
 
 using namespace std;
@@ -31,7 +30,7 @@ int main(int argc, char *argv[]) {
 		else if (argc == 2)
 			filename = argv[1];
 		else
-		 	throw std::runtime_error("");
+		 	throw std::runtime_error("too many configuration files");
 
 		Http servers = Http(filename);
 

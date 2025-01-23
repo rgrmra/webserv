@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 15:45:04 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 18:24:28 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,7 @@
 #include "parser.hpp"
 #include <cmath>
 #include <cstdlib>
-#include <ios>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 
 Location::Location(void) {
@@ -148,6 +146,7 @@ ostream &operator<<(ostream &os, const Location &src) {
 		os << " " << *it;
 	os << ";" << endl;
 
+	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
 	os << "\t\t\treturn " << src.getReturnCode() << " " << src.getReturnPath() << ";" << endl;
 	os << "\t\t}";

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 15:53:58 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 20:20:16 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,19 @@ Server::~Server(void) {
 }
 
 bool Server::operator<(const Server &rhs) const {
-	
-	return (_port < rhs._port) && (_host < rhs._host);
+
+	string server1 = _host + ":" +_port;
+	string server2 = rhs._host + ":" + rhs._port;
+
+	if (server1 == server2)
+		return server1 < server2;
+
+	for (list<string>::const_iterator i1 = _name.begin(); i1 != _name.end(); i1++)
+		for (list<string>::const_iterator i2 = rhs._name.begin(); i2 != rhs._name.end(); i2++)
+			if (*i1 == *i2)
+				return *i1 < *i2;
+
+	return server1 < server2;
 }
 
 void Server::setName(string name) {

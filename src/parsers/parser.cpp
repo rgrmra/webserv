@@ -6,14 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 14:25:00 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 18:21:39 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.hpp"
 #include <cstddef>
 #include <cstdlib>
-#include <iostream>
 #include <list>
 #include <stdexcept>
 #include <string>
