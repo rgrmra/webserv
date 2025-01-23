@@ -6,12 +6,12 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/17 11:02:55 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 14:54:10 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parsers/Http.hpp"
-#include "services/Logger/Logger.hpp"
+#include "logger.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
 	} catch (std::exception &exception) {
 
-		Logger::error(exception.what());
+		logger::error(exception.what());
 
 		return EXIT_FAILURE;
 	}

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 21:32:21 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 15:45:04 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,7 @@ Location::~Location(void) {
 
 void Location::setPath(string path) {
 	
-	if (path.empty())
-		return;
-
-	if (path.find_first_of(" ") != string::npos)
-		throw runtime_error("invalid location path: " + path);
-
-	_path = path;
+	directive::setPath(path, _path);
 }
 
 string Location::getPath(void) const {
@@ -73,13 +67,7 @@ string Location::getPath(void) const {
 
 void Location::setIndex(string index) {
 
-	if (index.empty())
-		return;
-
-	list<string> indexes = parser::split(index);
-
-	for (list<string>::iterator it = indexes.begin(); it != indexes.end(); it++)
-		_index.insert(*it);
+	directive::setIndex(index, _index);
 }
 
 set<string> Location::getIndex(void) const {
@@ -89,10 +77,7 @@ set<string> Location::getIndex(void) const {
 
 void Location::setRoot(string root) {
 
-	if (root.empty())
-		return;
-
-	_root = root;
+	directive::setRoot(root, _root);
 }
 
 string Location::getRoot(void) const {
@@ -102,17 +87,7 @@ string Location::getRoot(void) const {
 
 void Location::addMethod(string method) {
 
-	if (method.empty())
-		return;
-
-	list<string> methods = parser::split(method);
-
-	for (list<string>::iterator it = methods.begin(); it != methods.end(); it++) {
-		if (*it != "GET" && *it != "POST" && *it != "DELETE")
-			throw runtime_error("invalid method: " + *it);
-
-		_allow_methods.insert(*it);
-	}
+	directive::addMethod(method, _allow_methods);
 }
 
 set<string> Location::getMethod(void) const {
@@ -122,15 +97,7 @@ set<string> Location::getMethod(void) const {
 
 void Location::setAutoIndex(string autoindex) {
 
-	if (autoindex.empty())
-		return;
-
-	if (autoindex == "on")
-		_autoindex = true;
-	else if (autoindex == "off")
-		_autoindex = false;
-	else
-		throw runtime_error("invalid autoindex: " + autoindex);
+	directive::setAutoIndex(autoindex, _autoindex);
 }
 
 bool Location::getAutoIndex(void) const {
@@ -140,26 +107,7 @@ bool Location::getAutoIndex(void) const {
 
 void Location::setMaxBodySize(string max_body_size) {
 
-	if (max_body_size.empty())
-		return;
-
-	size_t pos = max_body_size.find_first_not_of("0123456789");
-
-	if (pos == string::npos)
-		return;
-
-	string format = max_body_size.substr(pos, max_body_size.size() - pos);
-
-	_max_body_size = strtol(max_body_size.c_str(), NULL, 10);
-
-	if (format == "KB" || format == "K")
-		_max_body_size *= 1024;
-	else if (format == "MB" || format == "M")
-		_max_body_size *= pow(1024, 2);
-	else if (format == "GB" || format == "G")
-		_max_body_size *= pow(1024, 3);
-	else
-		throw runtime_error("invalid value to max_body_size: " + max_body_size);
+	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
 
 size_t Location::getMaxBodySize(void) const {
@@ -169,14 +117,7 @@ size_t Location::getMaxBodySize(void) const {
 
 void Location::setReturn(string value) {
 
-	list<string> tmp = directive::setReturn(value);
-
-	_return_code = tmp.front();
-
-	if (tmp.size() != 2)
-		return;
-
-	_return_path = tmp.back();
+	directive::setReturn(value, _return_code, _return_path);
 }
 
 string Location::getReturnCode() const {
@@ -191,29 +132,25 @@ string Location::getReturnPath() const {
 
 ostream &operator<<(ostream &os, const Location &src) {
 
-	os << "LOCATION:" << endl;
-	os << "\tpath: " << src.getPath() << endl;
-	os << "\tindex:";
-
-	set<string> indexes = src.getIndex();
-
-	set<string>::iterator it = indexes.begin();
-
-	for (;it != indexes.end(); it++)
+	os << "\t\tlocation " << src.getPath() << " {" << endl;
+	
+	os << "\t\t\tindex";
+	set<string> indexs = src.getIndex();
+	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
 		os << " " << *it;
-	os << endl;
+	os << ";" << endl;
 
-	os << "\troot: " << src.getRoot() << endl;
+	os << "\t\t\troot " << src.getRoot() << ";" << endl;
 
+	os << "\t\t\tallow_methods";
 	set<string> methods = src.getMethod();
+	for (set<string>::iterator it = methods.begin(); it != methods.end(); it++)
+		os << " " << *it;
+	os << ";" << endl;
 
-	set<string>::iterator itl = methods.begin();
+	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
+	os << "\t\t\treturn " << src.getReturnCode() << " " << src.getReturnPath() << ";" << endl;
+	os << "\t\t}";
 
-	os << "\tallow_methods:";
-	for (; itl != methods.end(); itl++)
-		os << " " << *itl;
-	os << endl;
-	os << "\tautoindex: " << boolalpha <<src.getAutoIndex() << endl;
-	os << "\treturn: " + src.getReturnCode() + " " + src.getReturnPath() << endl;
 	return os;
 }

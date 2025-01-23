@@ -1,44 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Logger.cpp                                         :+:      :+:    :+:   */
+/*   logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 21:09:06 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/21 16:52:22 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 14:48:46 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Logger.hpp"
+#include "logger.hpp"
+#include "color.hpp"
 #include <ctime>
 #include <iostream>
 #include <string>
 
 using namespace std;
 
-Logger::Logger(void) {
-
-}
-
-Logger::Logger(const Logger &src) {
-
-	*this = src;
-}
-
-Logger &Logger::operator=(const Logger &rhs) {
-
-	if (this == &rhs)
-		return *this;
-
-	return *this;
-}
-
-Logger::~Logger(void) {
-
-}
-
-std::string Logger::_getTime(void) {
+static std::string getTime(void) {
 
 	std::time_t rawtime;
 	std::time(&rawtime);
@@ -52,30 +32,29 @@ std::string Logger::_getTime(void) {
 	return buffer;
 }
 
-void Logger::_print(string color, string level, string message) {
-	cout << color + _getTime() + " " + level + ": " + message
-		<< Color::reset() << endl;
+static void print(string color, string level, string message) {
+	cout << color + getTime() + " " + level + ": " + message << color::reset() << endl;
 }
 
-void Logger::debug(string message) {
+void logger::debug(string message) {
 	if (not LOGGER_DEBUG)
 		return;
 
-	_print(Color::blue(), "DEBUG", message);
+	print(color::blue(), "DEBUG", message);
 }
 
-void Logger::info(string message) {
-	_print(Color::green(), "INFO", message);
+void logger::info(string message) {
+	print(color::green(), "INFO", message);
 }
 
-void Logger::warning(string message) {
-	Logger::_print(Color::yellow(), "WARNING", message);
+void logger::warning(string message) {
+	print(color::yellow(), "WARNING", message);
 }
 
-void Logger::error(string message) {
-	_print(Color::red(), "ERROR", message);
+void logger::error(string message) {
+	print(color::red(), "ERROR", message);
 }
 
-void Logger::fatal(string message) {
-	_print(Color::magenta(), "FATAL", message);
+void logger::fatal(string message) {
+	print(color::magenta(), "FATAL", message);
 }

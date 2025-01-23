@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 18:50:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 21:29:56 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 12:37:33 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ namespace parser {
 
 	string find(string key, string &configuration_file, string delimiter);
 	bool compare(string key, string &configuration_file);
-	list<string> split(string text);
+	list<string> split(string text, char delimiter);
 	void erase(string &buffer, string text, size_t quantity);
 	void replace(string &buffer, char from, char to);
 	void trim(string &buffer, string set);

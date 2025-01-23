@@ -6,17 +6,18 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 21:31:54 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 16:07:50 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 #include "Server.hpp"
+#include "directive.hpp"
 #include "parser.hpp"
-#include "Logger.hpp"
-#include <cstdlib>
+#include "logger.hpp"
 #include <fstream>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <cmath>
 
@@ -54,7 +55,7 @@ Http::Http(string &filename) {
 
 	parser::http(*this, buffer);
 
-	Logger::info("configuration file parsed: " + filename);
+	logger::info("configuration file parsed: " + filename);
 }
 
 Http::Http(const Http &src) {
@@ -82,26 +83,7 @@ Http::~Http(void) {
 
 void Http::setMaxBodySize(string max_body_size) {
 
-	if (max_body_size.empty())
-		return;
-
-	size_t pos = max_body_size.find_first_not_of("0123456789");
-
-	if (pos == string::npos)
-		return;
-
-	string format = max_body_size.substr(pos, max_body_size.size() - pos);
-
-	_max_body_size = strtol(max_body_size.c_str(), NULL, 10);
-
-	if (format == "KB" || format == "K")
-		_max_body_size *= 1024;
-	else if (format == "MB" || format == "M")
-		_max_body_size *= pow(1024, 2);
-	else if (format == "GB" || format == "G")
-		_max_body_size *= pow(1024, 3);
-	else
-		throw runtime_error("invalid value to max_body_size: " + max_body_size);
+	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
 
 size_t Http::getMaxBodySize(void) const {
@@ -111,10 +93,7 @@ size_t Http::getMaxBodySize(void) const {
 
 void Http::setAcessLog(string access_log) {
 
-	if (access_log.empty() || not _access_log.empty())
-		return;
-
-	_access_log = access_log;
+	directive::setAcessLog(access_log, _access_log);
 }
 
 string Http::getAcessLog(void) const {
@@ -124,10 +103,7 @@ string Http::getAcessLog(void) const {
 
 void Http::setErrorLog(string error_log) {
 
-	if (error_log.empty() || not _error_log.empty())
-		return;
-
-	_error_log = error_log;
+	directive::setErrorLog(error_log, _error_log);
 }
 
 string Http::getErrorLog(void) const {
@@ -137,10 +113,7 @@ string Http::getErrorLog(void) const {
 
 void Http::setRoot(string root) {
 
-	if (root.empty())
-		return;
-
-	_root = root;
+	directive::setRoot(root, _root);
 }
 
 string Http::getRoot(void) const {
@@ -175,19 +148,17 @@ set<Server> Http::getServers(void) const {
 
 ostream &operator<<(ostream &os, const Http &src) {
 
-	os << "HTTP:" << endl;
-	os << "\tclient_max_body_size: " << src.getMaxBodySize() << endl;
-	os << "\taccess_log: " << src.getAcessLog() << endl;
-	os << "\terror_log: " << src.getErrorLog() << endl;
-	os << "\troot: " << src.getRoot() << endl;
-
+	os << "http {" << endl;
+	os << "\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
+	os << "\taccess_log " << src.getAcessLog() << ";" << endl;
+	os << "\terror_log " << src.getErrorLog() << ";" << endl;
+	os << "\troot " << src.getRoot() << ";" << endl;
+	
 	set<Server> servers = src.getServers();
-
-	set<Server>::iterator it = servers.begin();
-
-	for (; it != servers.end(); it++) {
+	for (set<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 		os << *it << endl;
-	}
+
+	os << "}";
 
 	return os;
 }

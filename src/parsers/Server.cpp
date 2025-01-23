@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/22 21:32:14 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 15:53:58 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include "directive.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
-#include "Logger.hpp"
 #include "parser.hpp"
 #include <iostream>
 #include <list>
@@ -26,7 +25,8 @@ Server::Server(void) {
 
 }
 
-Server::Server(string &configuration_file) {
+Server::Server(string &configuration_file) 
+	: _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
 }
@@ -61,32 +61,27 @@ Server::~Server(void) {
 
 bool Server::operator<(const Server &rhs) const {
 	
-	return _port < rhs._port;
+	return (_port < rhs._port) && (_host < rhs._host);
 }
 
 void Server::setName(string name) {
 
-	_name = name;
+	directive::setName(name, _name);
 }
 
-string Server::getName(void) const {
+list<string> Server::getName(void) const {
 
 	return _name;
 }
 
-void Server::setHost(string host) {
+void Server::setListen(string listen) {
 
-	_host = host;
+	directive::setListen(listen, _host, _port);
 }
 
 string Server::getHost(void) const {
 
 	return _host;
-}
-
-void Server::setPort(string port) {
-	
-	_port = port;
 }
 
 string Server::getPort(void) const {
@@ -96,7 +91,7 @@ string Server::getPort(void) const {
 
 void Server::setRoot(string root) {
 
-	_root = root;
+	directive::setRoot(root, _root);
 }
 
 string Server::getRoot(void) const {
@@ -106,18 +101,17 @@ string Server::getRoot(void) const {
 
 void Server::setIndex(string index) {
 
-	_index = index;
+	directive::setIndex(index, _index);
 }
 
-string Server::getIndex(void) const {
+set<string> Server::getIndex(void) const {
 
 	return _index;
 }
 
-void Server::setMaxBodySize(string size) {
+void Server::setMaxBodySize(string max_body_size) {
 
-	(void) size;
-	_max_body_size = 0;
+	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
 
 size_t Server::getMaxBodySize(void) const {
@@ -125,9 +119,9 @@ size_t Server::getMaxBodySize(void) const {
 	return _max_body_size;
 }
 
-void Server::addErrorPage(string code, string path) {
+void Server::setErrorPage(string error_page) {
 
-	_error_pages[code] = path;
+	directive::addErrorPage(error_page, _error_pages);
 }
 
 string Server::getErrorPage(string code) const {
@@ -161,14 +155,7 @@ map<string, Location> Server::getLocations(void) const {
 
 void Server::setReturn(string value) {
 
-	list<string> tmp = directive::setReturn(value);
-
-	_return_code = tmp.front();
-
-	if (tmp.size() != 2)
-		return;
-
-	_return_path = tmp.back();
+	directive::setReturn(value, _return_code, _return_path);
 }
 
 string Server::getReturnCode(void) const {
@@ -183,30 +170,35 @@ string Server::getReturnPath(void) const {
 
 ostream &operator<<(ostream &os, const Server &src) {
 
-	os << "SERVER:" << endl;
-	os << "\thost: " << src.getHost() << endl;
-	os << "\tport: " << src.getPort() << endl;
-	os << "\tserver_name: " << src.getName() << endl;
-	os << "\troot: " << src.getRoot() << endl;
-	os << "\tindex: " << src.getIndex() << endl;
-	os << "\tclient_max_body_size: " << src.getMaxBodySize() << endl;
+	os << "\tserver {" << endl;
+	os << "\t\tlisten " << src.getHost() << ":" << src.getPort() << ";" << endl;
 
-	os << "ERROR PAGES: " << endl;
+	os << "\t\tserver_name";
+	list<string> names = src.getName();
+	for (list<string>::iterator it = names.begin(); it != names.end(); it++)
+		os << " " << *it;
+	os << ";" << endl;
+
+	os << "\t\troot " << src.getRoot() << ";" << endl;
+
+	os << "\t\tindex";
+	set<string> indexs = src.getIndex();
+	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
+		os << " " << *it;
+	os << ";" << endl;
+
+	os << "\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
+
 	map<string, string> error_pages = src.getErrorPages();
-
-	map<string, string>::iterator ite = error_pages.begin();
-
-	for (; ite != error_pages.end(); ite++)
-		os << "\tcode: " << (*ite).first << ", page: " << (*ite).second << endl;
+	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
+		os << "\t\terror_page " << it->first << " " << (*it).second << ";" << endl;
 
 	map<string, Location> locations = src.getLocations();
+	for (map<string, Location>::iterator it = locations.begin(); it != locations.end(); it++)
+		os << it->second << endl;
 
-	map<string, Location>::iterator it = locations.begin();
+	os << "\t\treturn " << src.getReturnCode() + " " + src.getReturnPath() << ";" << endl;
+	os << "\t}";
 
-	for (; it != locations.end(); it++)
-		os << (*it).second << endl;
-
-	os << "\treturn: " + src.getReturnCode() + " " + src.getReturnPath() << endl;
 	return os;
 }
-
