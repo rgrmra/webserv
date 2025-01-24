@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 20:36:54 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 21:36:36 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void directive::setListen(string listen, string &_host, string &_port) {
 		throw runtime_error("invalid list host: " + tmp.front());
 
 	for (list<string>::iterator it = host.begin(); it != host.end(); it++) {
-		if ((*it).find_first_not_of("0123456789") != string::npos || *it > "255")
+		if ((*it).find_first_not_of("0123456789") != string::npos || strtol(it->c_str(), NULL, 10) > 255)
 			throw runtime_error("invalid listen host: " + tmp.front());
 	}
 

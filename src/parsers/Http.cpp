@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 18:08:04 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 21:59:54 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 #include "directive.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
+#include <exception>
 #include <fstream>
+#include <iostream>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -127,17 +129,30 @@ void Http::addServer(Server server) {
 	_servers.insert(server);
 }
 
-Server Http::getServerByName(string name, string port) const {
+Server Http::getServer(string host, string port) const {
 
-	(void)name;
-	(void)port;
-	return Server();
-}
+	for (set<Server>::const_iterator it = _servers.begin(); it != _servers.end(); it++) {
 
-Server Http::getServerByHost(string host, string port) const {
+		if (it->getHost() + ":" + it->getPort() == host + ":" + port)
+			return *it;
 
-	(void)host;
-	(void)port;
+		list<string> s = it->getName();
+		for (list<string>::iterator i2 = s.begin(); i2 != s.end(); i2++)
+			if (*i2 == host && it->getPort() == port)
+				return *it;
+		
+		string nhost;
+		string nport;
+		try {
+			directive::setListen(host + ":" + port, nhost, nport);
+		} catch (exception e) {
+			continue;
+		}
+
+		if (it->getHost() == "0.0.0.0" && it->getPort() == port)
+			return *it;
+	}
+
 	return Server();
 }
 

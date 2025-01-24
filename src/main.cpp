@@ -6,11 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 17:58:26 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 22:01:41 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsers/Http.hpp"
+#include "Location.hpp"
+#include <Server.hpp>
+#include "Http.hpp"
 #include "logger.hpp"
 #include <cstdlib>
 #include <exception>
@@ -34,7 +36,9 @@ int main(int argc, char *argv[]) {
 
 		Http servers = Http(filename);
 
-		cout << servers << endl;
+		//cout << servers << endl;
+
+		cout << servers.getServer("meusite.com", "8080") << endl;
 
 	} catch (std::exception &exception) {
 

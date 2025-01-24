@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 20:20:16 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 21:32:04 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "parser.hpp"
 #include <iostream>
 #include <list>
+#include <stdexcept>
 
 using namespace std;
 
@@ -61,16 +62,26 @@ Server::~Server(void) {
 
 bool Server::operator<(const Server &rhs) const {
 
+	if (_port != rhs._port)
+		return _port < rhs._port;
+	cout << "0" << endl;
+
+	if (_host == "0.0.0.0" || rhs._host == "0.0.0.0")
+		return _port < rhs._port;
+	cout << "1" << endl;
+
 	string server1 = _host + ":" +_port;
 	string server2 = rhs._host + ":" + rhs._port;
 
 	if (server1 == server2)
 		return server1 < server2;
+	cout << "2" << endl;
 
 	for (list<string>::const_iterator i1 = _name.begin(); i1 != _name.end(); i1++)
 		for (list<string>::const_iterator i2 = rhs._name.begin(); i2 != rhs._name.end(); i2++)
 			if (*i1 == *i2)
 				return *i1 < *i2;
+	cout << "3" << endl;
 
 	return server1 < server2;
 }
@@ -155,7 +166,10 @@ void Server::addLocation(Location location) {
 
 Location Server::getLocation(string code) const {
 	
-	(void) code;
+	for (map<string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); it++)
+		if (it->first == code)
+			return it->second;
+
 	return Location();
 }
 

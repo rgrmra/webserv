@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 14:33:50 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 21:11:28 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,7 @@ class Http {
 		void setRoot(string root);
 		string getRoot(void) const;
 		void addServer(Server server);
-		Server getServerByName(string name, string port) const;
-		Server getServerByHost(string host, string port) const;
+		Server getServer(string host, string port) const;
 		set<Server> getServers(void) const;
 };
 
