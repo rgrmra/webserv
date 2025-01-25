@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 21:59:54 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:13:26 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "directive.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
-#include <exception>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -23,11 +22,11 @@
 #include <string>
 #include <cmath>
 
-Http::Http(void) {
-
-}
-
-Http::Http(string &filename) {
+Http::Http(string &filename)
+	: _max_body_size(1048576),
+	  _access_log("./var/log/webserv/access.log"),
+	  _error_log("./var/log/webserv/error.log"),
+	  _root("./") {
 
 	if (parser::basename(filename) != ".conf")
 		throw runtime_error("invalid .conf file format: " + filename);
@@ -56,6 +55,9 @@ Http::Http(string &filename) {
 	parser::erase(buffer, " ;", 1);
 
 	parser::http(*this, buffer);
+
+	if (not _servers.size())
+		throw runtime_error("server not setted");
 
 	logger::info("configuration file parsed: " + filename);
 }
@@ -123,7 +125,6 @@ string Http::getRoot(void) const {
 	return _root;
 }
 
-
 void Http::addServer(Server server) {
 
 	_servers.insert(server);
@@ -136,20 +137,15 @@ Server Http::getServer(string host, string port) const {
 		if (it->getHost() + ":" + it->getPort() == host + ":" + port)
 			return *it;
 
-		list<string> s = it->getName();
-		for (list<string>::iterator i2 = s.begin(); i2 != s.end(); i2++)
+		list<string> name = it->getName();
+		for (list<string>::iterator i2 = name.begin(); i2 != name.end(); i2++)
 			if (*i2 == host && it->getPort() == port)
 				return *it;
 		
-		string nhost;
-		string nport;
-		try {
-			directive::setListen(host + ":" + port, nhost, nport);
-		} catch (exception e) {
+		if (it->getHost() != "0.0.0.0")
 			continue;
-		}
 
-		if (it->getHost() == "0.0.0.0" && it->getPort() == port)
+		if (directive::validateHttpHost(host) && it->getPort() == port)
 			return *it;
 	}
 

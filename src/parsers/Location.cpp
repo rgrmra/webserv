@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 18:24:28 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:33:56 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,9 @@ Location::Location(void) {
 }
 
 Location::Location(string &configuration_file) 
-	: _max_body_size(0) {
+	: _max_body_size(0)
+
+{
 
 	parser::location(*this, configuration_file);
 }
@@ -38,11 +40,11 @@ Location &Location::operator=(const Location &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	_path = rhs._path;
+	_uri= rhs._uri;
 	_index = rhs._index;
 	_root = rhs._root;
 	_return_code = rhs._return_code;
-	_return_path = rhs._return_path;
+	_return_uri= rhs._return_uri;
 	_allow_methods = rhs._allow_methods;
 	_autoindex = rhs._autoindex;
 
@@ -53,14 +55,14 @@ Location::~Location(void) {
 
 }
 
-void Location::setPath(string path) {
+void Location::setURI(string uri) {
 	
-	directive::setPath(path, _path);
+	directive::setURI(uri, _uri);
 }
 
-string Location::getPath(void) const {
+string Location::getURI(void) const {
 
-	return _path;
+	return _uri;
 }
 
 void Location::setIndex(string index) {
@@ -83,12 +85,12 @@ string Location::getRoot(void) const {
 	return _root;
 }
 
-void Location::addMethod(string method) {
+void Location::setMethods(string method) {
 
-	directive::addMethod(method, _allow_methods);
+	directive::setMethods(method, _allow_methods);
 }
 
-set<string> Location::getMethod(void) const {
+set<string> Location::getMethods(void) const {
 
 	return _allow_methods;
 }
@@ -115,7 +117,7 @@ size_t Location::getMaxBodySize(void) const {
 
 void Location::setReturn(string value) {
 
-	directive::setReturn(value, _return_code, _return_path);
+	directive::setReturn(value, _return_code, _return_uri);
 }
 
 string Location::getReturnCode() const {
@@ -123,14 +125,14 @@ string Location::getReturnCode() const {
 	return _return_code;
 }
 
-string Location::getReturnPath() const {
+string Location::getReturnURI() const {
 
-	return _return_path;
+	return _return_uri;
 }
 
 ostream &operator<<(ostream &os, const Location &src) {
 
-	os << "\t\tlocation " << src.getPath() << " {" << endl;
+	os << "\t\tlocation " << src.getURI() << " {" << endl;
 	
 	os << "\t\t\tindex";
 	set<string> indexs = src.getIndex();
@@ -141,14 +143,14 @@ ostream &operator<<(ostream &os, const Location &src) {
 	os << "\t\t\troot " << src.getRoot() << ";" << endl;
 
 	os << "\t\t\tallow_methods";
-	set<string> methods = src.getMethod();
+	set<string> methods = src.getMethods();
 	for (set<string>::iterator it = methods.begin(); it != methods.end(); it++)
 		os << " " << *it;
 	os << ";" << endl;
 
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
-	os << "\t\t\treturn " << src.getReturnCode() << " " << src.getReturnPath() << ";" << endl;
+	os << "\t\t\treturn " << src.getReturnCode() << " " << src.getReturnURI() << ";" << endl;
 	os << "\t\t}";
 
 	return os;

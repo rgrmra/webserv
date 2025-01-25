@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 21:11:28 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:06:39 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ class Http {
 		set<Server> _servers;
 
 	public:
-		Http(void);
 		Http(string &configuration_file);
 		Http(const Http &src);
 		Http &operator=(const Http &rhs);

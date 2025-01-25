@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 21:32:04 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:35:32 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,18 @@
 using namespace std;
 
 
-Server::Server(void) {
+Server::Server(void)
+	: _max_body_size(0) {
 
 }
 
 Server::Server(string &configuration_file) 
-	: _max_body_size(0) {
+	: _max_body_size(1048576) {
 
 	parser::server(*this, configuration_file);
+
+	if (_host.empty() || _port.empty())
+		throw runtime_error("listen not setted");
 }
 
 Server::Server(const Server &src) {
@@ -49,7 +53,7 @@ Server &Server::operator=(const Server &rhs) {
 	_index = rhs._index;
 	_max_body_size = rhs._max_body_size;
 	_return_code = rhs._return_code;
-	_return_path = rhs._return_path;
+	_return_uri = rhs._return_uri;
 	_error_pages = rhs._error_pages;
 	_locations = rhs._locations;
 
@@ -64,24 +68,29 @@ bool Server::operator<(const Server &rhs) const {
 
 	if (_port != rhs._port)
 		return _port < rhs._port;
-	cout << "0" << endl;
 
 	if (_host == "0.0.0.0" || rhs._host == "0.0.0.0")
 		return _port < rhs._port;
-	cout << "1" << endl;
 
 	string server1 = _host + ":" +_port;
 	string server2 = rhs._host + ":" + rhs._port;
 
 	if (server1 == server2)
 		return server1 < server2;
-	cout << "2" << endl;
 
-	for (list<string>::const_iterator i1 = _name.begin(); i1 != _name.end(); i1++)
-		for (list<string>::const_iterator i2 = rhs._name.begin(); i2 != rhs._name.end(); i2++)
+	list<string>::const_iterator i1 = _name.begin();
+	while (i1 != _name.end()) {
+
+		list<string>::const_iterator i2 = rhs._name.begin();
+		while (i2 != rhs._name.end()) {
 			if (*i1 == *i2)
 				return *i1 < *i2;
-	cout << "3" << endl;
+
+			i2++;
+		}
+
+		i1++;
+	}
 
 	return server1 < server2;
 }
@@ -143,7 +152,7 @@ size_t Server::getMaxBodySize(void) const {
 
 void Server::setErrorPage(string error_page) {
 
-	directive::addErrorPage(error_page, _error_pages);
+	directive::setErrorPage(error_page, _error_pages);
 }
 
 string Server::getErrorPage(string code) const {
@@ -161,14 +170,19 @@ map<string, string> Server::getErrorPages(void) const {
 
 void Server::addLocation(Location location) {
 
-	_locations[location.getPath()] = location;
+	_locations[location.getURI()] = location;
 }
 
 Location Server::getLocation(string code) const {
 	
-	for (map<string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); it++)
+	map<string, Location>::const_iterator it = _locations.begin();
+	while (it != _locations.end()) {
+
 		if (it->first == code)
 			return it->second;
+
+		it++;
+	}
 
 	return Location();
 }
@@ -180,7 +194,7 @@ map<string, Location> Server::getLocations(void) const {
 
 void Server::setReturn(string value) {
 
-	directive::setReturn(value, _return_code, _return_path);
+	directive::setReturn(value, _return_code, _return_uri);
 }
 
 string Server::getReturnCode(void) const {
@@ -188,9 +202,9 @@ string Server::getReturnCode(void) const {
 	return _return_code;
 }
 
-string Server::getReturnPath(void) const {
+string Server::getReturnURI(void) const {
 
-	return _return_path;
+	return _return_uri;
 }
 
 ostream &operator<<(ostream &os, const Server &src) {
@@ -222,7 +236,7 @@ ostream &operator<<(ostream &os, const Server &src) {
 	for (map<string, Location>::iterator it = locations.begin(); it != locations.end(); it++)
 		os << it->second << endl;
 
-	os << "\t\treturn " << src.getReturnCode() + " " + src.getReturnPath() << ";" << endl;
+	os << "\t\treturn " << src.getReturnCode() + " " + src.getReturnURI() << ";" << endl;
 	os << "\t}";
 
 	return os;

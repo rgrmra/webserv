@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 18:21:39 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:29:19 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,14 @@
 #include "Location.hpp"
 
 using namespace std;
+
+string parser::toLower(string text) {
+
+	for (size_t i = 0; i < text.size(); i++)
+		text.at(i) = tolower(text.at(i));
+
+	return text;
+}
 
 void parser::replace(string &buffer, char from, char to) {
 
@@ -116,26 +124,14 @@ string parser::basename(string text) {
 	return text.substr(pos, text.size() - pos);
 }
 
-bool parser::validadeHttpCode(string code) {
-
-	if (code.find_first_not_of("0123456789") != string::npos)
-		return false;
-
-	if (code < "100" || code > "599")
-		return false;
-
-	return true;
-}
-
 void parser::http(Http &http, string &buffer) {
 
 	if (parser::compare("http{", buffer)) {
 		buffer.erase(0, 5);
 
-		if (buffer.size() > 1 && string(&buffer[buffer.size() - 2]) != "}}")
-			throw runtime_error("failed to parse not enclosed http");
-
-		buffer.erase(buffer.size() - 1, buffer.size());
+		size_t npos = buffer.find_last_of("}");
+		if (npos != string::npos)
+			buffer.erase(npos, 1);
 	}
 	
 	for (size_t i = 0; i < buffer.size(); i++) {
@@ -165,33 +161,13 @@ void parser::server(Server &server, string &buffer) {
 
 	for (size_t i = 0; i < buffer.size(); i++) {
 
-		tmp = parser::find("listen ", buffer, ";");
-		if (not tmp.empty())
-			server.setListen(tmp);
-
-		tmp = parser::find("server_name ", buffer, ";");
-		if (not tmp.empty())
-			server.setName(tmp);
-			
-		tmp = parser::find("root ", buffer, ";");
-		if (not tmp.empty())
-			server.setRoot(tmp);
-
-		tmp = parser::find("error_page ", buffer, ";");
-		if (not tmp.empty())
-			server.setErrorPage(tmp);
-
-		tmp = parser::find("index ", buffer, ";");
-		if (not tmp.empty())
-			server.setIndex(tmp);
-
-		tmp = parser::find("client_max_body_size ", buffer, ";");
-		if (not tmp.empty())
-			server.setMaxBodySize(tmp);
-
-		tmp = parser::find("return ", buffer, ";");
-		if (not tmp.empty())
-			server.setReturn(tmp);
+		server.setListen(parser::find("listen ", buffer, ";"));
+		server.setName(parser::find("server_name ", buffer, ";"));
+		server.setRoot(parser::find("root ", buffer, ";"));
+		server.setErrorPage(parser::find("error_page ", buffer, ";"));
+		server.setIndex(parser::find("index ", buffer, ";"));
+		server.setMaxBodySize(parser::find("client_max_body_size ", buffer, ";"));
+		server.setReturn(parser::find("return ", buffer, ";"));
 
 		if (parser::compare("location ", buffer))
 			server.addLocation(Location(buffer));
@@ -211,13 +187,13 @@ void parser::location(Location &location, string &buffer) {
 
 	tmp = parser::find("location ", buffer, "{");
 	if (not tmp.empty())
-		location.setPath(tmp);
+		location.setURI(tmp);
 
 	for (size_t i = 0; i < buffer.size(); i++) {
 
 		location.setIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
-		location.addMethod(find("allow_methods ", buffer, ";"));
+		location.setMethods(find("allow_methods ", buffer, ";"));
 		location.setAutoIndex(find("autoindex ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
 

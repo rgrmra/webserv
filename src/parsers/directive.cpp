@@ -6,16 +6,18 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 21:36:36 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 14:34:52 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "directive.hpp"
 #include "parser.hpp"
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <map>
 #include <stdexcept>
+#include <string>
 
 void directive::setAcessLog(string access_log, string &_access_log) {
 
@@ -39,6 +41,32 @@ void directive::setErrorLog(string error_log, string &_error_log) {
 	_error_log = error_log;
 }
 
+bool directive::validateName(string name) {
+
+	if (name.at(0) == '-' || name.at(name.size() - 1) == '-')
+		return false;
+
+	if (name.at(0) == '.' || name.at(name.size() - 1) == '.')
+		return false;
+
+	if (name.find("..") != string::npos)
+		return false;
+
+	for (size_t i = 0; i < name.size(); i++)
+		if (not isalnum(name.at(i)) && name.at(i) != '-' && name.at(i) != '.')
+			return false;
+
+	for (size_t i = 0; i < name.size(); i++) {
+		if (name.at(i) != '.')
+			continue;
+
+		if (name.at(i - 1) == '-' || name.at(i + 1) == '-')
+			return false;
+	}
+
+	return true;
+}
+
 void directive::setName(string name, list<string> &_name) {
 
 	if (name.empty())
@@ -46,55 +74,109 @@ void directive::setName(string name, list<string> &_name) {
 
 	list<string> names = parser::split(name, ' ');
 
-	for (list<string>::iterator it = names.begin(); it != names.end(); it++)
-		_name.push_back(*it);
+	list<string>::iterator it = names.begin();
+	while (it != names.end()) {
+
+		if (not directive::validateName(*it))
+			throw runtime_error("invalid server name: " + *it);
+
+		_name.push_back(parser::toLower(*it));
+
+		it++;
+	}
+}
+
+bool directive::validateHttpListen(string listen) {
+
+	if (listen.empty())
+		return false;
+
+	if (listen.find_first_not_of(".:0123456789") != string::npos)
+		return false;
+
+	if (listen.at(0) == ':' || listen.at(listen.size() - 1) == ':')
+		return false;
+
+	if (listen.find("::") != string::npos)
+		return false;
+
+	list<string> tmp = parser::split(listen, ':');
+	if (tmp.size() > 2)
+		return false;
+
+	return true;
+}
+
+bool directive::validateHttpHost(string host) {
+
+	if (host.find_first_not_of(".0123456789") != string::npos)
+		return false;
+
+	if (host.find("..") != string::npos)
+		return false;
+
+	if (host.at(0) == '.' || host.at(host.size() - 1) == '.')
+		return false;
+
+	list<string> octets = parser::split(host, '.');
+
+	if (octets.size() != 4)
+		return false;
+
+	list<string>::iterator it = octets.begin();
+	while (it != octets.end()) {
+		if (strtol(it->c_str(), NULL, 10) > 255)
+			return false;
+
+		it++;
+	}
+
+	return true;
+}
+
+bool directive::validateHttpPort(string port) {
+
+	if (port.find_first_not_of("0123456789") != string::npos)
+		return false;
+
+	if (strtol(port.c_str(), NULL, 10) > 65535)
+		return false;
+
+	return true;
 }
 
 void directive::setListen(string listen, string &_host, string &_port) {
 
-	if (listen.empty() || not _host.empty() || not _host.empty())
+	if (not _host.empty() || not _host.empty())
 		return;
+	
+	if (not directive::validateHttpListen(listen))
+		throw runtime_error("invalid listen: " + listen);
 
 	list<string> tmp = parser::split(listen, ':');
 
-	if (tmp.size() > 2 || listen.at(0) == ':' || listen.find("::") != string::npos)
-		throw runtime_error("invalid listen: " + listen);
+	if (not directive::validateHttpPort(tmp.back()))
+		throw runtime_error("invalid port: " + tmp.back());
 
-	if (tmp.back().find_first_not_of("0123456789") != string::npos)
-		throw runtime_error("invalid listen port: " + tmp.back());
-
-	if (strtol(tmp.back().c_str(), NULL, 10) > 65535)
-		throw runtime_error("invalid listen port range: " + tmp.back());
-	
 	_port = tmp.back();
 
-	if (tmp.size() == 1) {
+	if (tmp.size() == 1)
 		_host = "0.0.0.0";
-		return;
-	}
-
-	list<string> host = parser::split(tmp.front(), '.');
-
-	if (host.size() != 4)
-		throw runtime_error("invalid list host: " + tmp.front());
-
-	for (list<string>::iterator it = host.begin(); it != host.end(); it++) {
-		if ((*it).find_first_not_of("0123456789") != string::npos || strtol(it->c_str(), NULL, 10) > 255)
-			throw runtime_error("invalid listen host: " + tmp.front());
-	}
-
-	_host = tmp.front();
+	else if (not directive::validateHttpHost(tmp.front()))
+		throw runtime_error("invalid host: " + tmp.front());
+	else
+		_host = tmp.front();
 }
 
-void directive::setPath(string path, string &_path) {
+void directive::setURI(string uri, string &_uri) {
 	
-	if (path.empty())
+	if (uri.empty())
 		return;
 
-	if (path.find_first_of(" ") != string::npos)
-		throw runtime_error("invalid path: " + path);
+	if (uri.find_first_of(" ") != string::npos)
+		throw runtime_error("invalid path: " + uri);
 
-	_path = path;
+	_uri= uri;
 }
 
 void directive::setIndex(string index, set<string> &_index) {
@@ -106,8 +188,12 @@ void directive::setIndex(string index, set<string> &_index) {
 
 	_index.clear();
 
-	for (list<string>::iterator it = indexes.begin(); it != indexes.end(); it++)
+	list<string>::iterator it = indexes.begin();
+	while (it != indexes.end()) {
 		_index.insert(*it);
+
+		it++;
+	}
 }
 
 void directive::setRoot(string root, string &_root) {
@@ -145,7 +231,7 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
 
-void directive::addErrorPage(string error_page, map<string, string> &_error_pages) {
+void directive::setErrorPage(string error_page, map<string, string> &_error_pages) {
 
 	if (error_page.empty())
 		return;
@@ -159,31 +245,49 @@ void directive::addErrorPage(string error_page, map<string, string> &_error_page
 	tmp.pop_back();
 
 	for (list<string>::iterator it = tmp.begin(); it != tmp.end(); it++) {
-		if ((*it).find_first_not_of("0123456789") != string::npos)
-			throw runtime_error("invalid error code: " + *it);
-
-		size_t code = strtol((*it).c_str(), NULL, 10);
-		if (code < 100 || code > 599)
+		if (not directive::validateHttpCode(*it))
 			throw runtime_error("invalid error code: " + *it);
 
 		_error_pages[*it] = path;
 	}
 }
 
-void directive::addMethod(string method, set<string> &_allow_methods) {
+bool directive::validateHttpMethod(string method) {
+
+	list<string> allowed_methods;
+	allowed_methods.push_back("GET");
+	allowed_methods.push_back("POST");
+	allowed_methods.push_back("DELETE");
+
+	list<string>::iterator it = allowed_methods.begin();
+	while (it != allowed_methods.end()) {
+		if (*it == method)
+			return true;
+
+		it++;
+	}
+
+	return false;
+}
+
+void directive::setMethods(string method, set<string> &_allow_methods) {
 
 	if (method.empty())
 		return;
 
 	list<string> methods = parser::split(method, ' ');
+	list<string> allowed_methods = parser::split("GET POST PUT PATCH DELETE", ' ');
 
 	_allow_methods.clear();
 
-	for (list<string>::iterator it = methods.begin(); it != methods.end(); it++) {
-		if (*it != "GET" && *it != "POST" && *it != "DELETE")
+	list<string>::iterator it = methods.begin();
+	while (it != methods.end()) {
+		if (not validateHttpMethod(*it))
 			throw runtime_error("invalid method: " + *it);
-		
+
 		_allow_methods.insert(*it);
+
+		it++;
 	}
 }
 
@@ -200,21 +304,33 @@ void directive::setAutoIndex(string autoindex, bool &_autoindex) {
 		throw runtime_error("invalid autoindex: " + autoindex);
 }
 
-void directive::setReturn(string value, string &_code, string &_path) {
+bool directive::validateHttpCode(string code) {
+
+	if (code.find_first_not_of("0123456789") != string::npos)
+		return false;
+
+	size_t tmp = strtol(code.c_str(), NULL, 10);
+	if (tmp < 100 || tmp > 599)
+		return false;
+
+	return true;
+}
+
+void directive::setReturn(string value, string &_code, string &_uri) {
+
+	if (value.empty())
+		return;
 
 	list<string> tmp = parser::split(value, ' ');
 
 	if (tmp.size() < 1 || tmp.size() > 2)
 		throw runtime_error("invalid return: " + value);
 
-	string code = tmp.front();
-	string path = tmp.back();
+	if (not directive::validateHttpCode(tmp.front()))
+		throw runtime_error("invalid return code: " + tmp.front());
 
-	if (not parser::validadeHttpCode(code))
-		throw runtime_error("invalid return code: " + code);
-
-	_code = code;
+	_code = tmp.front();
 
 	if (tmp.size() == 2)
-		_path = path;
+		_uri = tmp.back();
 }

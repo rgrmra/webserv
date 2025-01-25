@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 18:50:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 12:37:33 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/25 12:49:27 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ using namespace std;
 
 namespace parser {
 
+	string toLower(string text);
 	string find(string key, string &configuration_file, string delimiter);
 	bool compare(string key, string &configuration_file);
 	list<string> split(string text, char delimiter);
@@ -30,7 +31,6 @@ namespace parser {
 	void replace(string &buffer, char from, char to);
 	void trim(string &buffer, string set);
 	string basename(string text);
-	bool validadeHttpCode(string code);
 	void http(Http &http, string &configuration_file);
 	void server(Server &server, string &configuration_file);
 	void location(Location &location, string &configuration_file);
