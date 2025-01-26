@@ -47,7 +47,7 @@ int	open_server(std::string port)
 	}
 
 	socket_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	
+
 	int opt = 1;
 	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
@@ -152,7 +152,7 @@ int	run_without_multiplex(int socket_fd)
 
 int modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events)
 {
-    struct epoll_event event;
+    struct epoll_event event = {};
     event.events = events;
     event.data.fd = fd;
 
@@ -177,7 +177,7 @@ int set_non_blocking(int fd)
 
 int add_fd_to_epoll(int epoll_fd, int fd, uint32_t events)
 {
-    struct epoll_event event;
+    struct epoll_event event = {};
     event.events = events;
     event.data.fd = fd;
 
@@ -196,14 +196,9 @@ void process_request(int epoll_fd, int fd)
     if (bytes_read <= 0)
     {
         if (bytes_read == 0)
-        {
-            // Conexão fechada pelo cliente
             std::cout << "Client disconnected" << std::endl;
-        }
         else
-        {
             std::cerr << "recv error: " << strerror(errno) << std::endl;
-        }
         close(fd);
     }
     else
@@ -310,9 +305,9 @@ int	run_with_epoll(int socket_fd)
                 accept_new_connections(epoll_fd, socket_fd);
             else
             {
-                if (events[i].events & EPOLLIN)
+                if (events[i].events == (EPOLLIN | EPOLLET))
                     process_request(epoll_fd, events[i].data.fd);
-                else if (events[i].events & EPOLLOUT)
+                else if (events[i].events == (EPOLLOUT | EPOLLET))
                 {
                     process_response(events[i].data.fd);
                 }
