@@ -69,14 +69,14 @@ int	run_without_multiplex(int socket_fd)
 	client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_size);
 	if (client_fd == -1)
 	{
-		std::cerr << "accept: " << strerror(status)  
+		std::cerr << "accept: " << strerror(status)
 		<< std::endl;
 		return (4);
 	}
 	std::cout << "New Connection." << std::endl
 		<< " Server fd: " << socket_fd << std::endl
 		<< "Client fd: " << client_fd << std::endl;
-	
+
 
 	char buffer[BUFSIZ];
 	int	bytes_read = 1;
@@ -101,7 +101,7 @@ int	run_without_multiplex(int socket_fd)
 		<< "Content-Length: " << message_back.size() << "\r\n"
 		<< "Connection: close\r\n"
 		<< "\r\n"
-		<< message_back;
+		<< message_back << "\r\n";
 
 		std::string response = ss.str();
 		std::cout << "Received. Bytes readed: " << bytes_read << std::endl;
@@ -125,23 +125,74 @@ int	run_without_multiplex(int socket_fd)
 	return (0);
 }
 
+int add_to_epoll(int epoll_fd, int fd)
+{
+    struct epoll_event event;
+
+    event.events = EPOLLIN | EPOLLET;
+    event.data.fd = fd;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1)
+    {
+        std::cerr << "epoll_ctl error" << std::endl;
+        return -1;
+    }
+    return 0;
+}
+
+int process_request(int fd)
+{
+    char buffer[512];
+    int bytes_read = recv(fd, buffer, sizeof(buffer), 0);
+    if (bytes_read <= 0)
+    {
+        if (bytes_read == 0)
+        {
+            // Conexão fechada pelo cliente
+            std::cout << "Client disconnected" << std::endl;
+        }
+        else
+            std::cerr << "read error: " << strerror(errno) << std::endl;
+        close(fd);
+        return -1;
+    }
+    return 0;
+}
+
+int process_response(int fd)
+{
+    std::string message_back = "Hello";
+    std::stringstream ss;
+    ss << "HTTP/1.1 200 OK\r\n"
+       << "Content-Type: text/html\r\n"
+       << "Content-Length: " << message_back.size() << "\r\n"
+       << "Connection: close\r\n"
+       << "\r\n"
+       << message_back;
+
+    std::string response = ss.str();
+    int bytes_sent = send(fd, response.c_str(), response.size(), 0);
+    if (bytes_sent == -1)
+    {
+        std::cerr << "send error: " << strerror(errno) << std::endl;
+        return -1;
+    }
+    else
+        std::cout << "Sent: " << response << std::endl;
+    return 0;
+}
+
 
 int	run_with_epoll(int socket_fd)
 {
-	int epoll_fd = epoll_create1(0); // Cria uma instância de epoll
+	int epoll_fd = epoll_create1(0);
     if (epoll_fd == -1)
     {
         std::cerr << "epoll_create1 error" << std::endl;
         return -1;
     }
 
-    struct epoll_event event;
-    event.events = EPOLLIN;
-    event.data.fd = socket_fd;
-
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
+    if (add_to_epoll(epoll_fd, socket_fd) == -1)
     {
-        std::cerr << "epoll_ctl error" << std::endl;
         close(epoll_fd);
         return -1;
     }
@@ -169,12 +220,8 @@ int	run_with_epoll(int socket_fd)
                     std::cerr << "accept error" << std::endl;
                     continue;
                 }
-
-                event.events = EPOLLIN | EPOLLET;
-                event.data.fd = client_fd;
-                if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event) == -1)
+                if (add_to_epoll(epoll_fd, client_fd) == -1)
                 {
-                    std::cerr << "epoll_ctl error" << std::endl;
                     close(client_fd);
                     continue;
                 }
@@ -182,42 +229,13 @@ int	run_with_epoll(int socket_fd)
             }
             else
             {
-                char buffer[512];
-                int bytes_read = recv(events[i].data.fd, buffer, sizeof(buffer), 0);
-                if (bytes_read <= 0)
-                {
-                    if (bytes_read == 0)
-                    {
-                        // Conexão fechada pelo cliente
-                        std::cout << "Client disconnected" << std::endl;
-                    }
-                    else
-                    {
-                        std::cerr << "read error: " << strerror(errno) << std::endl;
-                    }
-                    close(events[i].data.fd);
-                }
+                if (process_request(events[i].data.fd) == -1)
+                    continue;
                 else
                 {
-                    std::string message_back = "Hello";
-                    std::stringstream ss;
-                    ss << "HTTP/1.1 200 OK\r\n"
-                       << "Content-Type: text/html\r\n"
-                       << "Content-Length: " << message_back.size() << "\r\n"
-                       << "Connection: close\r\n"
-                       << "\r\n"
-                       << message_back;
-
-                    std::string response = ss.str();
-                    int bytes_sent = send(events[i].data.fd, response.c_str(), response.size(), 0);
-                    if (bytes_sent == -1)
-                    {
-                        std::cerr << "send error: " << strerror(errno) << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "Sent: " << response << std::endl;
-                    }
+                    if (process_response(events[i].data.fd) == -1)
+                        continue;
+                    close(events[i].data.fd);
                 }
             }
         }
@@ -231,7 +249,7 @@ int	run_with_epoll(int socket_fd)
 int	main()
 {
 	int status;
-	
+
 	int socket_fd = open_server("4243");
 	status = run_with_epoll(socket_fd);
 	close(socket_fd);
