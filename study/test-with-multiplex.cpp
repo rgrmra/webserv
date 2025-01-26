@@ -9,10 +9,17 @@
 #include <sstream>
 #include <sys/epoll.h>
 #include <cerrno>
+#include <fcntl.h>
+
+#define COLOR_RED "\033[31m"
+#define COLOR_GREEN "\033[32m"
+#define COLOR_RESET "\033[0m"
 
 typedef struct addrinfo t_addrinfo;
 typedef struct sockaddr_in t_sockaddr_in;
 typedef struct sockaddr_storage t_sockaddr_storage;
+
+int set_non_blocking(int fd);
 
 // socket: Create an endpoint for communication. Returns a file descriptor.
 	// socket(int domain, int type, int protocol)
@@ -32,7 +39,7 @@ int	open_server(std::string port)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	status = getaddrinfo(NULL, port.c_str(), &hints, &res);
+	status = getaddrinfo("127.0.0.1", port.c_str(), &hints, &res);
 	if (status != 0)
 	{
 		std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
@@ -40,6 +47,23 @@ int	open_server(std::string port)
 	}
 
 	socket_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	
+	int opt = 1;
+	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+    {
+        std::cerr << "setsockopt error" << std::endl;
+        close(socket_fd);
+        freeaddrinfo(res);
+        return -1;
+    }
+
+	if (set_non_blocking(socket_fd) == -1)
+    {
+        close(socket_fd);
+        freeaddrinfo(res);
+        return -1;
+    }
+
 	status = bind(socket_fd, res->ai_addr, res->ai_addrlen);
 	if (status != 0)
 	{
@@ -125,12 +149,38 @@ int	run_without_multiplex(int socket_fd)
 	return (0);
 }
 
-int add_to_epoll(int epoll_fd, int fd)
+
+int modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events)
 {
     struct epoll_event event;
-
-    event.events = EPOLLIN | EPOLLET;
+    event.events = events;
     event.data.fd = fd;
+
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &event) == -1)
+    {
+        std::cerr << "epoll_ctl error" << std::endl;
+        return -1;
+    }
+    return 0;
+}
+
+int set_non_blocking(int fd)
+{
+	if (fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
+    {
+        std::cerr << "ioctl FIONBIO error" << std::endl;
+        return -1;
+    }
+    return 0;
+}
+
+
+int add_fd_to_epoll(int epoll_fd, int fd, uint32_t events)
+{
+    struct epoll_event event;
+    event.events = events;
+    event.data.fd = fd;
+
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1)
     {
         std::cerr << "epoll_ctl error" << std::endl;
@@ -139,9 +189,9 @@ int add_to_epoll(int epoll_fd, int fd)
     return 0;
 }
 
-int process_request(int fd)
+void process_request(int epoll_fd, int fd)
 {
-    char buffer[512];
+    char buffer[8192];
     int bytes_read = recv(fd, buffer, sizeof(buffer), 0);
     if (bytes_read <= 0)
     {
@@ -151,14 +201,23 @@ int process_request(int fd)
             std::cout << "Client disconnected" << std::endl;
         }
         else
-            std::cerr << "read error: " << strerror(errno) << std::endl;
+        {
+            std::cerr << "recv error: " << strerror(errno) << std::endl;
+        }
         close(fd);
-        return -1;
     }
-    return 0;
+    else
+    {
+        buffer[bytes_read] = '\0'; // Adicione o terminador nulo
+        std::cout << "Received: " << buffer << std::endl;
+
+        if (modify_fd_in_epoll(epoll_fd, fd, EPOLLOUT | EPOLLET) == -1)
+            close(fd);
+    }
 }
 
-int process_response(int fd)
+
+void process_response(int fd)
 {
     std::string message_back = "Hello";
     std::stringstream ss;
@@ -174,11 +233,44 @@ int process_response(int fd)
     if (bytes_sent == -1)
     {
         std::cerr << "send error: " << strerror(errno) << std::endl;
-        return -1;
     }
     else
+    {
         std::cout << "Sent: " << response << std::endl;
-    return 0;
+    }
+    close(fd); // Feche o descritor de arquivo após enviar a resposta
+}
+
+void accept_new_connections(int epoll_fd, int server_fd)
+{
+    while (true)
+    {
+        int client_fd = accept(server_fd, NULL, NULL);
+        if (client_fd == -1)
+        {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                break;
+            else
+            {
+                std::cerr << "accept error: " << strerror(errno) << std::endl;
+                break;
+            }
+        }
+		if (set_non_blocking(client_fd) == -1)
+        {
+            close(client_fd);
+            continue;
+        }
+
+
+        if (add_fd_to_epoll(epoll_fd, client_fd, EPOLLIN | EPOLLET) == -1)
+        {
+            close(client_fd);
+            continue;
+        }
+		std::cout << "New Connection. Fd = " << client_fd << std::endl;
+    }
+	std::cout << "End of accept_new_connections" << std::endl;
 }
 
 
@@ -191,7 +283,7 @@ int	run_with_epoll(int socket_fd)
         return -1;
     }
 
-    if (add_to_epoll(epoll_fd, socket_fd) == -1)
+    if (add_fd_to_epoll(epoll_fd, socket_fd, EPOLLIN | EPOLLET) == -1)
     {
         close(epoll_fd);
         return -1;
@@ -209,33 +301,20 @@ int	run_with_epoll(int socket_fd)
             close(epoll_fd);
             return -1;
         }
+		if (num_fds == 0)
+			continue;
 
         for (int i = 0; i < num_fds; ++i)
         {
             if (events[i].data.fd == socket_fd)
-            {
-                int client_fd = accept(socket_fd, NULL, NULL);
-                if (client_fd == -1)
-                {
-                    std::cerr << "accept error" << std::endl;
-                    continue;
-                }
-                if (add_to_epoll(epoll_fd, client_fd) == -1)
-                {
-                    close(client_fd);
-                    continue;
-                }
-				std::cout << "New Connection. Fd = " << client_fd << std::endl;
-            }
+                accept_new_connections(epoll_fd, socket_fd);
             else
             {
-                if (process_request(events[i].data.fd) == -1)
-                    continue;
-                else
+                if (events[i].events & EPOLLIN)
+                    process_request(epoll_fd, events[i].data.fd);
+                else if (events[i].events & EPOLLOUT)
                 {
-                    if (process_response(events[i].data.fd) == -1)
-                        continue;
-                    close(events[i].data.fd);
+                    process_response(events[i].data.fd);
                 }
             }
         }
