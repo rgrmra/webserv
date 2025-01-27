@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:35:32 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:22:22 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Server::Server(void)
 }
 
 Server::Server(string &configuration_file) 
-	: _max_body_size(1048576) {
+	: _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
 
@@ -170,19 +170,20 @@ map<string, string> Server::getErrorPages(void) const {
 
 void Server::addLocation(Location location) {
 
+	map<string, Location>::iterator it = _locations.begin();
+	for (; it != _locations.end(); it++)
+		if (it->first == location.getURI())
+			throw runtime_error("duplicated location: " + location.getURI());
+
 	_locations[location.getURI()] = location;
 }
 
-Location Server::getLocation(string code) const {
+Location Server::getLocation(string uri) const {
 	
 	map<string, Location>::const_iterator it = _locations.begin();
-	while (it != _locations.end()) {
-
-		if (it->first == code)
+	for (; it != _locations.end(); it++)
+		if (it->first == uri)
 			return it->second;
-
-		it++;
-	}
 
 	return Location();
 }

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:13:51 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:34:27 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:54:54 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ namespace directive {
 	void setErrorPage(string error_page, map<string, string> &_error_pages);
 	bool validateHttpMethod(string method);
 	void setMethods(string method, set<string> &_allow_methods);
+	void setDenyMethods(string deny_methods, bool &_deny_methods);
 	void setAutoIndex(string autoindex, bool &_autoindex);
 	bool validateHttpCode(string code);
 	void setReturn(string value, string &_code, string &_uri);

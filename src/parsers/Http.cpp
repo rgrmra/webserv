@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:13:26 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:37:38 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@
 #include <cmath>
 
 Http::Http(string &filename)
-	: _max_body_size(1048576),
-	  _access_log("./var/log/webserv/access.log"),
-	  _error_log("./var/log/webserv/error.log"),
-	  _root("./") {
+	: _max_body_size(MEGABYTE),
+	  _access_log(ACCESS_LOG),
+	  _error_log(ERROR_LOG),
+	  _root(ROOT) {
 
 	if (parser::basename(filename) != ".conf")
 		throw runtime_error("invalid .conf file format: " + filename);
@@ -51,8 +51,11 @@ Http::Http(string &filename)
 
 	parser::erase(buffer, "  ", 1);
 	parser::erase(buffer, " {", 1);
+	parser::rerase(buffer, "{ ", 1);
 	parser::erase(buffer, " }", 1);
+	parser::rerase(buffer, "} ", 1);
 	parser::erase(buffer, " ;", 1);
+	parser::rerase(buffer, "; ", 1);
 
 	parser::http(*this, buffer);
 

@@ -6,13 +6,14 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:25:37 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:33:39 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:22:10 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
+#include "Http.hpp"
 #include <cstddef>
 #include <ostream>
 #include <set>
@@ -26,6 +27,7 @@ class Location {
 		set<string> _index;
 		string _root;
 		set<string> _allow_methods;
+		bool _deny_methods;
 		bool _autoindex;
 		size_t _max_body_size;
 		string _return_code;
@@ -46,6 +48,8 @@ class Location {
 		string getRoot(void) const;
 		void setMethods(string method);
 		set<string> getMethods(void) const;
+		void setDenyMethods(string deny_methods);
+		bool getDenyMethods(void) const;
 		void setAutoIndex(string autoindex);
 		bool getAutoIndex(void) const;
 		void setMaxBodySize(string max_body_size);

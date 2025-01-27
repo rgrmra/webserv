@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:33:56 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:21:50 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,15 @@
 #include <iostream>
 #include <string>
 
-Location::Location(void) {
+Location::Location(void)
+	: _deny_methods(false),
+	  _max_body_size(0) {
 
 }
 
 Location::Location(string &configuration_file) 
-	: _max_body_size(0)
-
-{
+	: _deny_methods(false),
+	  _max_body_size(0) {
 
 	parser::location(*this, configuration_file);
 }
@@ -46,7 +47,9 @@ Location &Location::operator=(const Location &rhs) {
 	_return_code = rhs._return_code;
 	_return_uri= rhs._return_uri;
 	_allow_methods = rhs._allow_methods;
+	_deny_methods = rhs._deny_methods;
 	_autoindex = rhs._autoindex;
+	_max_body_size = rhs._max_body_size;
 
 	return *this;
 }
@@ -93,6 +96,14 @@ void Location::setMethods(string method) {
 set<string> Location::getMethods(void) const {
 
 	return _allow_methods;
+}
+void Location::setDenyMethods(string deny_methods) {
+
+	directive::setDenyMethods(deny_methods, _deny_methods);
+}
+bool Location::getDenyMethods(void) const {
+
+	return _deny_methods;
 }
 
 void Location::setAutoIndex(string autoindex) {
@@ -142,11 +153,14 @@ ostream &operator<<(ostream &os, const Location &src) {
 
 	os << "\t\t\troot " << src.getRoot() << ";" << endl;
 
-	os << "\t\t\tallow_methods";
+	os << "\t\t\tlimit_except";
 	set<string> methods = src.getMethods();
 	for (set<string>::iterator it = methods.begin(); it != methods.end(); it++)
 		os << " " << *it;
-	os << ";" << endl;
+	os << " {";
+	if (src.getDenyMethods())
+		os << "\n\t\t\t\tdeny all;\n\t\t\t";
+	os << "}" << endl;
 
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;

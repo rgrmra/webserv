@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:35:10 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:22:01 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ class Server {
 		string getErrorPage(string code) const;
 		map<string, string> getErrorPages(void) const;
 		void addLocation(Location location);
-		Location getLocation(string code) const;
+		Location getLocation(string uri) const;
 		map<string, Location> getLocations(void) const;
 		void setReturn(string value);
 		string getReturnCode(void) const;

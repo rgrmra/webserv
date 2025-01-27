@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:34:52 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 21:01:36 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <endian.h>
+#include <exception>
+#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -43,26 +46,12 @@ void directive::setErrorLog(string error_log, string &_error_log) {
 
 bool directive::validateName(string name) {
 
-	if (name.at(0) == '-' || name.at(name.size() - 1) == '-')
-		return false;
-
-	if (name.at(0) == '.' || name.at(name.size() - 1) == '.')
-		return false;
-
-	if (name.find("..") != string::npos)
+	if (name.empty())
 		return false;
 
 	for (size_t i = 0; i < name.size(); i++)
 		if (not isalnum(name.at(i)) && name.at(i) != '-' && name.at(i) != '.')
 			return false;
-
-	for (size_t i = 0; i < name.size(); i++) {
-		if (name.at(i) != '.')
-			continue;
-
-		if (name.at(i - 1) == '-' || name.at(i + 1) == '-')
-			return false;
-	}
 
 	return true;
 }
@@ -214,19 +203,24 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 
 	size_t pos = max_body_size.find_first_not_of("0123456789");
 
-	if (pos == string::npos)
-		return;
+	string format;
+	if (pos != string::npos)
+		format = max_body_size.substr(pos, max_body_size.size() - pos);
 
-	string format = max_body_size.substr(pos, max_body_size.size() - pos);
+	size_t tmp = strtol(max_body_size.c_str(), NULL, 10);
+	if (tmp == 0)
+		_max_body_size = string::npos;
+	else
+		_max_body_size = tmp;
 
-	_max_body_size = strtol(max_body_size.c_str(), NULL, 10);
-
-	if (format == "KB" || format == "K")
-		_max_body_size *= 1024;
-	else if (format == "MB" || format == "M")
-		_max_body_size *= pow(1024, 2);
-	else if (format == "GB" || format == "G")
-		_max_body_size *= pow(1024, 3);
+	if (format.empty() || format == "B")
+		_max_body_size *= BYTE;
+	else if (format == "K")
+		_max_body_size *= KILOBYTE;
+	else if (format == "M")
+		_max_body_size *= MEGABYTE;
+	else if (format == "G")
+		_max_body_size *= GIGABYTE;
 	else
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
@@ -289,6 +283,17 @@ void directive::setMethods(string method, set<string> &_allow_methods) {
 
 		it++;
 	}
+}
+
+void directive::setDenyMethods(string deny_methods, bool &_deny_methods) {
+
+	if (deny_methods.empty())
+		return;
+
+	if (deny_methods == "all")
+		_deny_methods = true;
+	else
+		throw runtime_error("invalid deny: " + deny_methods);
 }
 
 void directive::setAutoIndex(string autoindex, bool &_autoindex) {

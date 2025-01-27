@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 14:29:19 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/26 20:38:14 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,17 @@ void parser::erase(string &buffer, string text, size_t quantity) {
 
 	while (pos != string::npos) {
 		buffer.erase(pos, quantity);
+
+		pos = buffer.find(text);
+	}
+}
+
+void parser::rerase(string &buffer, string text, size_t quantity) {
+
+	size_t pos = buffer.find(text);
+
+	while (pos != string::npos) {
+		buffer.erase(pos + text.size() - quantity, quantity);
 
 		pos = buffer.find(text);
 	}
@@ -157,8 +168,6 @@ void parser::server(Server &server, string &buffer) {
 
 	buffer.erase(0, 7);
 	
-	string tmp;
-
 	for (size_t i = 0; i < buffer.size(); i++) {
 
 		server.setListen(parser::find("listen ", buffer, ";"));
@@ -183,24 +192,19 @@ void parser::server(Server &server, string &buffer) {
 
 void parser::location(Location &location, string &buffer) {
 
-	string tmp;
-
-	tmp = parser::find("location ", buffer, "{");
-	if (not tmp.empty())
-		location.setURI(tmp);
+	location.setURI(find("location ", buffer, "{"));
 
 	for (size_t i = 0; i < buffer.size(); i++) {
 
 		location.setIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
-		location.setMethods(find("allow_methods ", buffer, ";"));
 		location.setAutoIndex(find("autoindex ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
+		location.setReturn(find("return ", buffer, ";"));
 
-		tmp = parser::find("return ", buffer, ";");
-		if (not tmp.empty())
-			location.setReturn(tmp);
-			
+		if (parser::compare("limit_except", buffer))
+			parser::limit_except(location, buffer);
+
 		if (parser::compare("}", buffer)) {
 			buffer.erase(0, 1);
 			return ;
@@ -208,4 +212,25 @@ void parser::location(Location &location, string &buffer) {
 	}
 
 	throw runtime_error("failed to parse location at: " + buffer);
+}
+void parser::limit_except(Location &location, string &buffer) {
+
+	for (size_t i = 0; i < buffer.size(); i++) {
+
+		if (parser::compare("limit_except{", buffer))
+			buffer.erase(0, 13);
+
+		if (parser::compare("limit_except ", buffer))
+			location.setMethods(find("limit_except ", buffer, "{"));
+
+		if (parser::compare("deny ", buffer))
+			location.setDenyMethods(find("deny ", buffer, ";"));
+
+		if (parser::compare("}", buffer)) {
+			buffer.erase(0, 1);
+			return ;
+		}
+	}
+
+	throw runtime_error("failed to parse limit_except at: " + buffer);
 }
