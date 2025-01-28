@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:37:44 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/28 08:34:20 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ class Http {
 		set<Server> _servers;
 
 	public:
-		Http(string &configuration_file);
+		Http(string configuration_file);
 		Http(const Http &src);
 		Http &operator=(const Http &rhs);
 		~Http(void);
@@ -46,6 +46,7 @@ class Http {
 		void addServer(Server server);
 		Server getServer(string host, string port) const;
 		set<Server> getServers(void) const;
+		void start(void);
 };
 
 ostream &operator<<(ostream &os, const Http &src);

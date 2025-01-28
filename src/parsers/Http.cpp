@@ -6,12 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:37:38 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/28 11:15:48 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 #include "Server.hpp"
+#include "WebServ.hpp"
 #include "directive.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
@@ -22,7 +23,7 @@
 #include <string>
 #include <cmath>
 
-Http::Http(string &filename)
+Http::Http(string filename)
 	: _max_body_size(MEGABYTE),
 	  _access_log(ACCESS_LOG),
 	  _error_log(ERROR_LOG),
@@ -158,6 +159,13 @@ Server Http::getServer(string host, string port) const {
 set<Server> Http::getServers(void) const {
 
 	return _servers;
+}
+
+void Http::start(void) {
+
+	WebServ webserv = WebServ(this);
+
+	webserv.run();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {

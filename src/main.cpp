@@ -6,47 +6,54 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/25 13:24:28 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/28 12:00:00 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Location.hpp"
-#include <Server.hpp>
 #include "Http.hpp"
 #include "logger.hpp"
+#include <csignal>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <string>
-#include "directive.hpp"
 
 using namespace std;
 
+Http *http = NULL;
+
+void sigint(int signal) {
+
+	delete http;
+
+	exit(signal);
+}
+
 int main(int argc, char *argv[]) {
 
-	string filename;
+	signal(SIGINT, sigint);
 
 	try {
 
-		if (argc == 1)
-			filename = "./configurations/default.conf";
-		else if (argc == 2)
-			filename = argv[1];
-		else
-		 	throw std::runtime_error("too many configuration files");
+		if (argc > 2)
+			throw std::runtime_error("too many configuration files");
 
-		Http servers = Http(filename);
+		http = new Http(argv[1] ? argv[1] : "configurations/default.conf");
 
-		cout << servers << endl;
+		cout << *http << endl;
 
-		//cout << servers.getServer("localhost", "8080") << endl;
-		
+		http->start();
+
 	} catch (std::exception &exception) {
 
 		logger::error(exception.what());
 
+		delete http;
+
 		return EXIT_FAILURE;
 	}
+
+	delete http;
 	
 	return EXIT_SUCCESS;
 }
