@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/28 11:15:48 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 16:04:57 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include <cmath>
+#include <sys/socket.h>
 
 Http::Http(string filename)
 	: _max_body_size(MEGABYTE),
@@ -135,22 +136,24 @@ void Http::addServer(Server server) {
 }
 
 Server Http::getServer(string host, string port) const {
+	(void) host;
+	(void) port;
 
 	for (set<Server>::const_iterator it = _servers.begin(); it != _servers.end(); it++) {
 
-		if (it->getHost() + ":" + it->getPort() == host + ":" + port)
-			return *it;
+		//if (it->getHost() + ":" + it->getPort() == host + ":" + port)
+		//	return *it;
 
-		list<string> name = it->getName();
-		for (list<string>::iterator i2 = name.begin(); i2 != name.end(); i2++)
-			if (*i2 == host && it->getPort() == port)
-				return *it;
-		
-		if (it->getHost() != "0.0.0.0")
-			continue;
+		//list<string> name = it->getName();
+		//for (list<string>::iterator i2 = name.begin(); i2 != name.end(); i2++)
+		//	if (*i2 == host && it->getPort() == port)
+		//		return *it;
+		//
+		//if (it->getHost() != "0.0.0.0")
+		//	continue;
 
-		if (directive::validateHttpHost(host) && it->getPort() == port)
-			return *it;
+		//if (directive::validateHttpHost(host) && it->getPort() == port)
+		//	return *it;
 	}
 
 	return Server();

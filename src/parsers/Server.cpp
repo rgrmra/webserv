@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:22:22 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 15:31:26 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Server::Server(string &configuration_file)
 
 	parser::server(*this, configuration_file);
 
-	if (_host.empty() || _port.empty())
+	if (!_listen.size())
 		throw runtime_error("listen not setted");
 }
 
@@ -47,8 +47,7 @@ Server &Server::operator=(const Server &rhs) {
 		return *this;
 
 	_name = rhs._name;
-	_host = rhs._host;
-	_port = rhs._port;
+	_listen = rhs._listen;
 	_root = rhs._root;
 	_index = rhs._index;
 	_max_body_size = rhs._max_body_size;
@@ -66,33 +65,34 @@ Server::~Server(void) {
 
 bool Server::operator<(const Server &rhs) const {
 
-	if (_port != rhs._port)
-		return _port < rhs._port;
-
-	if (_host == "0.0.0.0" || rhs._host == "0.0.0.0")
-		return _port < rhs._port;
-
-	string server1 = _host + ":" +_port;
-	string server2 = rhs._host + ":" + rhs._port;
-
-	if (server1 == server2)
-		return server1 < server2;
-
-	list<string>::const_iterator i1 = _name.begin();
-	while (i1 != _name.end()) {
-
-		list<string>::const_iterator i2 = rhs._name.begin();
-		while (i2 != rhs._name.end()) {
-			if (*i1 == *i2)
-				return *i1 < *i2;
-
-			i2++;
-		}
-
-		i1++;
-	}
-
-	return server1 < server2;
+//	if (_port != rhs._port)
+//		return _port < rhs._port;
+//
+//	if (_host == "0.0.0.0" || rhs._host == "0.0.0.0")
+//		return _port < rhs._port;
+//
+//	string server1 = _host + ":" +_port;
+//	string server2 = rhs._host + ":" + rhs._port;
+//
+//	if (server1 == server2)
+//		return server1 < server2;
+//
+//	list<string>::const_iterator i1 = _name.begin();
+//	while (i1 != _name.end()) {
+//
+//		list<string>::const_iterator i2 = rhs._name.begin();
+//		while (i2 != rhs._name.end()) {
+//			if (*i1 == *i2)
+//				return *i1 < *i2;
+//
+//			i2++;
+//		}
+//
+//		i1++;
+//	}
+//
+//	return server1 < server2;
+	return _root < rhs._root;
 }
 
 void Server::setName(string name) {
@@ -107,17 +107,12 @@ list<string> Server::getName(void) const {
 
 void Server::setListen(string listen) {
 
-	directive::setListen(listen, _host, _port);
+	directive::setListen(listen, _listen);
 }
 
-string Server::getHost(void) const {
+list<string> Server::getListen(void) const {
 
-	return _host;
-}
-
-string Server::getPort(void) const {
-
-	return _port;
+	return _listen;
 }
 
 void Server::setRoot(string root) {
@@ -211,7 +206,10 @@ string Server::getReturnURI(void) const {
 ostream &operator<<(ostream &os, const Server &src) {
 
 	os << "\tserver {" << endl;
-	os << "\t\tlisten " << src.getHost() << ":" << src.getPort() << ";" << endl;
+
+	list<string> listens = src.getListen();
+	for (list<string>::iterator it = listens.begin(); it != listens.end(); it++)
+		os << "\t\tlisten " << *it << ";" << endl;
 
 	os << "\t\tserver_name";
 	list<string> names = src.getName();

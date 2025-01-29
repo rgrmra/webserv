@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 21:01:36 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 15:51:03 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <sys/socket.h>
 
 void directive::setAcessLog(string access_log, string &_access_log) {
 
@@ -134,27 +135,39 @@ bool directive::validateHttpPort(string port) {
 	return true;
 }
 
-void directive::setListen(string listen, string &_host, string &_port) {
+void directive::setListen(string listen, list<string> &_listen) {
 
-	if (not _host.empty() || not _host.empty())
+	if (listen.empty())
 		return;
-	
+
+	string host = "0.0.0.0";
+	string port = "80";
+
 	if (not directive::validateHttpListen(listen))
 		throw runtime_error("invalid listen: " + listen);
 
 	list<string> tmp = parser::split(listen, ':');
 
-	if (not directive::validateHttpPort(tmp.back()))
-		throw runtime_error("invalid port: " + tmp.back());
-
-	_port = tmp.back();
-
-	if (tmp.size() == 1)
-		_host = "0.0.0.0";
-	else if (not directive::validateHttpHost(tmp.front()))
-		throw runtime_error("invalid host: " + tmp.front());
+	if (tmp.size() >= 1 && directive::validateHttpPort(tmp.back()))
+		port = tmp.back();
+	else if (tmp.size() == 1 && directive::validateHttpHost(tmp.back()))
+		host = tmp.back();
 	else
-		_host = tmp.front();
+		throw runtime_error("invalid listen: " + listen);
+
+	if (tmp.size() == 2 && directive::validateHttpHost(tmp.front()))
+		host = tmp.front();
+	else if (tmp.size() == 2)
+		throw runtime_error("invalid host: " + tmp.front());
+
+	listen = host + ":" + port;
+
+	for (list<string>::iterator it = _listen.begin(); it != _listen.end(); it++) {
+		if (*it == listen)
+			throw runtime_error("duplicated listen: " + listen);
+	}
+
+	_listen.push_back(listen);
 }
 
 void directive::setURI(string uri, string &_uri) {

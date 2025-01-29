@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:01:41 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/28 20:30:50 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 15:53:04 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Server.hpp"
 #include "logger.hpp"
 #include "WebServ.hpp"
+#include "parser.hpp"
 #include <asm-generic/socket.h>
 #include <fcntl.h>
 #include <iostream>
@@ -34,32 +35,38 @@ WebServ::WebServ(Http *http)
 	set<Server>::iterator it = servers.begin();
 	for (; it != servers.end(); it++) {
 
-		t_socket sock = (t_socket){};
+		list<string> listens = it->getListen();
+		list<string>::iterator itl = listens.begin();
+		for (; itl != listens.end(); itl++) {
 
-		sock.addr = (struct addrinfo){};
-		sock.addr.ai_family = AF_INET;
-		sock.addr.ai_socktype = SOCK_STREAM;
-		sock.addr.ai_flags = AI_PASSIVE;
+			t_socket sock = (t_socket){};
 
-		if (getaddrinfo(it->getHost().c_str(), it->getPort().c_str(), &sock.addr, &sock.p))
-			throw runtime_error("getaddrinfo");
+			sock.addr = (struct addrinfo){};
+			sock.addr.ai_family = AF_INET;
+			sock.addr.ai_socktype = SOCK_STREAM;
+			sock.addr.ai_flags = AI_PASSIVE;
 
-		sock.fd = socket(sock.p->ai_family, sock.p->ai_socktype, sock.p->ai_protocol);
-		
-		if (setsockopt(sock.fd, SOL_SOCKET, SO_REUSEADDR, &sock.opt, sizeof(sock.opt)) == -1)
-			throw runtime_error("setsockopt");
+			list<string> tmp = parser::split(*itl, ':');
+			if (getaddrinfo(tmp.front().c_str(), tmp.back().c_str(), &sock.addr, &sock.p))
+				throw runtime_error("getaddrinfo");
 
-		if (fcntl(sock.fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
-			throw runtime_error("fcntl");
+			sock.fd = socket(sock.p->ai_family, sock.p->ai_socktype, sock.p->ai_protocol);
 
-		if (bind(sock.fd, sock.p->ai_addr, sock.p->ai_addrlen) != 0)
-			throw runtime_error("bind");
-		freeaddrinfo(sock.p);
+			if (setsockopt(sock.fd, SOL_SOCKET, SO_REUSEADDR, &sock.opt, sizeof(sock.opt)) == -1)
+				throw runtime_error("setsockopt");
 
-		if (listen(sock.fd, MAX_EVENTS) == -1)
-			throw runtime_error("listen");
+			if (fcntl(sock.fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
+				throw runtime_error("fcntl");
 
-		_sockets.push_back(sock);
+			if (bind(sock.fd, sock.p->ai_addr, sock.p->ai_addrlen) != 0)
+				throw runtime_error("bind: " + *itl);
+			freeaddrinfo(sock.p);
+
+			if (listen(sock.fd, MAX_EVENTS) == -1)
+				throw runtime_error("listen");
+
+			_sockets.push_back(sock);
+		}
 	}
 }
 

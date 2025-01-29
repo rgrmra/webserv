@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:22:01 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 15:21:53 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,7 @@ class Location;
 class Server {
 	private:
 		list<string> _name;
-		string _host;
-		string _port;
+		list<string> _listen;
 		string _root;
 		set<string> _index;
 		size_t _max_body_size;
@@ -47,8 +46,7 @@ class Server {
 		void setName(string name);
 		list<string> getName(void) const;
 		void setListen(string listen);
-		string getHost(void) const;
-		string getPort(void) const;
+		list<string> getListen(void) const;
 		void setRoot(string root);
 		string getRoot(void) const;
 		void setIndex(string index);

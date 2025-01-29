@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:13:51 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:54:54 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 15:22:24 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ namespace directive {
 	bool validateHttpListen(string listen);
 	bool validateHttpHost(string host);
 	bool validateHttpPort(string port);
-	void setListen(string listen, string &_host, string &_port);
+	void setListen(string listen, list<string> &_listen);
 	void setURI(string uri, string &_uri);
 	void setIndex(string index, set<string> &_index);
 	void setRoot(string root, string &_root);
