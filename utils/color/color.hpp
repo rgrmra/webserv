@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Color.hpp                                          :+:      :+:    :+:   */
+/*   color.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 17:53:01 by rde-mour          #+#    #+#             */
-/*   Updated: 2024/12/17 18:14:52 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/23 14:50:53 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,23 @@
 
 #include <string>
 
-class Color : public std::string {
-	public:
+using namespace std;
 
-		static std::string red(void);
-		static std::string red(std::string message);
-		static std::string green(void);
-		static std::string green(std::string message);
-		static std::string yellow(void);
-		static std::string yellow(std::string message);
-		static std::string blue(void);
-		static std::string blue(std::string message);
-		static std::string magenta(void);
-		static std::string magenta(std::string message);
-		static std::string reset(void);
 
-};
+namespace color {
+
+	string red(void);
+	string red(string message);
+	string green(void);
+	string green(string message);
+	string yellow(void);
+	string yellow(string message);
+	string blue(void);
+	string blue(string message);
+	string magenta(void);
+	string magenta(string message);
+	string reset(void);
+
+}
 
 #endif /* COLOR_HPP */
