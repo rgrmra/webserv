@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 18:37:35 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/28 08:34:20 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 20:00:30 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define HTTP_HPP
 
 #include <ostream>
-#include <set>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -27,7 +27,7 @@ class Http {
 		string _access_log;
 		string _error_log;
 		string _root;
-		set<Server> _servers;
+		vector<Server> _servers;
 
 	public:
 		Http(string configuration_file);
@@ -44,8 +44,10 @@ class Http {
 		void setRoot(string root);
 		string getRoot(void) const;
 		void addServer(Server server);
-		Server getServer(string host, string port) const;
-		set<Server> getServers(void) const;
+		void setServers(vector<Server> servers);
+		Server getServerByListen(string listen) const;
+		Server getServerByName(string name) const;
+		vector<Server> getServers(void) const;
 		void start(void);
 };
 

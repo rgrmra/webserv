@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:00:24 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 16:04:57 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 20:23:01 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,34 +132,48 @@ string Http::getRoot(void) const {
 
 void Http::addServer(Server server) {
 
-	_servers.insert(server);
+	directive::addServer(server, _servers);
 }
 
-Server Http::getServer(string host, string port) const {
-	(void) host;
-	(void) port;
+void Http::setServers(vector<Server> servers) {
 
-	for (set<Server>::const_iterator it = _servers.begin(); it != _servers.end(); it++) {
+	_servers = servers;
+}
 
-		//if (it->getHost() + ":" + it->getPort() == host + ":" + port)
-		//	return *it;
+Server Http::getServerByListen(string listen) const {
 
-		//list<string> name = it->getName();
-		//for (list<string>::iterator i2 = name.begin(); i2 != name.end(); i2++)
-		//	if (*i2 == host && it->getPort() == port)
-		//		return *it;
-		//
-		//if (it->getHost() != "0.0.0.0")
-		//	continue;
+	vector<Server>::const_iterator it = _servers.begin();
+	for (; it != _servers.end(); it++) {
 
-		//if (directive::validateHttpHost(host) && it->getPort() == port)
-		//	return *it;
+		vector<string> listens = it->getListen();
+		vector<string>::iterator listensIt = listens.begin();
+		for(; listensIt != listens.end(); listensIt++) {
+			if (*listensIt == listen)
+				return *it;
+		}
 	}
 
 	return Server();
 }
 
-set<Server> Http::getServers(void) const {
+
+Server Http::getServerByName(string name) const {
+
+	vector<Server>::const_iterator it = _servers.begin();
+	for (; it != _servers.end(); it++) {
+
+		vector<string> names = it->getNames();
+		vector<string>::iterator namesIt= names.begin();
+		for(; namesIt!= names.end(); namesIt++) {
+			if (*namesIt == name)
+				return *it;
+		}
+	}
+
+	return Server();
+}
+
+vector<Server> Http::getServers(void) const {
 
 	return _servers;
 }
@@ -179,8 +193,8 @@ ostream &operator<<(ostream &os, const Http &src) {
 	os << "\terror_log " << src.getErrorLog() << ";" << endl;
 	os << "\troot " << src.getRoot() << ";" << endl;
 	
-	set<Server> servers = src.getServers();
-	for (set<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+	vector<Server> servers = src.getServers();
+	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 		os << *it << endl;
 
 	os << "}";

@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:25:37 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:22:10 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 18:45:17 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ using namespace std;
 class Location {
 	private:
 		string _uri;
-		set<string> _index;
+		set<string> _indexes;
 		string _root;
 		set<string> _allow_methods;
 		bool _deny_methods;
@@ -42,11 +42,13 @@ class Location {
 
 		void setURI(string path);
 		string getURI(void) const;
-		void setIndex(string index);
-		set<string> getIndex(void) const;
+		void addIndex(string index);
+		void setIndexes(set<string> indexes);
+		set<string> getIndexes(void) const;
 		void setRoot(string root);
 		string getRoot(void) const;
-		void setMethods(string method);
+		void addMethod(string method);
+		void setMethods(set<string> methods);
 		set<string> getMethods(void) const;
 		void setDenyMethods(string deny_methods);
 		bool getDenyMethods(void) const;

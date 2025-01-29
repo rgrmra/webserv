@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 15:31:26 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 19:07:35 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include "Location.hpp"
 #include "parser.hpp"
 #include <iostream>
-#include <list>
 #include <stdexcept>
 
 using namespace std;
@@ -46,10 +45,10 @@ Server &Server::operator=(const Server &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	_name = rhs._name;
+	_names = rhs._names;
 	_listen = rhs._listen;
 	_root = rhs._root;
-	_index = rhs._index;
+	_indexes = rhs._indexes;
 	_max_body_size = rhs._max_body_size;
 	_return_code = rhs._return_code;
 	_return_uri = rhs._return_uri;
@@ -63,54 +62,32 @@ Server::~Server(void) {
 
 }
 
-bool Server::operator<(const Server &rhs) const {
+void Server::addName(string name) {
 
-//	if (_port != rhs._port)
-//		return _port < rhs._port;
-//
-//	if (_host == "0.0.0.0" || rhs._host == "0.0.0.0")
-//		return _port < rhs._port;
-//
-//	string server1 = _host + ":" +_port;
-//	string server2 = rhs._host + ":" + rhs._port;
-//
-//	if (server1 == server2)
-//		return server1 < server2;
-//
-//	list<string>::const_iterator i1 = _name.begin();
-//	while (i1 != _name.end()) {
-//
-//		list<string>::const_iterator i2 = rhs._name.begin();
-//		while (i2 != rhs._name.end()) {
-//			if (*i1 == *i2)
-//				return *i1 < *i2;
-//
-//			i2++;
-//		}
-//
-//		i1++;
-//	}
-//
-//	return server1 < server2;
-	return _root < rhs._root;
+	directive::addName(name, _names);
 }
 
-void Server::setName(string name) {
+void Server::setNames(vector<string> names) {
 
-	directive::setName(name, _name);
+	_names = names;
 }
 
-list<string> Server::getName(void) const {
+vector<string> Server::getNames(void) const {
 
-	return _name;
+	return _names;
 }
 
-void Server::setListen(string listen) {
+void Server::addListen(string listen) {
 
-	directive::setListen(listen, _listen);
+	directive::addListen(listen, _listen);
 }
 
-list<string> Server::getListen(void) const {
+void Server::setListen(vector<string> listen) {
+
+	_listen = listen;
+}
+
+vector<string> Server::getListen(void) const {
 
 	return _listen;
 }
@@ -125,14 +102,19 @@ string Server::getRoot(void) const {
 	return _root;
 }
 
-void Server::setIndex(string index) {
+void Server::addIndex(string index) {
 
-	directive::setIndex(index, _index);
+	directive::addIndex(index, _indexes);
 }
 
-set<string> Server::getIndex(void) const {
+void Server::setIndexes(set<string> indexes) {
 
-	return _index;
+	_indexes = indexes;
+}
+
+set<string> Server::getIndexes(void) const {
+
+	return _indexes;
 }
 
 void Server::setMaxBodySize(string max_body_size) {
@@ -145,12 +127,17 @@ size_t Server::getMaxBodySize(void) const {
 	return _max_body_size;
 }
 
-void Server::setErrorPage(string error_page) {
+void Server::addErrorPage(string error_page) {
 
-	directive::setErrorPage(error_page, _error_pages);
+	directive::addErrorPage(error_page, _error_pages);
 }
 
-string Server::getErrorPage(string code) const {
+void Server::setErrorPages(map<string, string> error_pages) {
+
+	_error_pages = error_pages;
+}
+
+string Server::getErrorPageByCode(string code) const {
 
 	if (_error_pages.find(code)->first.empty())
 		return "";
@@ -173,7 +160,12 @@ void Server::addLocation(Location location) {
 	_locations[location.getURI()] = location;
 }
 
-Location Server::getLocation(string uri) const {
+void Server::setLocations(map<string, Location> locations) {
+
+	_locations = locations;
+}
+
+Location Server::getLocationByURI(string uri) const {
 	
 	map<string, Location>::const_iterator it = _locations.begin();
 	for (; it != _locations.end(); it++)
@@ -207,20 +199,20 @@ ostream &operator<<(ostream &os, const Server &src) {
 
 	os << "\tserver {" << endl;
 
-	list<string> listens = src.getListen();
-	for (list<string>::iterator it = listens.begin(); it != listens.end(); it++)
+	vector<string> listens = src.getListen();
+	for (vector<string>::iterator it = listens.begin(); it != listens.end(); it++)
 		os << "\t\tlisten " << *it << ";" << endl;
 
 	os << "\t\tserver_name";
-	list<string> names = src.getName();
-	for (list<string>::iterator it = names.begin(); it != names.end(); it++)
+	vector<string> names = src.getNames();
+	for (vector<string>::iterator it = names.begin(); it != names.end(); it++)
 		os << " " << *it;
 	os << ";" << endl;
 
 	os << "\t\troot " << src.getRoot() << ";" << endl;
 
 	os << "\t\tindex";
-	set<string> indexs = src.getIndex();
+	set<string> indexs = src.getIndexes();
 	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
 		os << " " << *it;
 	os << ";" << endl;

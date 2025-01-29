@@ -6,18 +6,19 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/22 21:18:42 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 15:51:03 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 19:59:43 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "directive.hpp"
+#include "Server.hpp"
 #include "parser.hpp"
+#include "logger.hpp"
+#include <bits/types/error_t.h>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <endian.h>
-#include <exception>
-#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -45,6 +46,37 @@ void directive::setErrorLog(string error_log, string &_error_log) {
 	_error_log = error_log;
 }
 
+template <typename T>
+typename T::iterator teste(T& container, typename T::iterator &it) {
+    if (it != container.end())
+        ++it;
+    return it;
+}
+
+void directive::addServer(Server server, vector<Server> &_servers) {
+	
+	vector<Server>::iterator serverIt = _servers.begin();
+	for (; serverIt != _servers.end(); serverIt++) {
+		vector<string> exitenListen = serverIt->getListen();
+		vector<string>::iterator exitenListenIt = exitenListen.begin();
+		for (; exitenListenIt != exitenListen.end(); exitenListenIt++) {
+			vector<string> newListen = server.getListen();
+			vector<string>::iterator newListenIt = newListen.begin();
+			for (; newListenIt != newListen.end(); newListenIt++) {
+				if (*exitenListenIt != *newListenIt)
+					continue;
+
+				logger::warning("conflicting server name \"" + (server.getNames().size()?  server.getNames()[0] : "") + "\" on " + *newListenIt + ", ignored");
+				newListen.erase(newListenIt);
+			}
+			server.setListen(newListen);
+		}
+	}
+
+	if (server.getListen().size() > 0)
+		_servers.push_back(server);
+}
+
 bool directive::validateName(string name) {
 
 	if (name.empty())
@@ -57,7 +89,7 @@ bool directive::validateName(string name) {
 	return true;
 }
 
-void directive::setName(string name, list<string> &_name) {
+void directive::addName(string name, vector<string> &_name) {
 
 	if (name.empty())
 		return;
@@ -135,7 +167,7 @@ bool directive::validateHttpPort(string port) {
 	return true;
 }
 
-void directive::setListen(string listen, list<string> &_listen) {
+void directive::addListen(string listen, vector<string> &_listen) {
 
 	if (listen.empty())
 		return;
@@ -162,7 +194,7 @@ void directive::setListen(string listen, list<string> &_listen) {
 
 	listen = host + ":" + port;
 
-	for (list<string>::iterator it = _listen.begin(); it != _listen.end(); it++) {
+	for (vector<string>::iterator it = _listen.begin(); it != _listen.end(); it++) {
 		if (*it == listen)
 			throw runtime_error("duplicated listen: " + listen);
 	}
@@ -181,7 +213,7 @@ void directive::setURI(string uri, string &_uri) {
 	_uri= uri;
 }
 
-void directive::setIndex(string index, set<string> &_index) {
+void directive::addIndex(string index, set<string> &_index) {
 
 	if (index.empty())
 		return;
@@ -238,7 +270,7 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
 
-void directive::setErrorPage(string error_page, map<string, string> &_error_pages) {
+void directive::addErrorPage(string error_page, map<string, string> &_error_pages) {
 
 	if (error_page.empty())
 		return;
@@ -277,7 +309,7 @@ bool directive::validateHttpMethod(string method) {
 	return false;
 }
 
-void directive::setMethods(string method, set<string> &_allow_methods) {
+void directive::addMethod(string method, set<string> &_allow_methods) {
 
 	if (method.empty())
 		return;

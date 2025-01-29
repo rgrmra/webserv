@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:01:41 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 15:53:04 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 18:15:20 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <vector>
 
 #define MAX_EVENTS 10
 #define TIMEOUT 6
@@ -30,13 +31,13 @@
 WebServ::WebServ(Http *http)
 	: _http(http) {
 
-	set<Server> servers = http->getServers();
+	vector<Server> servers = http->getServers();
 
-	set<Server>::iterator it = servers.begin();
+	vector<Server>::iterator it = servers.begin();
 	for (; it != servers.end(); it++) {
 
-		list<string> listens = it->getListen();
-		list<string>::iterator itl = listens.begin();
+		vector<string> listens = it->getListen();
+		vector<string>::iterator itl = listens.begin();
 		for (; itl != listens.end(); itl++) {
 
 			t_socket sock = (t_socket){};

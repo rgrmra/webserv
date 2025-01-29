@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/11 16:35:27 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:21:50 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 18:56:03 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ Location &Location::operator=(const Location &rhs) {
 		return *this;
 
 	_uri= rhs._uri;
-	_index = rhs._index;
+	_indexes = rhs._indexes;
 	_root = rhs._root;
 	_return_code = rhs._return_code;
 	_return_uri= rhs._return_uri;
@@ -68,14 +68,19 @@ string Location::getURI(void) const {
 	return _uri;
 }
 
-void Location::setIndex(string index) {
+void Location::addIndex(string index) {
 
-	directive::setIndex(index, _index);
+	directive::addIndex(index, _indexes);
 }
 
-set<string> Location::getIndex(void) const {
+void Location::setIndexes(set<string> indexes) {
 
-	return _index;
+	_indexes = indexes;
+}
+
+set<string> Location::getIndexes(void) const {
+
+	return _indexes;
 }
 
 void Location::setRoot(string root) {
@@ -88,19 +93,26 @@ string Location::getRoot(void) const {
 	return _root;
 }
 
-void Location::setMethods(string method) {
+void Location::addMethod(string method) {
 
-	directive::setMethods(method, _allow_methods);
+	directive::addMethod(method, _allow_methods);
+}
+
+void Location::setMethods(set<string> methods) {
+
+	_allow_methods = methods;
 }
 
 set<string> Location::getMethods(void) const {
 
 	return _allow_methods;
 }
+
 void Location::setDenyMethods(string deny_methods) {
 
 	directive::setDenyMethods(deny_methods, _deny_methods);
 }
+
 bool Location::getDenyMethods(void) const {
 
 	return _deny_methods;
@@ -146,7 +158,7 @@ ostream &operator<<(ostream &os, const Location &src) {
 	os << "\t\tlocation " << src.getURI() << " {" << endl;
 	
 	os << "\t\t\tindex";
-	set<string> indexs = src.getIndex();
+	set<string> indexs = src.getIndexes();
 	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
 		os << " " << *it;
 	os << ";" << endl;

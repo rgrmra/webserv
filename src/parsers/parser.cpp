@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/26 20:38:14 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 19:00:13 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,11 +170,11 @@ void parser::server(Server &server, string &buffer) {
 	
 	for (size_t i = 0; i < buffer.size(); i++) {
 
-		server.setListen(parser::find("listen ", buffer, ";"));
-		server.setName(parser::find("server_name ", buffer, ";"));
+		server.addListen(parser::find("listen ", buffer, ";"));
+		server.addName(parser::find("server_name ", buffer, ";"));
 		server.setRoot(parser::find("root ", buffer, ";"));
-		server.setErrorPage(parser::find("error_page ", buffer, ";"));
-		server.setIndex(parser::find("index ", buffer, ";"));
+		server.addErrorPage(parser::find("error_page ", buffer, ";"));
+		server.addIndex(parser::find("index ", buffer, ";"));
 		server.setMaxBodySize(parser::find("client_max_body_size ", buffer, ";"));
 		server.setReturn(parser::find("return ", buffer, ";"));
 
@@ -196,7 +196,7 @@ void parser::location(Location &location, string &buffer) {
 
 	for (size_t i = 0; i < buffer.size(); i++) {
 
-		location.setIndex(find("index ", buffer, ";"));
+		location.addIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
 		location.setAutoIndex(find("autoindex ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
@@ -221,7 +221,7 @@ void parser::limit_except(Location &location, string &buffer) {
 			buffer.erase(0, 13);
 
 		if (parser::compare("limit_except ", buffer))
-			location.setMethods(find("limit_except ", buffer, "{"));
+			location.addMethod(find("limit_except ", buffer, "{"));
 
 		if (parser::compare("deny ", buffer))
 			location.setDenyMethods(find("deny ", buffer, ";"));

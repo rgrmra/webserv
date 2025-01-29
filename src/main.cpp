@@ -6,12 +6,13 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/28 12:00:00 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/29 20:23:51 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 #include "logger.hpp"
+#include "Server.hpp"
 #include <csignal>
 #include <cstdlib>
 #include <exception>
@@ -40,9 +41,15 @@ int main(int argc, char *argv[]) {
 
 		http = new Http(argv[1] ? argv[1] : "configurations/default.conf");
 
-		cout << *http << endl;
+		//cout << *http << endl;
 
-		http->start();
+		//http->start();
+
+		cout << http->getServerByListen("127.0.0.1:8080") << endl;;
+		cout << http->getServerByListen("127.0.0.3:8080") << endl;;
+		cout << http->getServerByListen("localhost") << endl;;
+		cout << http->getServerByListen("127.0.0.2:8080") << endl;;
+		cout << http->getServerByListen("teste") << endl;;
 
 	} catch (std::exception &exception) {
 
