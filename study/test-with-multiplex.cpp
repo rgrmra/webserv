@@ -165,7 +165,7 @@ int modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events)
 
 int set_non_blocking(int fd)
 {
-	if (fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
+	if (fcntl(fd, F_SETFL, O_NONBLOCK, 0) == -1)
     {
         std::cerr << "ioctl FIONBIO error" << std::endl;
         return -1;
@@ -324,9 +324,12 @@ int	main()
     ServerController  server;
 	int status;
 
-	int socket_fd = server.openServer("127.0.0.1", "4243");
-	status = run_with_epoll(socket_fd);
-	close(socket_fd);
+	int fd = server.openServer("127.0.0.1", "4243");
+    int fd2 = server.openServer("127.0.0.2", "4244");
+	status = server.runWithEpoll();
+    // status = run_with_epoll(fd);
+	close(fd);
+    close(fd2);
 	return (status);
 }
 

@@ -7,72 +7,41 @@
 # include <cstring>
 # include <unistd.h>
 # include <cstdlib>
+# include <vector>
+# include <sys/epoll.h>
+# include <sstream>
+# include <cerrno>
+# include <fcntl.h>
 
 typedef struct addrinfo t_addrinfo;
-
 
 
 class ServerController
 {
 	private:
 		// Server &server;
+		std::vector<int>	servers;
+		int					epoll_fd;
 	public:
-		ServerController()
-		{
+		ServerController();
 
-		}
-		int	openServer(std::string host, std::string port)
-		{
-			int status = 0;
-			int socket_fd;
+		// openServer opens a server on the specified host and port.
+		int	runWithEpoll();
+		int	serverRun();
+		int	openServer(std::string host, std::string port);
+		int	acceptNewConnections(int serverFd);
+		bool	searchInServers(int fd);
 
+		// epoll
+		int	createEpoll();
+		int	addServersToEpoll();
+		int	addFdToEpoll(int fd, int events);
+		int modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events);
+		int set_non_blocking(int fd);
 
-
-			socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-			if (socket_fd < 0)
-			{
-				std::cerr << "socket: " << strerror(status) << std::endl;
-				return (-1);
-			}
-
-			int opt = 1;
-			if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-			{
-				std::cerr << "setsockopt error" << std::endl;
-				close(socket_fd);
-
-				return -1;
-			}
-
-			struct sockaddr_in addr;
-			addr.sin_family = AF_INET;
-			addr.sin_port = htons(atoi(port.c_str()));
-			addr.sin_addr.s_addr = INADDR_ANY;
-
-			if (host != "0.0.0.0" && !host.empty())
-			{
-				if (inet_pton(AF_INET, host.c_str(), &addr.sin_addr) <= 0)
-				{
-					close(socket_fd);
-					return false;
-				}
-			}
-
-
-			status = bind(socket_fd, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr));
-			if (status != 0)
-			{
-				std::cerr << "bind: " << strerror(status) << std::endl;
-				return (-1);
-			}
-			if (listen(socket_fd, SOMAXCONN) == -1)
-			{
-				close(socket_fd);
-				std::cerr << "listen error" << std::endl;
-				return -1;
-			}
-			return (socket_fd);
-		}
+		// request / response
+		int processRequest(int fd);
+		int processResponse(int fd);
 };
 
 
