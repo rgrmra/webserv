@@ -1,8 +1,5 @@
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <string>
-#include <cstring>
 #include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
@@ -10,6 +7,8 @@
 #include <sys/epoll.h>
 #include <cerrno>
 #include <fcntl.h>
+
+#include "ServerController.hpp"
 
 #define COLOR_RED "\033[31m"
 #define COLOR_GREEN "\033[32m"
@@ -322,9 +321,10 @@ int	run_with_epoll(int socket_fd)
 
 int	main()
 {
+    ServerController  server;
 	int status;
 
-	int socket_fd = open_server("4243");
+	int socket_fd = server.openServer("127.0.0.1", "4243");
 	status = run_with_epoll(socket_fd);
 	close(socket_fd);
 	return (status);
