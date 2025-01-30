@@ -172,7 +172,7 @@ int	ServerController::acceptNewConnections(int serverFd)
 {
 	while (true)
 	{
-		struct sockaddr_in client_addr;
+		t_sockaddr_in client_addr;
 		socklen_t client_addr_size = sizeof(client_addr);
 
 		int client_fd = accept(serverFd,
@@ -180,8 +180,9 @@ int	ServerController::acceptNewConnections(int serverFd)
 			&client_addr_size);
 		if (client_fd == -1)
 		{
-			std::cerr << "accept: " << strerror(errno) << std::endl;
-			return -1;
+			if (not (errno == EAGAIN || errno == EWOULDBLOCK))
+				std::cerr << "accept error: " << strerror(errno) << std::endl;
+			break;
 		}
 
 		if (this->set_non_blocking(client_fd) == -1)

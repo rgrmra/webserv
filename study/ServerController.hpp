@@ -14,6 +14,8 @@
 # include <fcntl.h>
 
 typedef struct addrinfo t_addrinfo;
+typedef struct sockaddr_in t_sockaddr_in;
+typedef struct sockaddr_storage t_sockaddr_storage;
 
 
 class ServerController
