@@ -305,9 +305,9 @@ int	run_with_epoll(int socket_fd)
                 accept_new_connections(epoll_fd, socket_fd);
             else
             {
-                if (events[i].events == (EPOLLIN | EPOLLET))
+                if (events[i].events & EPOLLIN )
                     process_request(epoll_fd, events[i].data.fd);
-                else if (events[i].events == (EPOLLOUT | EPOLLET))
+                else if (events[i].events & EPOLLOUT)
                 {
                     process_response(events[i].data.fd);
                 }
