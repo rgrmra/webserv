@@ -5,15 +5,6 @@ ServerController::ServerController()
 	servers = std::vector<int>();
 }
 
-int ServerController::set_non_blocking(int fd)
-{
-	if (fcntl(fd, F_SETFL, O_NONBLOCK, 0) == -1)
-	{
-		std::cerr << "ioctl FIONBIO error" << std::endl;
-		return -1;
-	}
-	return 0;
-}
 
 int ServerController::modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events)
 {
@@ -185,11 +176,11 @@ int	ServerController::acceptNewConnections(int serverFd)
 			break;
 		}
 
-		if (this->set_non_blocking(client_fd) == -1)
-		{
-			close(client_fd);
-			continue;
-		}
+		// if (this->set_non_blocking(client_fd) == -1)
+		// {
+		// 	close(client_fd);
+		// 	continue;
+		// }
 
 		if (this->addFdToEpoll(client_fd, EPOLLIN | EPOLLET) == -1)
 		{

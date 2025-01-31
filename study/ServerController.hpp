@@ -39,7 +39,6 @@ class ServerController
 		int	addServersToEpoll();
 		int	addFdToEpoll(int fd, int events);
 		int modify_fd_in_epoll(int epoll_fd, int fd, uint32_t events);
-		int set_non_blocking(int fd);
 
 		// request / response
 		int processRequest(int fd);
