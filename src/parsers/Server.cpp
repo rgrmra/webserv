@@ -3,6 +3,7 @@
 #include "parser.hpp"
 #include <bitset>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,9 @@ Server::Server(string &configuration_file)
 	  _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
+
+	if (this->empty())
+		throw runtime_error("no listen defined");
 }
 
 Server::Server(const Server &src) {
