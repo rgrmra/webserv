@@ -23,6 +23,6 @@ target_include_directories(webreq_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/color
 )
-#add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+
 add_subdirectory(tests)
 add_subdirectory(external)
