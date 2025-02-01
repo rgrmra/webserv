@@ -56,7 +56,7 @@ void Server::addListen(string listen) {
 
 void Server::setListen(vector<string> listen) {
 
-	if (!listen.size())
+	if (listen.empty())
 		throw runtime_error("no listen avaliable to server_name \"" + (_names.size() ? _names[0] : "") + "\"");
 
 	_listen = listen;
@@ -162,9 +162,7 @@ string Server::getErrorPageByCode(string code) const {
 
 void Server::addLocation(Location location) {
 
-	map<string, Location>::iterator it = _locations.begin();
-	for (; it != _locations.end(); it++)
-		if (it->first == location.getURI())
+	if (_locations.find(location.getURI()) != _locations.end())
 			throw runtime_error("duplicated location: " + location.getURI());
 
 	_locations[location.getURI()] = location;
@@ -177,10 +175,8 @@ void Server::setLocations(map<string, Location> locations) {
 
 Location Server::getLocationByURI(string uri) const {
 	
-	map<string, Location>::const_iterator it = _locations.begin();
-	for (; it != _locations.end(); it++)
-		if (it->first == uri)
-			return it->second;
+	if (_locations.find(uri) != _locations.end())
+		return _locations.find(uri)->second;
 
 	return Location();
 }

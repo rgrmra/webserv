@@ -43,6 +43,7 @@ class Http {
 		std::set<std::string> getIndexes(void) const;
 		void addErrorPage(std::string error_page);
 		void setErrorPages(std::map<std::string, std::string> error_pages);
+		std::string getErrorPageByCode(std::string code) const;
 		std::map<std::string, std::string> getErrorPages(void) const;
 		void addServer(Server server);
 		void setServers(std::vector<Server> servers);

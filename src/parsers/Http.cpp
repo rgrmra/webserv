@@ -172,6 +172,14 @@ map<string, string> Http::getErrorPages(void) const {
 	return _error_pages;
 }
 
+string Http::getErrorPageByCode(string code) const {
+
+	if (_error_pages.find(code)->first.empty())
+		return "";
+
+	return _error_pages.find(code)->second;
+}
+
 void Http::addServer(Server server) {
 
 	directive::addServer(server, _servers);

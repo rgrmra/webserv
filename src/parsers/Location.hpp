@@ -47,6 +47,7 @@ class Location {
 		void addErrorPages(std::string error_page);
 		void setErrorPages(std::map<std::string, std::string> error_pages);
 		std::map<std::string, std::string> getErrorPages(void) const;
+		std::string getErrorPageByCode(std::string code) const;
 		void setReturn(std::string value);
 		std::string getReturnCode(void) const;
 		std::string getReturnURI(void) const;

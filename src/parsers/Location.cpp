@@ -155,6 +155,14 @@ map<string, string> Location::getErrorPages(void) const {
 	return _error_pages;
 }
 
+string Location::getErrorPageByCode(string code) const {
+
+	if (_error_pages.find(code)->first.empty())
+		return "";
+
+	return _error_pages.find(code)->second;
+}
+
 void Location::setReturn(string value) {
 
 	directive::setReturn(value, _return_code, _return_uri);
