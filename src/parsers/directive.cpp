@@ -59,6 +59,9 @@ bool directive::validateHttpListen(string listen) {
 
 bool directive::validateHttpHost(string host) {
 
+ 	if (host.empty())
+          return false;
+
 	if (host.find_first_not_of(".0123456789") != string::npos)
 		return false;
 
@@ -86,11 +89,28 @@ bool directive::validateHttpHost(string host) {
 
 bool directive::validateHttpPort(string port) {
 
-	if (port.find_first_not_of("0123456789") != string::npos)
+  if (port.empty())
+    return false;
+
+  if (port.find_first_not_of("0123456789") != string::npos)
 		return false;
 
-	if (parser::toSizeT(port) > 65535)
+	size_t portNum = parser::toSizeT(port);
+
+	if (portNum > 65535)
 		return false;
+
+	// Check for well-known ports (0-1023)
+	if (portNum < 1024) {
+		// Allow common HTTP/HTTPS ports
+		if (portNum != 80 && portNum != 443)
+			return false;
+	}
+
+	// For other ports, prefer using registered ports (1024-49151)
+	// rather than dynamic/private ports (49152-65535)
+	if (portNum >= 1024 && portNum <= 49151)
+		return true;
 
 	return true;
 }
@@ -131,13 +151,27 @@ void directive::addListen(string listen, vector<string> &_listen) {
 }
 
 bool directive::validateName(string name) {
-
 	if (name.empty())
 		return false;
 
-	for (size_t i = 0; i < name.size(); i++)
-		if (not isalnum(name.at(i)) && name.at(i) != '-' && name.at(i) != '.')
+	if (name.front() == '-' || name.front() == '.' ||
+		name.back() == '-' || name.back() == '.') {
+		return false;
+		}
+
+	for (size_t i = 0; i < name.size() - 1; i++) {
+		if ((name[i] == '-' && name[i + 1] == '-') ||
+			(name[i] == '.' && name[i + 1] == '.')) {
 			return false;
+		}
+	}
+
+	for (size_t i = 0; i < name.size(); i++) {
+		char ch = name.at(i);
+		if (!isalnum(ch) && ch != '-' && ch != '.') {
+			return false;
+		}
+	}
 
 	return true;
 }

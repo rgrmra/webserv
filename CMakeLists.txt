@@ -6,8 +6,6 @@ project(try_googletest
 
 include(cmake/UpdateSubModules.cmake)
 include(CTest)
-include_directories(${CMAKE_SOURCE_DIR}/build/lib)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE WEBREQ_SOURCES
         "src/*.cpp"
