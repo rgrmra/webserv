@@ -10,13 +10,12 @@
 #                                                                              #
 # **************************************************************************** #
 
-RED					= $(shell tput setaf 1)
-GREEN				= $(shell tput setaf 2)
-YELLOW				= $(shell tput setaf 3)
-BLUE				= $(shell tput setaf 4)
-MAGENTA				= $(shell tput setaf 5)
-RESET				= $(shell tput sgr0)
-print_color			= @echo "$(RED)$2$(RESET)"
+RED					= \033[31m
+GREEN				= \033[32m
+YELLOW				= \033[33m
+BLUE				= \033[34m
+MAGENTA				= \033[35m
+RESET				= \033[0m
 
 NAME				= webserv
 
@@ -59,10 +58,16 @@ test:
 
 test_clean:
 	@rm -rf build
-	$(call print_color, RED, "Removing test library")
+	$(call print_color, $(RED), "Removing test library")
 
 define run_colorized_tests
 	GTEST_COLOR=1 ctest --test-dir build --output-on-failure -j12
+endef
+
+export TERM=xterm-256color
+
+define print_color
+    @echo "$(1)$(2)$(RESET)"
 endef
 
 .PHONY: 			all clean fclean re tests sub
