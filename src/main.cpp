@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 20:23:51 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/01/31 20:59:17 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 using namespace std;
@@ -41,15 +42,9 @@ int main(int argc, char *argv[]) {
 
 		http = new Http(argv[1] ? argv[1] : "configurations/default.conf");
 
-		//cout << *http << endl;
+		cout << *http << endl;
 
-		//http->start();
-
-		cout << http->getServerByListen("127.0.0.1:8080") << endl;;
-		cout << http->getServerByListen("127.0.0.3:8080") << endl;;
-		cout << http->getServerByListen("localhost") << endl;;
-		cout << http->getServerByListen("127.0.0.2:8080") << endl;;
-		cout << http->getServerByListen("teste") << endl;;
+		http->start();
 
 	} catch (std::exception &exception) {
 

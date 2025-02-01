@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   WebServ.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 09:01:41 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 18:15:20 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Http.hpp"
 #include "Server.hpp"
 #include "logger.hpp"
@@ -27,6 +15,8 @@
 
 #define MAX_EVENTS 10
 #define TIMEOUT 6
+
+using namespace std;
 
 WebServ::WebServ(Http *http)
 	: _http(http) {

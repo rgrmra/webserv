@@ -1,75 +1,67 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/09 19:13:23 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 18:57:05 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "Http.hpp"
+#include "Location.hpp"
+#include <bitset>
 #include <map>
-#include <set>
 #include <ostream>
+#include <set>
+#include <string>
 #include <vector>
-
-using namespace std;
-
-class Location;
 
 class Server {
 	private:
-		vector<string> _names;
-		vector<string> _listen;
-		string _root;
-		set<string> _indexes;
-		size_t _max_body_size;
-		map<string, string> _error_pages;
-		map<string, Location> _locations;
-		string _return_code;
-		string _return_uri;
+		std::vector<std::string> _listen;
+		std::vector<std::string> _names;
+		std::string _root;
+		std::bitset<2> _autoindex;
+		std::size_t _max_body_size;
+		std::set<std::string> _indexes;
+		std::map<std::string, std::string> _error_pages;
+		std::map<std::string, Location> _locations;
+		std::string _return_code;
+		std::string _return_uri;
 
 	public:
 		Server(void);
-		Server(string &configuration_file);
+		Server(std::string &configuration_file);
 		Server(const Server &src);
 		Server &operator=(const Server &rhs);
 		~Server(void);
 
 		bool operator<(const Server &rhs) const;
 
-		void addName(string name);
-		void setNames(vector<string> names);
-		vector<string> getNames(void) const;
-		void addListen(string listen);
-		void setListen(vector<string> listen);
-		vector<string> getListen(void) const;
-		void setRoot(string root);
-		string getRoot(void) const;
-		void addIndex(string index);
-		void setIndexes(set<string> indexes);
-		set<string> getIndexes(void) const;
-		void setMaxBodySize(string size);
-		size_t getMaxBodySize(void) const;
-		void addErrorPage(string error_page);
-		void setErrorPages(map<string, string> error_pages);
-		string getErrorPageByCode(string code) const;
-		map<string, string> getErrorPages(void) const;
+		void addListen(std::string listen);
+		void setListen(std::vector<std::string> listen);
+		std::vector<std::string> getListen(void) const;
+		void addName(std::string name);
+		void setNames(std::vector<std::string> names);
+		std::vector<std::string> getNames(void) const;
+		void setRoot(std::string root);
+		std::string getRoot(void) const;
+		void setAutoIndex(std::string autoindex);
+		void setAutoIndex(std::bitset<2> autoindex);
+		std::bitset<2> getAutoIndexBitSet(void) const;
+		bool getAutoIndex(void) const;
+		void setMaxBodySize(std::string max_body_size);
+		std::size_t getMaxBodySize(void) const;
+		void addIndex(std::string index);
+		void setIndexes(std::set<std::string> indexes);
+		std::set<std::string> getIndexes(void) const;
+		void addErrorPage(std::string error_page);
+		void setErrorPages(std::map<std::string, std::string> error_pages);
+		std::string getErrorPageByCode(std::string code) const;
+		std::map<std::string, std::string> getErrorPages(void) const;
 		void addLocation(Location location);
-		void setLocations(map<string, Location> locations);
-		Location getLocationByURI(string uri) const;
-		map<string, Location> getLocations(void) const;
-		void setReturn(string value);
-		string getReturnCode(void) const;
-		string getReturnURI(void) const;
+		void setLocations(std::map<std::string, Location> locations);
+		Location getLocationByURI(std::string uri) const;
+		std::map<std::string, Location> getLocations(void) const;
+		void setReturn(std::string value);
+		std::string getReturnCode(void) const;
+		std::string getReturnURI(void) const;
+		bool empty(void) const;
 };
 
-ostream &operator<<(ostream &os, const Server &src);
+std::ostream &operator<<(std::ostream &os, const Server &src);
 
 #endif /* SERVER_HPP */

@@ -1,24 +1,31 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   parser.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 19:03:48 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 19:00:13 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include "parser.hpp"
-#include <cstddef>
-#include <cstdlib>
-#include <list>
-#include <stdexcept>
-#include <string>
+#include "Http.hpp"
 #include "Location.hpp"
+#include "parser.hpp"
+#include "Server.hpp"
+#include <sstream>
+#include <string>
 
 using namespace std;
+
+size_t parser::toSizeT(string value) {
+
+	stringstream ss;
+	size_t tmp;
+
+	ss << value;
+	ss >> tmp;
+
+	return tmp;
+}
+
+string parser::toString(size_t value) {
+
+	stringstream ss;
+
+	ss << value;
+
+	return ss.str();
+}
 
 string parser::toLower(string text) {
 
@@ -148,9 +155,12 @@ void parser::http(Http &http, string &buffer) {
 	for (size_t i = 0; i < buffer.size(); i++) {
 
 		http.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
-		http.setAcessLog(find("access_log ", buffer, ";"));
+		http.setAccessLog(find("access_log ", buffer, ";"));
 		http.setErrorLog(find("error_log ", buffer, ";"));
 		http.setRoot(find("root ", buffer, ";"));
+		http.setAutoIndex(find("autoindex ", buffer, ";"));
+		http.addIndex(find("index ", buffer, ";"));
+		http.addErrorPage(find("error_page ", buffer, ";"));
 
 		if (parser::compare("server{", buffer))
 			http.addServer(Server(buffer));
@@ -176,6 +186,7 @@ void parser::server(Server &server, string &buffer) {
 		server.addErrorPage(parser::find("error_page ", buffer, ";"));
 		server.addIndex(parser::find("index ", buffer, ";"));
 		server.setMaxBodySize(parser::find("client_max_body_size ", buffer, ";"));
+		server.setAutoIndex(find("autoindex ", buffer, ";"));
 		server.setReturn(parser::find("return ", buffer, ";"));
 
 		if (parser::compare("location ", buffer))
@@ -200,6 +211,7 @@ void parser::location(Location &location, string &buffer) {
 		location.setRoot(find("root ", buffer, ";"));
 		location.setAutoIndex(find("autoindex ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
+		location.addErrorPages(find("error_page ", buffer, ";"));
 		location.setReturn(find("return ", buffer, ";"));
 
 		if (parser::compare("limit_except", buffer))
@@ -219,12 +231,10 @@ void parser::limit_except(Location &location, string &buffer) {
 
 		if (parser::compare("limit_except{", buffer))
 			buffer.erase(0, 13);
-
-		if (parser::compare("limit_except ", buffer))
+		else if (parser::compare("limit_except ", buffer))
 			location.addMethod(find("limit_except ", buffer, "{"));
 
-		if (parser::compare("deny ", buffer))
-			location.setDenyMethods(find("deny ", buffer, ";"));
+		location.setDenyMethods(find("deny ", buffer, ";"));
 
 		if (parser::compare("}", buffer)) {
 			buffer.erase(0, 1);

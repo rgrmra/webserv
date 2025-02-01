@@ -1,66 +1,58 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Location.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/11 16:25:37 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 18:45:17 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-#include "Http.hpp"
-#include <cstddef>
-#include <ostream>
+#include <bitset>
+#include <map>
 #include <set>
 #include <string>
 
-using namespace std;
-
 class Location {
 	private:
-		string _uri;
-		set<string> _indexes;
-		string _root;
-		set<string> _allow_methods;
+		std::string _uri;
+		std::set<std::string> _allow_methods;
 		bool _deny_methods;
-		bool _autoindex;
-		size_t _max_body_size;
-		string _return_code;
-		string _return_uri;
+		std::string _root;
+		std::bitset<2> _autoindex;
+		std::size_t _max_body_size;
+		std::set<std::string> _indexes;
+		std::map<std::string, std::string> _error_pages;
+		std::string _return_code;
+		std::string _return_uri;
 
 	public:
 		Location(void);
-		Location(string &configuration_file);
+		Location(std::string &configuration_file);
 		Location(const Location &src);
 		Location &operator=(const Location &rhs);
 		~Location(void);
 
-		void setURI(string path);
-		string getURI(void) const;
-		void addIndex(string index);
-		void setIndexes(set<string> indexes);
-		set<string> getIndexes(void) const;
-		void setRoot(string root);
-		string getRoot(void) const;
-		void addMethod(string method);
-		void setMethods(set<string> methods);
-		set<string> getMethods(void) const;
-		void setDenyMethods(string deny_methods);
+		void setURI(std::string path);
+		std::string getURI(void) const;
+		void addMethod(std::string method);
+		void setMethods(std::set<std::string> methods);
+		std::set<std::string> getMethods(void) const;
+		void setDenyMethods(std::string deny_methods);
 		bool getDenyMethods(void) const;
-		void setAutoIndex(string autoindex);
+		void setRoot(std::string root);
+		std::string getRoot(void) const;
+		void setAutoIndex(std::string autoindex);
+		void setAutoIndex(std::bitset<2> autoindex);
+		std::bitset<2> getAutoIndexBitSet(void) const;
 		bool getAutoIndex(void) const;
-		void setMaxBodySize(string max_body_size);
-		size_t getMaxBodySize(void) const;
-		void setReturn(string value);
-		string getReturnCode(void) const;
-		string getReturnURI(void) const;
+		void setMaxBodySize(std::string max_body_size);
+		std::size_t getMaxBodySize(void) const;
+		void addIndex(std::string index);
+		void setIndexes(std::set<std::string> indexes);
+		std::set<std::string> getIndexes(void) const;
+		void addErrorPages(std::string error_page);
+		void setErrorPages(std::map<std::string, std::string> error_pages);
+		std::map<std::string, std::string> getErrorPages(void) const;
+		void setReturn(std::string value);
+		std::string getReturnCode(void) const;
+		std::string getReturnURI(void) const;
+		bool empty(void) const;
 };
 
-ostream &operator<<(ostream &os, const Location &src);
+std::ostream &operator<<(std::ostream &os, const Location &src);
 
 #endif /* LOCATION_HPP */

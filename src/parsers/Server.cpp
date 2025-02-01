@@ -1,38 +1,24 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/09 19:24:18 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 19:07:35 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include "Server.hpp"
 #include "directive.hpp"
-#include "Http.hpp"
-#include "Location.hpp"
+#include "Server.hpp"
 #include "parser.hpp"
-#include <iostream>
-#include <stdexcept>
+#include <bitset>
+#include <ostream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
-
 Server::Server(void)
-	: _max_body_size(0) {
+	: _autoindex(AUTOINDEX_NOT_SET),
+	  _max_body_size(0) {
 
 }
 
 Server::Server(string &configuration_file) 
-	: _max_body_size(0) {
+	: _autoindex(AUTOINDEX_NOT_SET),
+	  _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
-
-	if (!_listen.size())
-		throw runtime_error("listen not setted");
 }
 
 Server::Server(const Server &src) {
@@ -45,21 +31,40 @@ Server &Server::operator=(const Server &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	_names = rhs._names;
 	_listen = rhs._listen;
+	_names = rhs._names;
 	_root = rhs._root;
-	_indexes = rhs._indexes;
+	_autoindex = rhs._autoindex;
 	_max_body_size = rhs._max_body_size;
-	_return_code = rhs._return_code;
-	_return_uri = rhs._return_uri;
+	_indexes = rhs._indexes;
 	_error_pages = rhs._error_pages;
 	_locations = rhs._locations;
+	_return_code = rhs._return_code;
+	_return_uri = rhs._return_uri;
 
 	return *this;
 }
 
 Server::~Server(void) {
 
+}
+
+void Server::addListen(string listen) {
+
+	directive::addListen(listen, _listen);
+}
+
+void Server::setListen(vector<string> listen) {
+
+	if (!listen.size())
+		throw runtime_error("no listen avaliable to server_name \"" + (_names.size() ? _names[0] : "") + "\"");
+
+	_listen = listen;
+}
+
+vector<string> Server::getListen(void) const {
+
+	return _listen;
 }
 
 void Server::addName(string name) {
@@ -77,21 +82,6 @@ vector<string> Server::getNames(void) const {
 	return _names;
 }
 
-void Server::addListen(string listen) {
-
-	directive::addListen(listen, _listen);
-}
-
-void Server::setListen(vector<string> listen) {
-
-	_listen = listen;
-}
-
-vector<string> Server::getListen(void) const {
-
-	return _listen;
-}
-
 void Server::setRoot(string root) {
 
 	directive::setRoot(root, _root);
@@ -100,6 +90,36 @@ void Server::setRoot(string root) {
 string Server::getRoot(void) const {
 
 	return _root;
+}
+
+void Server::setAutoIndex(string autoindex) {
+
+	directive::setAutoIndex(autoindex, _autoindex);
+}
+
+void Server::setAutoIndex(bitset<2> autoindex) {
+
+	_autoindex =  autoindex;
+}
+
+bitset<2> Server::getAutoIndexBitSet(void) const {
+
+	return _autoindex;
+}
+
+bool Server::getAutoIndex(void) const {
+
+	return (_autoindex == AUTOINDEX_ON ? true : false);
+}
+
+void Server::setMaxBodySize(string max_body_size) {
+
+	directive::setMaxBodySize(max_body_size, _max_body_size);
+}
+
+size_t Server::getMaxBodySize(void) const {
+
+	return _max_body_size;
 }
 
 void Server::addIndex(string index) {
@@ -117,16 +137,6 @@ set<string> Server::getIndexes(void) const {
 	return _indexes;
 }
 
-void Server::setMaxBodySize(string max_body_size) {
-
-	directive::setMaxBodySize(max_body_size, _max_body_size);
-}
-
-size_t Server::getMaxBodySize(void) const {
-
-	return _max_body_size;
-}
-
 void Server::addErrorPage(string error_page) {
 
 	directive::addErrorPage(error_page, _error_pages);
@@ -137,17 +147,17 @@ void Server::setErrorPages(map<string, string> error_pages) {
 	_error_pages = error_pages;
 }
 
+map<string, string> Server::getErrorPages(void) const {
+
+	return _error_pages;
+}
+
 string Server::getErrorPageByCode(string code) const {
 
 	if (_error_pages.find(code)->first.empty())
 		return "";
 
 	return _error_pages.find(code)->second;
-}
-
-map<string, string> Server::getErrorPages(void) const {
-
-	return _error_pages;
 }
 
 void Server::addLocation(Location location) {
@@ -195,8 +205,13 @@ string Server::getReturnURI(void) const {
 	return _return_uri;
 }
 
-ostream &operator<<(ostream &os, const Server &src) {
+bool Server::empty(void) const {
 
+	return _listen.empty();
+}
+
+ostream &operator<<(ostream &os, const Server &src) {
+	
 	os << "\tserver {" << endl;
 
 	vector<string> listens = src.getListen();
@@ -218,6 +233,8 @@ ostream &operator<<(ostream &os, const Server &src) {
 	os << ";" << endl;
 
 	os << "\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
+
+	os << "\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
 
 	map<string, string> error_pages = src.getErrorPages();
 	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)

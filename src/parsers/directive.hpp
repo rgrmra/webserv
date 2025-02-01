@@ -1,49 +1,41 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   directive.hpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/22 21:13:51 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/29 18:54:25 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef DIRECTIVE_HPP
 #define DIRECTIVE_HPP
 
+#include "Http.hpp"
+#include "Location.hpp"
 #include "Server.hpp"
+#include <bitset>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-using namespace std;
-
 namespace directive {
 
-	void setAcessLog(string access_log, string &_access_log);
-	void setErrorLog(string error_log, string &_error_log);
-	void addServer(Server server, vector<Server> &_servers);
-	bool validateName(string name);
-	void addName(string name, vector<string> &_name);
-	bool validateHttpListen(string listen);
-	bool validateHttpHost(string host);
-	bool validateHttpPort(string port);
-	void addListen(string listen, vector<string> &_listen);
-	void setURI(string uri, string &_uri);
-	void addIndex(string index, set<string> &_index);
-	void setRoot(string root, string &_root);
-	void setMaxBodySize(string max_body_size, size_t &_max_body_size);
-	void addErrorPage(string error_page, map<string, string> &_error_pages);
-	bool validateHttpMethod(string method);
-	void addMethod(string method, set<string> &_allow_methods);
-	void setDenyMethods(string deny_methods, bool &_deny_methods);
-	void setAutoIndex(string autoindex, bool &_autoindex);
-	bool validateHttpCode(string code);
-	void setReturn(string value, string &_code, string &_uri);
-	
+	void setAcessLog(std::string access_log, std::string &_access_log);
+	void setErrorLog(std::string error_log, std::string &_error_log);
+	bool validateHttpListen(std::string listen);
+	bool validateHttpHost(std::string host);
+	bool validateHttpPort(std::string port);
+	void addListen(std::string listen, std::vector<std::string> &_listen);
+	bool validateName(std::string name);
+	void addName(std::string name, std::vector<std::string> &_name);
+	void setURI(std::string uri, std::string &_uri);
+	bool validateHttpMethod(std::string method);
+	void addMethod(std::string method, std::set<std::string> &_allow_methods);
+	void setDenyMethods(std::string deny_methods, bool &_deny_methods);
+	void setRoot(std::string root, std::string &_root);
+	void setAutoIndex(std::string autoindex, std::bitset<2> &_autoindex);
+	void setMaxBodySize(std::string max_body_size, std::size_t &_max_body_size);
+	void addIndex(std::string index, std::set<std::string> &_index);
+	void addErrorPage(std::string error_page, std::map<std::string, std::string> &_error_pages);
+	void mergeErrorPages(std::map<std::string, std::string> error_pages, std::map<std::string, std::string> &_error_pages);
+	void addServer(Server server, std::vector<Server> &_servers);
+	bool validateHttpCode(std::string code);
+	void setReturn(std::string value, std::string &_code, std::string &_uri);
+	void setHttpDefaultValues(Http &http);
+	void setServerDefaultValues(Http &http, Server &server);
+	void setLocationDefaultValues(Server &server, Location &location);
 }
 
 #endif /* DIRECTIVE_HPP */
