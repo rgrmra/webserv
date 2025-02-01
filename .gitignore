@@ -38,3 +38,4 @@ webserv
 # IDES
 .vscode/
 .idea/
+build/

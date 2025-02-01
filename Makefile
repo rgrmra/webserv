@@ -52,4 +52,7 @@ re:					fclean all
 sub:
 	bash scripts/submodules.sh
 
+tests:
+	bash scripts/build_and_run_tests.sh
+
 .PHONY: 			all clean fclean re
