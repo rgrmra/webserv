@@ -1,6 +1,10 @@
 #!/usr/bin/sh
 
-DIR=../build
+# consider use `make test` command to run this is script.
+# makefile consider root path. If you want run this script in terminal
+# change dir path to `../build`
+
+DIR=build
 
 execute_command() {
   for cmd in "$@"; do
@@ -19,7 +23,7 @@ check_if_test_lib_exist() {
 }
 
 build_test_lib() {
-  execute_command "cd .." "cmake --build build -j 12"
+  execute_command "cmake --build build -j 12"
 }
 
 check_if_test_lib_exist

@@ -50,9 +50,9 @@ fclean: 			clean
 re:					fclean all
 
 sub:
-	bash scripts/submodules.sh
+	@bash scripts/submodules.sh
 
 tests:
-	bash scripts/build_and_run_tests.sh
+	@bash scripts/build_and_run_tests.sh
 
 .PHONY: 			all clean fclean re
