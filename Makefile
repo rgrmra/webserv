@@ -6,20 +6,20 @@
 #    By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2024/12/17 18:44:28 by rde-mour         ###   ########.org.br    #
+#    Updated: 2025/01/04 17:10:40 by rde-mour         ###   ########.org.br    #
 #                                                                              #
 # **************************************************************************** #
 
-RED					= $(shell tput setaf 1)
-GREEN				= $(shell tput setaf 2)
-YELLOW				= $(shell tput setaf 3)
-BLUE				= $(shell tput setaf 4)
-MAGENTA				= $(shell tput setaf 5)
-RESET				= $(shell tput sgr0)
+RED					= \033[31m
+GREEN				= \033[32m
+YELLOW				= \033[33m
+BLUE				= \033[34m
+MAGENTA				= \033[35m
+RESET				= \033[0m
 
 NAME				= webserv
 
-FILES				= $(shell find . -type f -name '*.cpp')
+FILES				= $(shell find ./src -type f -name '*.cpp')
 
 OBJS				= $(FILES:%.cpp=%.o)
 
@@ -27,7 +27,7 @@ HEADERS				= $(addprefix -I, $(shell find . -type d))
 
 COMPILER			= c++
 
-CFLAGS				= -Wall -Wextra -Werror -std=c++98
+CFLAGS				= -Wall -Wextra -Werror -std=c++98 -g3
 
 all: 				$(NAME)
 
@@ -49,4 +49,25 @@ fclean: 			clean
 
 re:					fclean all
 
-.PHONY: 			all clean fclean re
+sub:
+	@bash scripts/submodules.sh
+
+test:
+	@bash scripts/build_and_run_tests.sh
+	$(call run_colorized_tests)
+
+test_clean:
+	@rm -rf build
+	$(call print_color, $(RED), "Removing test library")
+
+define run_colorized_tests
+	GTEST_COLOR=1 ctest --test-dir build --output-on-failure -j12
+endef
+
+export TERM=xterm-256color
+
+define print_color
+    @echo "$(1)$(2)$(RESET)"
+endef
+
+.PHONY: 			all clean fclean re tests sub
