@@ -154,8 +154,8 @@ bool directive::validateName(string name) {
 	if (name.empty())
 		return false;
 
-	if (name.front() == '-' || name.front() == '.' ||
-		name.back() == '-' || name.back() == '.') {
+	if (name[0] == '-' || name[0] == '.' ||
+		name[name.size() - 1] == '-' || name[name.size() - 1] == '.') {
 		return false;
 		}
 
@@ -167,7 +167,7 @@ bool directive::validateName(string name) {
 	}
 
 	for (size_t i = 0; i < name.size(); i++) {
-		char ch = name.at(i);
+		char ch = name[i];  // Using array indexing instead of at()
 		if (!isalnum(ch) && ch != '-' && ch != '.') {
 			return false;
 		}
