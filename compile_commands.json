@@ -6,6 +6,7 @@
       "-Wextra",
       "-Werror",
       "-std=c++98",
+<<<<<<< HEAD
       "-g3",
       "-c",
       "-I.",
@@ -13,6 +14,12 @@
       "-I./.cache/clangd",
       "-I./.cache/clangd/index",
       "-I./configurations",
+=======
+      "-c",
+      "-I.",
+      "-I./utils",
+      "-I./utils/color",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git",
       "-I./.git/branches",
       "-I./.git/refs",
@@ -21,6 +28,7 @@
       "-I./.git/refs/tags",
       "-I./.git/refs/remotes",
       "-I./.git/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/refs/remotes/origin/feature",
       "-I./.git/info",
       "-I./.git/objects",
@@ -54,12 +62,19 @@
       "-I./.git/objects/0a",
       "-I./.git/objects/8c",
       "-I./.git/objects/35",
+=======
+      "-I./.git/info",
+      "-I./.git/objects",
+      "-I./.git/objects/info",
+      "-I./.git/objects/pack",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git/logs",
       "-I./.git/logs/refs",
       "-I./.git/logs/refs/heads",
       "-I./.git/logs/refs/heads/feature",
       "-I./.git/logs/refs/remotes",
       "-I./.git/logs/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/logs/refs/remotes/origin/feature",
       "-I./.git/hooks",
       "-I./src",
@@ -75,6 +90,19 @@
     "directory": "/home/rgrmra/webserv",
     "file": "/home/rgrmra/webserv/src/parsers/WebServ.cpp",
     "output": "/home/rgrmra/webserv/src/parsers/WebServ.o"
+=======
+      "-I./.git/hooks",
+      "-I./src",
+      "-I./src/services",
+      "-I./src/services/logger",
+      "-o",
+      "utils/color/color.o",
+      "utils/color/color.cpp"
+    ],
+    "directory": "/home/rgrmra/teste",
+    "file": "/home/rgrmra/teste/utils/color/color.cpp",
+    "output": "/home/rgrmra/teste/utils/color/color.o"
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
   },
   {
     "arguments": [
@@ -83,6 +111,7 @@
       "-Wextra",
       "-Werror",
       "-std=c++98",
+<<<<<<< HEAD
       "-g3",
       "-c",
       "-I.",
@@ -90,6 +119,12 @@
       "-I./.cache/clangd",
       "-I./.cache/clangd/index",
       "-I./configurations",
+=======
+      "-c",
+      "-I.",
+      "-I./utils",
+      "-I./utils/color",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git",
       "-I./.git/branches",
       "-I./.git/refs",
@@ -98,6 +133,7 @@
       "-I./.git/refs/tags",
       "-I./.git/refs/remotes",
       "-I./.git/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/refs/remotes/origin/feature",
       "-I./.git/info",
       "-I./.git/objects",
@@ -131,12 +167,19 @@
       "-I./.git/objects/0a",
       "-I./.git/objects/8c",
       "-I./.git/objects/35",
+=======
+      "-I./.git/info",
+      "-I./.git/objects",
+      "-I./.git/objects/info",
+      "-I./.git/objects/pack",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git/logs",
       "-I./.git/logs/refs",
       "-I./.git/logs/refs/heads",
       "-I./.git/logs/refs/heads/feature",
       "-I./.git/logs/refs/remotes",
       "-I./.git/logs/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/logs/refs/remotes/origin/feature",
       "-I./.git/hooks",
       "-I./src",
@@ -152,6 +195,19 @@
     "directory": "/home/rgrmra/webserv",
     "file": "/home/rgrmra/webserv/src/parsers/directive.cpp",
     "output": "/home/rgrmra/webserv/src/parsers/directive.o"
+=======
+      "-I./.git/hooks",
+      "-I./src",
+      "-I./src/services",
+      "-I./src/services/logger",
+      "-o",
+      "main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/rgrmra/teste",
+    "file": "/home/rgrmra/teste/main.cpp",
+    "output": "/home/rgrmra/teste/main.o"
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
   },
   {
     "arguments": [
@@ -160,6 +216,7 @@
       "-Wextra",
       "-Werror",
       "-std=c++98",
+<<<<<<< HEAD
       "-g3",
       "-c",
       "-I.",
@@ -167,6 +224,12 @@
       "-I./.cache/clangd",
       "-I./.cache/clangd/index",
       "-I./configurations",
+=======
+      "-c",
+      "-I.",
+      "-I./utils",
+      "-I./utils/color",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git",
       "-I./.git/branches",
       "-I./.git/refs",
@@ -175,6 +238,7 @@
       "-I./.git/refs/tags",
       "-I./.git/refs/remotes",
       "-I./.git/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/refs/remotes/origin/feature",
       "-I./.git/info",
       "-I./.git/objects",
@@ -208,12 +272,19 @@
       "-I./.git/objects/0a",
       "-I./.git/objects/8c",
       "-I./.git/objects/35",
+=======
+      "-I./.git/info",
+      "-I./.git/objects",
+      "-I./.git/objects/info",
+      "-I./.git/objects/pack",
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
       "-I./.git/logs",
       "-I./.git/logs/refs",
       "-I./.git/logs/refs/heads",
       "-I./.git/logs/refs/heads/feature",
       "-I./.git/logs/refs/remotes",
       "-I./.git/logs/refs/remotes/origin",
+<<<<<<< HEAD
       "-I./.git/logs/refs/remotes/origin/feature",
       "-I./.git/hooks",
       "-I./src",
@@ -306,5 +377,18 @@
     "directory": "/home/rgrmra/webserv",
     "file": "/home/rgrmra/webserv/src/parsers/Server.cpp",
     "output": "/home/rgrmra/webserv/src/parsers/Server.o"
+=======
+      "-I./.git/hooks",
+      "-I./src",
+      "-I./src/services",
+      "-I./src/services/logger",
+      "-o",
+      "src/services/logger/logger.o",
+      "src/services/logger/logger.cpp"
+    ],
+    "directory": "/home/rgrmra/teste",
+    "file": "/home/rgrmra/teste/src/services/logger/logger.cpp",
+    "output": "/home/rgrmra/teste/src/services/logger/logger.o"
+>>>>>>> ed293a3c49d0b041d4c77b78fb52fae0320c35d5
   }
 ]

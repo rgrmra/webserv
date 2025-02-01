@@ -3,6 +3,7 @@
 
 #include <string>
 
+
 namespace color {
 
 	std::string red(void);
