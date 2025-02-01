@@ -5,25 +5,27 @@
 # change dir path to `../build`
 
 DIR=build
+BUILD='cmake --build build -j 12'
+BUILD_SOURCE="cmake -S . -B build"
 
 execute_command() {
   for cmd in "$@"; do
     echo "Executing: $cmd"
-    eval "$cmd"
+    eval "($cmd)"
   done
 }
 
 check_if_test_lib_exist() {
   if [ ! -d $DIR ]; then
-    execute_command "mkdir -p $DIR" "cd $DIR" "cmake .."
+    execute_command "mkdir -p $DIR" "$BUILD_SOURCE"
   elif [ -z "$(ls -A "$DIR")" ]; then
-      execute_command "cd $DIR" "cmake .."
+      execute_command "$BUILD_SOURCE" "echo @@@@@"
   fi
   echo "google test lib ok..."
 }
 
 build_test_lib() {
-  execute_command "cmake --build build -j 12"
+  execute_command "$BUILD"
 }
 
 check_if_test_lib_exist

@@ -1,6 +1,7 @@
 # program files
 webserv
 .cache/
+build/
 
 # Prerequisites
 *.d
@@ -38,4 +39,4 @@ webserv
 # IDES
 .vscode/
 .idea/
-build/
+

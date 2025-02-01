@@ -16,10 +16,11 @@ YELLOW				= $(shell tput setaf 3)
 BLUE				= $(shell tput setaf 4)
 MAGENTA				= $(shell tput setaf 5)
 RESET				= $(shell tput sgr0)
+print_color			= @echo "$(RED)$2$(RESET)"
 
 NAME				= webserv
 
-FILES				= $(shell find . -type f -name '*.cpp')
+FILES				= $(shell find ./src -type f -name '*.cpp')
 
 OBJS				= $(FILES:%.cpp=%.o)
 
@@ -52,7 +53,16 @@ re:					fclean all
 sub:
 	@bash scripts/submodules.sh
 
-tests:
+test:
 	@bash scripts/build_and_run_tests.sh
+	$(call run_colorized_tests)
 
-.PHONY: 			all clean fclean re
+test_clean:
+	@rm -rf build
+	$(call print_color, RED, "Removing test library")
+
+define run_colorized_tests
+	GTEST_COLOR=1 ctest --test-dir build --output-on-failure -j12
+endef
+
+.PHONY: 			all clean fclean re tests sub
