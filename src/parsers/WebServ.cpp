@@ -12,6 +12,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <vector>
+#include <cerrno>
 
 #define MAX_EVENTS 10
 #define TIMEOUT 6
@@ -41,13 +42,10 @@ WebServ::WebServ(Http *http)
 			if (getaddrinfo(tmp.front().c_str(), tmp.back().c_str(), &sock.addr, &sock.p))
 				throw runtime_error("getaddrinfo");
 
-			sock.fd = socket(sock.p->ai_family, sock.p->ai_socktype, sock.p->ai_protocol);
+			sock.fd = socket(sock.p->ai_family, sock.p->ai_socktype | SOCK_NONBLOCK, sock.p->ai_protocol);
 
 			if (setsockopt(sock.fd, SOL_SOCKET, SO_REUSEADDR, &sock.opt, sizeof(sock.opt)) == -1)
 				throw runtime_error("setsockopt");
-
-			if (fcntl(sock.fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
-				throw runtime_error("fcntl");
 
 			if (bind(sock.fd, sock.p->ai_addr, sock.p->ai_addrlen) != 0)
 				throw runtime_error("bind: " + *itl);
@@ -92,14 +90,15 @@ bool WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
 		while (true) {
 			int fd = accept(it->fd, NULL, NULL);
 			if (fd == -1) {
-				logger::fatal("accept");
+				if (not (errno == EAGAIN || errno == EWOULDBLOCK))
+					logger::fatal("accept");
 				break;
 			}
 
-			if (fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
-				logger::fatal("fcntl");
-				continue;
-			}
+			// if (fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
+			// 	logger::fatal("fcntl");
+			// 	continue;
+			// }
 
 			epoll_event event = {};
 			event.events = EPOLLIN | EPOLLET;
