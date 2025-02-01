@@ -2,8 +2,9 @@
 
 Descreva de forma clara e objetiva o que foi alterado ou adicionado.
 
-**Exemplo:**
-Correção de um bug na função `setAcessLog` que impedia a atualização do caminho do log de acesso.
+## Evidências (se aplicavel)
+
+- link, print, video
 
 ## Tipo de Mudança
 
@@ -15,9 +16,7 @@ Correção de um bug na função `setAcessLog` que impedia a atualização do ca
 
 ## Issues Relacionadas
 
-- Resolve #123
-- Relacionado a #456
+- Resolve #4
+- Relacionado a #2
 
 ---
-
-**Obrigado por contribuir!** 🚀
