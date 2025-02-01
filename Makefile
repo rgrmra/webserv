@@ -49,4 +49,7 @@ fclean: 			clean
 
 re:					fclean all
 
+sub:
+	bash scripts/submodules.sh
+
 .PHONY: 			all clean fclean re
