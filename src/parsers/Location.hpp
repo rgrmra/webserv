@@ -26,6 +26,8 @@ class Location {
 		Location &operator=(const Location &rhs);
 		~Location(void);
 
+		bool operator==(const Location &rhs) const;
+
 		void setURI(std::string path);
 		std::string getURI(void) const;
 		void addMethod(std::string method);

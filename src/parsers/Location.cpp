@@ -2,7 +2,6 @@
 #include "Location.hpp"
 #include "parser.hpp"
 #include <ostream>
-#include <stdexcept>
 #include <string>
 
 using namespace std;
@@ -48,6 +47,11 @@ Location &Location::operator=(const Location &rhs) {
 
 Location::~Location(void) {
 
+}
+
+bool Location::operator==(const Location &rhs) const {
+
+	return _uri == rhs._uri;
 }
 
 void Location::setURI(string uri) {
