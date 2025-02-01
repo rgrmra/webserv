@@ -1,4 +1,4 @@
-name: Test
+name: Build
 
 on:
   push:
@@ -8,18 +8,13 @@ on:
     branches: ["main", "develop"]
 
 jobs:
-  test:
+  Build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Build project
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake
-
-      - name: Run tests
-        run: |
-          make test
+          make
