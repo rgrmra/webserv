@@ -1,3 +1,7 @@
+# program files
+webserv
+.cache/
+
 # Prerequisites
 *.d
 
@@ -34,4 +38,3 @@
 # IDES
 .vscode/
 .idea/
-

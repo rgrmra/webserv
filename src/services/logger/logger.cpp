@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   logger.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/13 21:09:06 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/23 14:48:46 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "logger.hpp"
 #include "color.hpp"
 #include <ctime>
@@ -20,14 +8,14 @@ using namespace std;
 
 static std::string getTime(void) {
 
-	std::time_t rawtime;
-	std::time(&rawtime);
+	time_t rawtime;
+	time(&rawtime);
 
-	struct std::tm *timeinfo;
+	struct tm *timeinfo;
 	timeinfo = localtime(&rawtime);
 
 	char buffer[22];
-	std::strftime(buffer, sizeof(buffer), "[%d/%m/%Y %H:%M:%S]", timeinfo);
+	strftime(buffer, sizeof(buffer), "[%d/%m/%Y %H:%M:%S]", timeinfo);
 
 	return buffer;
 }
