@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <fstream>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -25,14 +26,36 @@
 
 using namespace std;
 
-bool WebServ::isBinded(string listen) {
-
-	if (_binded.find(listen) != _binded.end())
+bool WebServ::isBinded(string host) {
+	
+	// host is present in the sockets
+	if (_binded_sockets.find(host) != _binded_sockets.end())
 		return true;
 
-	list<string> tmp = parser::split(listen, ':');
-	if (_binded.find("0.0.0.0:" + tmp.back()) != _binded.end())
+	// 0.0.0.0 in the port required is present
+	list<string> tmp = parser::split(host, ':');
+	if (_binded_sockets.find("0.0.0.0:" + tmp.back()) != _binded_sockets.end())
 		return true;
+
+	// it's not a 0.0.0.0
+	if (tmp.front() != "0.0.0.0")
+		return false;
+
+	set<string> remove;
+
+	map<string, int>::iterator it = _binded_sockets.begin();
+	for (; it != _binded_sockets.end(); it++) {
+
+		list<string> tmp2 = parser::split(it->first, ':');
+		if (tmp.back() != tmp2.back())
+			continue;
+
+		close(it->second);
+		remove.insert(it->first);
+	}
+
+	for(set<string>::iterator it = remove.begin(); it != remove.end(); it++)
+		_binded_sockets.erase(_binded_sockets.find(*it));
 
 	return false;
 }
@@ -77,8 +100,6 @@ int WebServ::createSocket(string host) {
 	if (listen(fd, WebServ::MAX_EVENTS) == -1)
 		throw runtime_error("listen");
 
-	_binded.insert(host);
-
 	return fd;
 }
 
@@ -96,10 +117,13 @@ WebServ::WebServ(Http *http)
 			if (isBinded(*itl))
 				continue;
 
-			_sockets.insert(createSocket(*itl));
-
+			_binded_sockets[*itl] = createSocket(*itl);
 		}
 	}
+
+	for (map<string, int>::iterator it = _binded_sockets.begin(); it != _binded_sockets.end(); it++)
+		cout << "host: " << it->first << ", fd: " << it->second << endl;
+
 }
 
 WebServ::WebServ(const WebServ &src) {
@@ -119,8 +143,9 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 
 WebServ::~WebServ(void) {
 
-	for (size_t i = 0; i < _sockets.size(); i++)
-		close(i);
+	for (map<string, int>::iterator it = _binded_sockets.begin(); it != _binded_sockets.end(); it++)
+		close(it->second);
+	close(epoll_fd);
 }
 
 void WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
@@ -212,6 +237,28 @@ string WebServ::getIpByFileDescriptor(int client_fd) {
 	return ss.str() + ":" + parser::toString(port);
 }
 
+std::vector<char> readGIF(const std::string& filename) {
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	if (!file) {
+		std::cerr << "Error opening file: " << filename << std::endl;
+		//return std::vector<char>();
+	}
+
+	// Seek to the end to get size
+	file.seekg(0, std::ios::end);
+	std::streamsize size = file.tellg();
+	file.seekg(0, std::ios::beg);
+
+	// Read contents
+	std::vector<char> buffer(size);
+	if (!file.read(buffer.data(), size)) {
+		std::cerr << "Error reading file: " << filename << std::endl;
+		return std::vector<char>();
+	}
+
+	return buffer;
+}
+
 void WebServ::handle_client_response(int client_fd) {
 
 	cout << getIpByFileDescriptor(client_fd);
@@ -221,24 +268,48 @@ void WebServ::handle_client_response(int client_fd) {
 		it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
 	else {
 		list<string> tmp = parser::split(hostname, ':');
+		if (tmp.empty())
+			return;
 		it = _http->getServerByName(tmp.front());
 		hostname.clear();
 	}
 
 	cout << it.getMaxBodySize() << endl;
 
+	//vector<char> gif = readGIF("./teste.gif");
+
+	//ostringstream response;
+	//response << HTTP/1.1 200 OK\r\nContent-Type: image/gif\r\nContent-Length: " << gif.size() << "\r\n\r\n";
+	//response << "HTTP/1.1 200 OK\r\n";
+	//response << "Content-Type: image/gif\r\n";
+    //response << "Content-Length: " << gif.size() << "\r\n";
+    //response << "Connection: close\r\n\r\n";
+
+	//string s = response.str();
+	//s.append(gif.begin(), gif.end());
+
 	string response;
-	//if (socket_to_config.find(client_fd) != socket_to_config.end())
-		response = "HTTP/1.1 200 OK\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
-	//else
-	//	response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
+	if (!isBindedSocket(client_fd))
+		response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
+	else
+		response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
 
 	if (send(client_fd, response.c_str(), response.size(), 0) == -1)
+	//if (send(client_fd, s.c_str(), s.size(), 0) == -1)
 		logger::fatal("send");
 
 	close(client_fd);
 }
 
+int WebServ::isBindedSocket(int fd) {
+
+	map<string, int>::iterator it = _binded_sockets.begin();
+	for (; it != _binded_sockets.end(); it++)
+		if (fd == it->second)
+			return true;
+
+	return false;
+}
 
 void WebServ::run(void) {
 
@@ -246,13 +317,13 @@ void WebServ::run(void) {
 	if (epoll_fd < 0)
 		throw runtime_error("epoll");
 
-	set<int>::iterator it = _sockets.begin();
-	for (; it != _sockets.end(); it++) {
+	map<string, int>::iterator it = _binded_sockets.begin();
+	for (; it != _binded_sockets.end(); it++) {
 		epoll_event event = (epoll_event){};
 		event.events = EPOLLIN;
-		event.data.fd = *it;
+		event.data.fd = it->second;
 
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, *it, &event) == -1)
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, it->second, &event) == -1)
 			throw runtime_error("epool_ctl");
 	}
 
@@ -265,7 +336,8 @@ void WebServ::run(void) {
 			throw runtime_error("epoll_wait");
 
 		for (int i = 0; i < num_events; i++) {
-			if (_sockets.find(events[i].data.fd) != _sockets.end()) {
+			cout << events[i].data.fd << endl;
+			if (isBindedSocket(events[i].data.fd)) {
 				handle_accept_new_connections(epoll_fd, events[i].data.fd);
 			} else if (events[i].events & (EPOLLIN| EPOLLET)) {
 				handle_client_request(epoll_fd, events[i].data.fd);

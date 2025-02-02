@@ -1,15 +1,3 @@
-/*test ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/02/01 19:25:38 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Http.hpp"
 #include "logger.hpp"
 #include "Server.hpp"
@@ -20,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <dirent.h>
 
 using namespace std;
 
@@ -29,9 +18,23 @@ void sigint(int signal) {
 
 	delete http;
 
-	for (size_t i = 0; i < 1025; i++)
-		close(i);
-
+//struct dirent	*file;
+//	DIR				*root;
+//	int				fd;
+//
+//	root = opendir("/proc/self/fd/");
+//	if (!root)
+//		exit(1);
+//	while (1)
+//	{
+//		file = readdir(root);
+//		if (!file)
+//			break ;
+//		fd = atoi(file->d_name);
+//		if (fd > -1 && fd < 1024)
+//			close(atoi(file->d_name));
+//	}
+//	closedir(root);
 	exit(signal);
 }
 

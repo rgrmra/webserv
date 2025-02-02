@@ -9,17 +9,17 @@
 
 class WebServ {
 	private:
-		std::set<std::string> _binded;
+		std::map<std::string, int> _binded_sockets;
 
 		bool isBinded(std::string listen);
 		addrinfo *getAddrInfo(std::string host);
 		int createSocket(std::string listen);
+		int isBindedSocket(int fd);
 		std::string getIpByFileDescriptor(int client_fd);
 		std::string getHostnameByFileDescriptor(int client_fd);
 
 	public:
 		Http *_http;
-		std::set<int> _sockets;
 		std::map<int, Connection*> client_connections;
 		int epoll_fd;
 		static const int MAX_EVENTS = 10;
