@@ -361,8 +361,8 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 			for (; newListenIt != newListen.end(); newListenIt++) {
 
 				list<string> tmp2 = parser::split(*newListenIt, ':');
-				if ((tmp.front() == "0.0.0.0" || tmp.front() == tmp2.front()) && tmp.back() == tmp2.back()) {
-				//if (tmp.front() == tmp2.front() && tmp.back() == tmp2.back()) {
+				//if ((tmp.front() == "0.0.0.0" || tmp.front() == tmp2.front()) && tmp.back() == tmp2.back()) {
+				if (tmp2.front() != "0.0.0.0" && tmp.front() == tmp2.front() && tmp.back() == tmp2.back()) {
 
 					logger::warning("conflicting server name \"" + (server.getNames().size()?  server.getNames()[0] : "") + "\" on " + *newListenIt + ", ignored");
 					newListen.erase(newListenIt);

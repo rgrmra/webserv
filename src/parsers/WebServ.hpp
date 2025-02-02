@@ -7,16 +7,15 @@
 #include <netdb.h>
 #include <set>
 
-typedef struct s_socket {
-	int fd;
-	addrinfo addr;
-	addrinfo *p;
-	int opt;
-}	t_socket;
-
 class WebServ {
 	private:
+		std::set<std::string> _binded;
+
+		bool isBinded(std::string listen);
+		addrinfo *getAddrInfo(std::string host);
+		int createSocket(std::string listen);
 		std::string getIpByFileDescriptor(int client_fd);
+		std::string getHostnameByFileDescriptor(int client_fd);
 
 	public:
 		Http *_http;

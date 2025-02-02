@@ -1,11 +1,13 @@
 #include "Http.hpp"
 #include "Server.hpp"
+#include "directive.hpp"
 #include "logger.hpp"
 #include "WebServ.hpp"
 #include "parser.hpp"
 #include <asm-generic/socket.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <netdb.h>
@@ -19,16 +21,71 @@
 #include <vector>
 #include <cerrno>
 
-#define MAX_EVENTS 10
 #define TIMEOUT 6
 
 using namespace std;
+
+bool WebServ::isBinded(string listen) {
+
+	if (_binded.find(listen) != _binded.end())
+		return true;
+
+	list<string> tmp = parser::split(listen, ':');
+	if (_binded.find("0.0.0.0:" + tmp.back()) != _binded.end())
+		return true;
+
+	return false;
+}
+
+addrinfo *WebServ::getAddrInfo(string host) {
+
+	struct addrinfo hints = (struct addrinfo){};
+	struct addrinfo *res = NULL;
+
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	list<string> tmp = parser::split(host, ':');
+	if (getaddrinfo(tmp.front().c_str(), tmp.back().c_str(), &hints, &res))
+		throw runtime_error("getaddrinfo");
+
+	return res;
+}
+
+int WebServ::createSocket(string host) {
+
+	struct addrinfo *res = getAddrInfo(host);
+
+	int fd = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
+	if (fd < 0)
+		throw runtime_error("socket");
+
+	int opt = 0;
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+		freeaddrinfo(res);
+		throw runtime_error("setsockopt");
+	}
+
+	if (bind(fd, res->ai_addr, res->ai_addrlen) != 0) {
+		freeaddrinfo(res);
+		throw runtime_error("bind");
+	}
+
+	freeaddrinfo(res);
+
+	if (listen(fd, WebServ::MAX_EVENTS) == -1)
+		throw runtime_error("listen");
+
+	_binded.insert(host);
+
+	return fd;
+}
 
 WebServ::WebServ(Http *http)
 	: _http(http) {
 
 	vector<Server> servers = http->getServers();
-
 	vector<Server>::iterator it = servers.begin();
 	for (; it != servers.end(); it++) {
 
@@ -36,30 +93,11 @@ WebServ::WebServ(Http *http)
 		vector<string>::iterator itl = listens.begin();
 		for (; itl != listens.end(); itl++) {
 
-			t_socket sock = (t_socket){};
+			if (isBinded(*itl))
+				continue;
 
-			sock.addr = (struct addrinfo){};
-			sock.addr.ai_family = AF_INET;
-			sock.addr.ai_socktype = SOCK_STREAM;
-			sock.addr.ai_flags = AI_PASSIVE;
+			_sockets.insert(createSocket(*itl));
 
-			list<string> tmp = parser::split(*itl, ':');
-			if (getaddrinfo(tmp.front().c_str(), tmp.back().c_str(), &sock.addr, &sock.p))
-				throw runtime_error("getaddrinfo");
-
-			sock.fd = socket(sock.p->ai_family, sock.p->ai_socktype | SOCK_NONBLOCK, sock.p->ai_protocol);
-
-			if (setsockopt(sock.fd, SOL_SOCKET, SO_REUSEADDR, &sock.opt, sizeof(sock.opt)) == -1)
-				throw runtime_error("setsockopt");
-
-			if (bind(sock.fd, sock.p->ai_addr, sock.p->ai_addrlen) != 0)
-				throw runtime_error("bind: " + *itl);
-			freeaddrinfo(sock.p);
-
-			if (listen(sock.fd, MAX_EVENTS) == -1)
-				throw runtime_error("listen");
-
-			_sockets.insert(sock.fd);
 		}
 	}
 }
@@ -118,6 +156,8 @@ void WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
 	//return false;
 }
 
+std::string hostname;
+
 void WebServ::handle_client_request(int epoll_fd, int client_fd) {
 
 	char buffer[8192];
@@ -126,11 +166,20 @@ void WebServ::handle_client_request(int epoll_fd, int client_fd) {
 		return (close(client_fd), logger::fatal("recv"));
 
 	if (bytes_read == 0)
-		return (close(client_fd), logger::warning("client disconected"));
+		return;
+		//return (close(client_fd), logger::warning("client disconected"));
 
 	buffer[bytes_read] = '\0';
 	logger::info("received: ");
 	cout << buffer << endl;
+	
+	string nbuffer = buffer;
+	size_t pos = nbuffer.find("\r\nHost: ");
+	if (pos != string::npos) {
+		hostname = nbuffer.substr(pos + 2, nbuffer.size() - pos - 2);
+		hostname = parser::find("Host: ", hostname, "\r\n");
+		cout << "hostname: " + hostname << endl;
+	}
 
 	epoll_event event = {};
 	event.events = EPOLLOUT | EPOLLET;
@@ -167,13 +216,20 @@ void WebServ::handle_client_response(int client_fd) {
 
 	cout << getIpByFileDescriptor(client_fd);
 
-	Server it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
+	Server it;
+	if (directive::validateHttpListen(hostname))
+		it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
+	else {
+		list<string> tmp = parser::split(hostname, ':');
+		it = _http->getServerByName(tmp.front());
+		hostname.clear();
+	}
 
 	cout << it.getMaxBodySize() << endl;
 
 	string response;
 	//if (socket_to_config.find(client_fd) != socket_to_config.end())
-		response = "HTTP/1.1 200 OK\r\nContent-Length: "+ parser::toString(it.getListen()[0].size() + 2)  +"\r\n\r\n" + it.getListen()[0] + "\r\n";
+		response = "HTTP/1.1 200 OK\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
 	//else
 	//	response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
 
@@ -182,6 +238,7 @@ void WebServ::handle_client_response(int client_fd) {
 
 	close(client_fd);
 }
+
 
 void WebServ::run(void) {
 
