@@ -70,4 +70,4 @@ define print_color
     @echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: 			all clean fclean re tests sub
+.PHONY: 			all clean fclean re test test_clean sub

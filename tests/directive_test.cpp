@@ -200,6 +200,7 @@ TEST(DirectiveTest, ValidateName) {
     EXPECT_FALSE(directive::validateName(string(""))); // Empty string
     EXPECT_FALSE(directive::validateName(string("example name"))); // Contains space
     EXPECT_FALSE(directive::validateName(string("example@name"))); // Contains special character
+    EXPECT_FALSE(directive::validateName(string("example!name"))); // Contains special character
     EXPECT_FALSE(directive::validateName(string("example_name"))); // Contains underscore
     EXPECT_FALSE(directive::validateName(string("example#name"))); // Contains special character
     EXPECT_FALSE(directive::validateName(string("example!name"))); // Contains special character
@@ -213,4 +214,35 @@ TEST(DirectiveTest, ValidateName) {
     // Test with mixed valid and invalid characters
     EXPECT_FALSE(directive::validateName(string("example-name@domain"))); // Contains special character
     EXPECT_FALSE(directive::validateName(string("example.name with space"))); // Contains space
+}
+
+TEST(DirectiveTest, AddNameTests) {
+    vector<string> nameList;
+
+    // Test empty name
+    directive::addName("", nameList);
+    EXPECT_TRUE(nameList.empty()) << "Expected empty vector for empty input";
+
+    // Test valid single name
+    directive::addName("example", nameList);
+    ASSERT_EQ(nameList.size(), 1) << "Expected one element";
+    EXPECT_EQ(nameList[0], "example") << "Expected 'example'";
+
+    // Test valid multiple names
+    directive::addName("example.com my-site 123server", nameList);
+    ASSERT_EQ(nameList.size(), 4) << "Expected 4 elements";
+    EXPECT_EQ(nameList[1], "example.com");
+    EXPECT_EQ(nameList[2], "my-site");
+    EXPECT_EQ(nameList[3], "123server");
+
+    // Test invalid name throwing exception
+    EXPECT_THROW(directive::addName("validname @invalid! anothervalid", nameList), runtime_error)
+        << "Expected exception for invalid name";
+    EXPECT_EQ(nameList[4], "validname");
+
+    // Test lowercase conversion
+    directive::addName("Example.COM My-SITE", nameList);
+    EXPECT_EQ(nameList[5], "example.com");
+    EXPECT_EQ(nameList[6], "my-site");
+    ASSERT_EQ(nameList.size(), 7) << "Expected 6 elements";
 }

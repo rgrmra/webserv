@@ -167,7 +167,7 @@ bool directive::validateName(string name) {
 	}
 
 	for (size_t i = 0; i < name.size(); i++) {
-		char ch = name[i];  // Using array indexing instead of at()
+		char ch = name[i];
 		if (!isalnum(ch) && ch != '-' && ch != '.') {
 			return false;
 		}
@@ -177,7 +177,6 @@ bool directive::validateName(string name) {
 }
 
 void directive::addName(string name, vector<string> &_name) {
-
 	if (name.empty())
 		return;
 
@@ -185,7 +184,6 @@ void directive::addName(string name, vector<string> &_name) {
 
 	list<string>::iterator it = names.begin();
 	while (it != names.end()) {
-
 		if (not directive::validateName(*it))
 			throw runtime_error("invalid server name: " + *it);
 
@@ -196,7 +194,6 @@ void directive::addName(string name, vector<string> &_name) {
 }
 
 void directive::setURI(string uri, string &_uri) {
-	
 	if (uri.empty())
 		return;
 
@@ -207,7 +204,6 @@ void directive::setURI(string uri, string &_uri) {
 }
 
 bool directive::validateHttpMethod(string method) {
-
 	list<string> allowed_methods = parser::split(DEFAULT_ALLOW_METHODS, ' ');
 
 	list<string>::iterator it = allowed_methods.begin();
@@ -219,7 +215,6 @@ bool directive::validateHttpMethod(string method) {
 }
 
 void directive::addMethod(string method, set<string> &_allow_methods) {
-
 	if (method.empty())
 		return;
 
@@ -233,12 +228,10 @@ void directive::addMethod(string method, set<string> &_allow_methods) {
 			throw runtime_error("invalid method: " + *it);
 
 		_allow_methods.insert(*it);
-
 	}
 }
 
 void directive::setDenyMethods(string deny_methods, bool &_deny_methods) {
-
 	if (deny_methods.empty())
 		return;
 
@@ -250,7 +243,6 @@ void directive::setDenyMethods(string deny_methods, bool &_deny_methods) {
 
 
 void directive::setRoot(string root, string &_root) {
-
 	if (root.empty())
 		return;
 
@@ -261,7 +253,6 @@ void directive::setRoot(string root, string &_root) {
 }
 
 void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex) {
-
 	if (autoindex.empty())
 		return;
 
@@ -274,7 +265,6 @@ void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex) {
 }
 
 void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
-
 	if (max_body_size.empty())
 		return;
 
@@ -303,7 +293,6 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 }
 
 void directive::addIndex(string index, set<string> &_index) {
-
 	if (index.empty())
 		return;
 
@@ -314,13 +303,11 @@ void directive::addIndex(string index, set<string> &_index) {
 	list<string>::iterator it = indexes.begin();
 	while (it != indexes.end()) {
 		_index.insert(*it);
-
 		it++;
 	}
 }
 
 void directive::addErrorPage(string error_page, map<string, string> &_error_pages) {
-
 	if (error_page.empty())
 		return;
 
@@ -341,7 +328,6 @@ void directive::addErrorPage(string error_page, map<string, string> &_error_page
 }
 
 void directive::mergeErrorPages(map<string, string> error_pages, map<string, string> &_error_pages) {
-
 	map<string, string>::iterator error_pagesIt = error_pages.begin();
 	for (; error_pagesIt != error_pages.end(); error_pagesIt++)
 		if (_error_pages[error_pagesIt->first].empty())
@@ -349,7 +335,6 @@ void directive::mergeErrorPages(map<string, string> error_pages, map<string, str
 }
 
 bool directive::validateHttpCode(string code) {
-
 	if (code.find_first_not_of("0123456789") != string::npos)
 		return false;
 
@@ -361,7 +346,6 @@ bool directive::validateHttpCode(string code) {
 }
 
 void directive::setReturn(string value, string &_code, string &_uri) {
-
 	if (value.empty())
 		return;
 
@@ -380,7 +364,6 @@ void directive::setReturn(string value, string &_code, string &_uri) {
 }
 
 void directive::addServer(Server server, vector<Server> &_servers) {
-	
 	vector<Server>::iterator serverIt = _servers.begin();
 	for (; serverIt != _servers.end(); serverIt++) {
 
@@ -396,7 +379,6 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 
 				list<string> tmp2 = parser::split(*newListenIt, ':');
 				if ((tmp.front() == "0.0.0.0" || tmp.front() == tmp2.front()) && tmp.back() == tmp2.back()) {
-				//if (tmp.front() == tmp2.front() && tmp.back() == tmp2.back()) {
 
 					logger::warning("conflicting server name \"" + (server.getNames().size()?  server.getNames()[0] : "") + "\" on " + *newListenIt + ", ignored");
 					newListen.erase(newListenIt);
@@ -407,12 +389,10 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 			}
 		}
 	}
-
 	_servers.push_back(server);
 }
 
 void directive::setHttpDefaultValues(Http &http) {
-
 	if (http.getMaxBodySize() == 0)
 		http.setMaxBodySize(DEFAULT_MAX_BODY_SIZE);
 
@@ -440,7 +420,6 @@ void directive::setHttpDefaultValues(Http &http) {
 }
 
 void directive::setServerDefaultValues(Http &http, Server &server) {
-
 	if (server.getMaxBodySize() == 0)
 		server.setMaxBodySize(parser::toString(http.getMaxBodySize()));
 	
@@ -466,7 +445,6 @@ void directive::setServerDefaultValues(Http &http, Server &server) {
 }
 
 void directive::setLocationDefaultValues(Server &server, Location &location) {
-
 	if (location.getRoot().empty())
 		location.setRoot(server.getRoot());
 
