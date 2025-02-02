@@ -9,6 +9,8 @@
 
 using namespace std;
 
+WebServ *webserv;
+
 Http::Http(string filename)
 	: _autoindex(AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
@@ -78,6 +80,8 @@ Http &Http::operator=(const Http &rhs) {
 }
 
 Http::~Http(void) {
+
+	delete webserv;
 
 }
 
@@ -241,9 +245,9 @@ bool Http::empty(void) const {
 
 void Http::start(void) {
 
-	WebServ webserv = WebServ(this);
+	webserv = new WebServ(this);
 
-	webserv.run();
+	webserv->run();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {

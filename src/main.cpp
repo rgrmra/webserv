@@ -6,7 +6,7 @@
 /*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/31 20:59:17 by rde-mour         ###   ########.org.br   */
+/*   Updated: 2025/02/01 19:25:38 by rde-mour         ###   ########.org.br   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 
 using namespace std;
 
@@ -27,6 +28,9 @@ Http *http = NULL;
 void sigint(int signal) {
 
 	delete http;
+
+	for (size_t i = 0; i < 1025; i++)
+		close(i);
 
 	exit(signal);
 }

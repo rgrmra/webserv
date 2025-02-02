@@ -4,10 +4,15 @@
 #include "WebServ.hpp"
 #include "parser.hpp"
 #include <asm-generic/socket.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -54,7 +59,7 @@ WebServ::WebServ(Http *http)
 			if (listen(sock.fd, MAX_EVENTS) == -1)
 				throw runtime_error("listen");
 
-			_sockets.push_back(sock);
+			_sockets.insert(sock.fd);
 		}
 	}
 }
@@ -70,49 +75,47 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 		return *this;
 
 	_http = rhs._http;
-	_sockets = rhs._sockets;
 
 	return *this;
 }
 
 WebServ::~WebServ(void) {
 
+	for (size_t i = 0; i < _sockets.size(); i++)
+		close(i);
 }
 
-bool WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
+void WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
 
-	list<t_socket>::iterator it = _sockets.begin();
-	for (; it != _sockets.end(); it++) {
+	//if (_sockets.find(client_fd) == _sockets.end())
+	//	return false;
+	//set<int>::iterator it = _sockets.begin();
+	//for (; it != _sockets.end(); it++) {
 
-		if (client_fd != it->fd)
-			continue;
+	//	if (client_fd != *it)
+	//		continue;
 
-		while (true) {
-			int fd = accept(it->fd, NULL, NULL);
-			if (fd == -1) {
-				if (not (errno == EAGAIN || errno == EWOULDBLOCK))
-					logger::fatal("accept");
-				break;
-			}
-
-			// if (fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
-			// 	logger::fatal("fcntl");
-			// 	continue;
-			// }
-
-			epoll_event event = {};
-			event.events = EPOLLIN | EPOLLET;
-			event.data.fd = fd;
-
-			if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
-				logger::fatal("epoll_ctl");
-				continue;
-			}
+	//while (true) {
+	int fd = accept(client_fd, NULL, NULL);
+		if (fd == -1) {
+			if (not (errno == EAGAIN || errno == EWOULDBLOCK))
+				logger::fatal("accept");
+	//		break;
 		}
 
-		return true;
-	}
-	return false;
+		epoll_event event = {};
+		event.events = EPOLLIN | EPOLLET;
+		event.data.fd = fd;
+
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
+			logger::fatal("epoll_ctl");
+	//		continue;
+		}
+	//}
+
+	//	return true;
+	//}
+	//return false;
 }
 
 void WebServ::handle_client_request(int epoll_fd, int client_fd) {
@@ -139,9 +142,40 @@ void WebServ::handle_client_request(int epoll_fd, int client_fd) {
 	}
 }
 
+string WebServ::getIpByFileDescriptor(int client_fd) {
+
+	sockaddr_in local_addr;
+	socklen_t addr_len = sizeof(local_addr);
+
+	if (getsockname(client_fd, (sockaddr *) &local_addr, &addr_len) == -1)
+		throw runtime_error("getsockname");
+
+	int ip = htonl(local_addr.sin_addr.s_addr);
+	unsigned short port = htons(local_addr.sin_port);
+
+	stringstream ss;
+
+	ss << ((ip & 0xFF000000) >> 24) << ".";
+	ss << ((ip & 0x00FF0000) >> 16) << ".";
+	ss << ((ip & 0x0000FF00) >> 8) << ".";
+	ss << (ip & 0x000000FF);
+
+	return ss.str() + ":" + parser::toString(port);
+}
+
 void WebServ::handle_client_response(int client_fd) {
 
-	string response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
+	cout << getIpByFileDescriptor(client_fd);
+
+	Server it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
+
+	cout << it.getMaxBodySize() << endl;
+
+	string response;
+	//if (socket_to_config.find(client_fd) != socket_to_config.end())
+		response = "HTTP/1.1 200 OK\r\nContent-Length: "+ parser::toString(it.getListen()[0].size() + 2)  +"\r\n\r\n" + it.getListen()[0] + "\r\n";
+	//else
+	//	response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
 
 	if (send(client_fd, response.c_str(), response.size(), 0) == -1)
 		logger::fatal("send");
@@ -151,18 +185,17 @@ void WebServ::handle_client_response(int client_fd) {
 
 void WebServ::run(void) {
 
-	int fd = epoll_create1(0);
-	if (fd == -1)
+	epoll_fd = epoll_create(1);
+	if (epoll_fd < 0)
 		throw runtime_error("epoll");
 
-	list<t_socket> sockets = _sockets;
-	list<t_socket>::iterator it = sockets.begin();
-	for (; it != sockets.end(); it++) {
+	set<int>::iterator it = _sockets.begin();
+	for (; it != _sockets.end(); it++) {
 		epoll_event event = (epoll_event){};
 		event.events = EPOLLIN;
-		event.data.fd = it->fd;
+		event.data.fd = *it;
 
-		if (epoll_ctl(fd, EPOLL_CTL_ADD, it->fd, &event) == -1)
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, *it, &event) == -1)
 			throw runtime_error("epool_ctl");
 	}
 
@@ -170,22 +203,20 @@ void WebServ::run(void) {
 
 	while (true) {
 
-		int num_events = epoll_wait(fd, events, MAX_EVENTS, TIMEOUT);
+		int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT);
 		if (num_events == -1)
 			throw runtime_error("epoll_wait");
-		else if (num_events == 0)
-			continue;
 
 		for (int i = 0; i < num_events; i++) {
-			if (handle_accept_new_connections(fd, events[i].data.fd)) {
-				continue;
+			if (_sockets.find(events[i].data.fd) != _sockets.end()) {
+				handle_accept_new_connections(epoll_fd, events[i].data.fd);
 			} else if (events[i].events & (EPOLLIN| EPOLLET)) {
-				handle_client_request(fd, events[i].data.fd);
+				handle_client_request(epoll_fd, events[i].data.fd);
 			} else if (events[i].events & (EPOLLOUT| EPOLLET)) {
 				handle_client_response(events[i].data.fd);
 			}
 		}
 	}
 
-	close(fd);
+	close(epoll_fd);
 }
