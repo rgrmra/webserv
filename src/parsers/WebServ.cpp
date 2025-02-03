@@ -26,20 +26,7 @@
 
 using namespace std;
 
-bool WebServ::isBinded(string host) {
-	
-	// host is present in the sockets
-	if (_binded_sockets.find(host) != _binded_sockets.end())
-		return true;
-
-	// 0.0.0.0 in the port required is present
-	list<string> tmp = parser::split(host, ':');
-	if (_binded_sockets.find("0.0.0.0:" + tmp.back()) != _binded_sockets.end())
-		return true;
-
-	// it's not a 0.0.0.0
-	if (tmp.front() != "0.0.0.0")
-		return false;
+void WebServ::removeBindedPorts(string port) {
 
 	set<string> remove;
 
@@ -47,7 +34,7 @@ bool WebServ::isBinded(string host) {
 	for (; it != _binded_sockets.end(); it++) {
 
 		list<string> tmp2 = parser::split(it->first, ':');
-		if (tmp.back() != tmp2.back())
+		if (port != tmp2.back())
 			continue;
 
 		close(it->second);
@@ -56,6 +43,21 @@ bool WebServ::isBinded(string host) {
 
 	for(set<string>::iterator it = remove.begin(); it != remove.end(); it++)
 		_binded_sockets.erase(_binded_sockets.find(*it));
+}
+
+bool WebServ::isBinded(string host) {
+	
+	if (_binded_sockets.find(host) != _binded_sockets.end())
+		return true;
+
+	list<string> tmp = parser::split(host, ':');
+	if (_binded_sockets.find("0.0.0.0:" + tmp.back()) != _binded_sockets.end())
+		return true;
+
+	if (tmp.front() != "0.0.0.0")
+		return false;
+
+	removeBindedPorts(tmp.back());
 
 	return false;
 }
@@ -123,7 +125,6 @@ WebServ::WebServ(Http *http)
 
 	for (map<string, int>::iterator it = _binded_sockets.begin(); it != _binded_sockets.end(); it++)
 		cout << "host: " << it->first << ", fd: " << it->second << endl;
-
 }
 
 WebServ::WebServ(const WebServ &src) {
@@ -143,42 +144,29 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 
 WebServ::~WebServ(void) {
 
-	for (map<string, int>::iterator it = _binded_sockets.begin(); it != _binded_sockets.end(); it++)
-		close(it->second);
 	close(epoll_fd);
+
+	map<string, int>::iterator it = _binded_sockets.begin();
+	for (; it != _binded_sockets.end(); it++)
+		close(it->second);
+
 }
 
 void WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
 
-	//if (_sockets.find(client_fd) == _sockets.end())
-	//	return false;
-	//set<int>::iterator it = _sockets.begin();
-	//for (; it != _sockets.end(); it++) {
-
-	//	if (client_fd != *it)
-	//		continue;
-
-	//while (true) {
 	int fd = accept(client_fd, NULL, NULL);
-		if (fd == -1) {
-			if (not (errno == EAGAIN || errno == EWOULDBLOCK))
-				logger::fatal("accept");
-	//		break;
-		}
+	if (fd == -1) {
+		if (not (errno == EAGAIN || errno == EWOULDBLOCK))
+			logger::fatal("accept");
+		//return;
+	}
 
-		epoll_event event = {};
-		event.events = EPOLLIN | EPOLLET;
-		event.data.fd = fd;
+	epoll_event event = {};
+	event.events = EPOLLIN | EPOLLET;
+	event.data.fd = fd;
 
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
-			logger::fatal("epoll_ctl");
-	//		continue;
-		}
-	//}
-
-	//	return true;
-	//}
-	//return false;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1)
+		logger::fatal("epoll_ctl");
 }
 
 std::string hostname;
@@ -263,18 +251,18 @@ void WebServ::handle_client_response(int client_fd) {
 
 	cout << getIpByFileDescriptor(client_fd);
 
-	Server it;
-	if (directive::validateHttpListen(hostname))
-		it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
-	else {
-		list<string> tmp = parser::split(hostname, ':');
-		if (tmp.empty())
-			return;
-		it = _http->getServerByName(tmp.front());
-		hostname.clear();
-	}
+	//Server it;
+	//if (directive::validateHttpListen(hostname))
+	//	it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
+	//else {
+	//	list<string> tmp = parser::split(hostname, ':');
+	//	if (tmp.empty())
+	//		return;
+	//	it = _http->getServerByName(tmp.front());
+	//	hostname.clear();
+	//}
 
-	cout << it.getMaxBodySize() << endl;
+	//cout << it.getMaxBodySize() << endl;
 
 	//vector<char> gif = readGIF("./teste.gif");
 
@@ -289,10 +277,10 @@ void WebServ::handle_client_response(int client_fd) {
 	//s.append(gif.begin(), gif.end());
 
 	string response;
-	if (!isBindedSocket(client_fd))
-		response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
-	else
-		response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
+	//if (!isBindedSocket(client_fd))
+	//	response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
+	//else
+	//	response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
 
 	if (send(client_fd, response.c_str(), response.size(), 0) == -1)
 	//if (send(client_fd, s.c_str(), s.size(), 0) == -1)

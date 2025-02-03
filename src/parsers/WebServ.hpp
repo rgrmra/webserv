@@ -6,14 +6,17 @@
 #include <map>
 #include <netdb.h>
 #include <set>
+#include <sys/epoll.h>
 
 class WebServ {
 	private:
 		std::map<std::string, int> _binded_sockets;
 
 		bool isBinded(std::string listen);
-		addrinfo *getAddrInfo(std::string host);
+		void removeBindedPorts(std::string port);
+		struct addrinfo *getAddrInfo(std::string host);
 		int createSocket(std::string listen);
+		struct epoll_event createEpollEvent(int client_fd, int flags, int ctl);
 		int isBindedSocket(int fd);
 		std::string getIpByFileDescriptor(int client_fd);
 		std::string getHostnameByFileDescriptor(int client_fd);
