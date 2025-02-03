@@ -152,13 +152,13 @@ WebServ::~WebServ(void) {
 
 }
 
-void WebServ::handle_accept_new_connections(int epoll_fd, int client_fd) {
+void WebServ::acceptNewConnection(int client_fd) {
 
 	int fd = accept(client_fd, NULL, NULL);
 	if (fd == -1) {
 		if (not (errno == EAGAIN || errno == EWOULDBLOCK))
 			logger::fatal("accept");
-		//return;
+		return;
 	}
 
 	epoll_event event = {};
@@ -280,7 +280,7 @@ void WebServ::handle_client_response(int client_fd) {
 	//if (!isBindedSocket(client_fd))
 	//	response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
 	//else
-	//	response = "HTTP/1.1 200 OK\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
+		response = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
 
 	if (send(client_fd, response.c_str(), response.size(), 0) == -1)
 	//if (send(client_fd, s.c_str(), s.size(), 0) == -1)
@@ -326,7 +326,7 @@ void WebServ::run(void) {
 		for (int i = 0; i < num_events; i++) {
 			cout << events[i].data.fd << endl;
 			if (isBindedSocket(events[i].data.fd)) {
-				handle_accept_new_connections(epoll_fd, events[i].data.fd);
+				acceptNewConnection(events[i].data.fd);
 			} else if (events[i].events & (EPOLLIN| EPOLLET)) {
 				handle_client_request(epoll_fd, events[i].data.fd);
 			} else if (events[i].events & (EPOLLOUT| EPOLLET)) {

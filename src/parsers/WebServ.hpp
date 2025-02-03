@@ -5,7 +5,6 @@
 #include "Http.hpp"
 #include <map>
 #include <netdb.h>
-#include <set>
 #include <sys/epoll.h>
 
 class WebServ {
@@ -20,6 +19,7 @@ class WebServ {
 		int isBindedSocket(int fd);
 		std::string getIpByFileDescriptor(int client_fd);
 		std::string getHostnameByFileDescriptor(int client_fd);
+		void acceptNewConnection(int client_fd);
 
 	public:
 		Http *_http;
@@ -30,9 +30,8 @@ class WebServ {
 		WebServ(Http *http);
 		WebServ(const WebServ &src);
 		WebServ &operator=(const WebServ &rhs);
-		~WebServ(void);
+		virtual ~WebServ(void);
 
-		void handle_accept_new_connections(int epoll_fd, int client_fd);
 		void handle_client_request(int epoll_fd, int client_fd);
 		void handle_client_response(int client_fd);
 
