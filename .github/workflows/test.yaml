@@ -1,7 +1,7 @@
 name: Test
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: test-${{ github.ref }}
   cancel-in-progress: true
 
 on:
