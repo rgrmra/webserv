@@ -1,3 +1,4 @@
+#include "Connection.hpp"
 #include "Http.hpp"
 #include "Server.hpp"
 #include "directive.hpp"
@@ -8,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -22,9 +24,9 @@
 #include <vector>
 #include <cerrno>
 
-#define TIMEOUT 6
-
 using namespace std;
+
+void sigint(int signal);
 
 void WebServ::removeBindedPorts(string port) {
 
@@ -62,7 +64,7 @@ bool WebServ::isBinded(string host) {
 	return false;
 }
 
-addrinfo *WebServ::getAddrInfo(string host) {
+struct addrinfo *WebServ::getAddrInfo(string host) {
 
 	struct addrinfo hints = (struct addrinfo){};
 	struct addrinfo *res = NULL;
@@ -88,29 +90,31 @@ int WebServ::createSocket(string host) {
 
 	int opt = 0;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-		freeaddrinfo(res);
+		(close(fd), freeaddrinfo(res));
 		throw runtime_error("setsockopt");
 	}
 
 	if (bind(fd, res->ai_addr, res->ai_addrlen) != 0) {
-		freeaddrinfo(res);
-		throw runtime_error("bind");
+		(close(fd), freeaddrinfo(res));
+		throw runtime_error("failed to bind on " + host);
 	}
 
 	freeaddrinfo(res);
 
-	if (listen(fd, WebServ::MAX_EVENTS) == -1)
+	if (listen(fd, WebServ::MAX_EVENTS) == -1) {
+		close(fd);
 		throw runtime_error("listen");
+	}
 
 	return fd;
 }
 
 WebServ::WebServ(Http *http)
-	: _http(http) {
+	: _http(http),
+	  _epoll_fd(-1) {
 
-	vector<Server> servers = http->getServers();
-	vector<Server>::iterator it = servers.begin();
-	for (; it != servers.end(); it++) {
+	vector<Server> servers = _http->getServers();
+	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
 
 		vector<string> listens = it->getListen();
 		vector<string>::iterator itl = listens.begin();
@@ -144,12 +148,29 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 
 WebServ::~WebServ(void) {
 
-	close(epoll_fd);
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 
 	map<string, int>::iterator it = _binded_sockets.begin();
-	for (; it != _binded_sockets.end(); it++)
+	for (; it != _binded_sockets.end(); it++) {
 		close(it->second);
+	}
 
+	map<int, Connection *>::iterator ic = _client_connections.begin();
+	for (; ic != _client_connections.end(); ic++) {
+		close(ic->first);
+		delete ic->second;
+	}
+}
+
+void WebServ::controlEpoll(int client_fd, int flag, int option) {
+
+	struct epoll_event event = {};
+	event.events = flag;
+	event.data.fd = client_fd;
+
+	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1)
+		logger::fatal("epoll_ctl");
 }
 
 void WebServ::acceptNewConnection(int client_fd) {
@@ -160,48 +181,51 @@ void WebServ::acceptNewConnection(int client_fd) {
 			logger::fatal("accept");
 		return;
 	}
+	
+	cout << fd << endl;
 
-	epoll_event event = {};
-	event.events = EPOLLIN | EPOLLET;
-	event.data.fd = fd;
+	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1)
-		logger::fatal("epoll_ctl");
+	_client_connections[fd] = new Connection(fd, getIpByFileDescriptor(fd));
 }
 
-std::string hostname;
+void WebServ::closeConnection(int client_fd) {
 
-void WebServ::handle_client_request(int epoll_fd, int client_fd) {
+	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 
-	char buffer[8192];
-	int bytes_read = recv(client_fd, buffer, sizeof(buffer), 0);
-	if (bytes_read == -1)
-		return (close(client_fd), logger::fatal("recv"));
-
-	if (bytes_read == 0)
+	if (it == _client_connections.end())
 		return;
-		//return (close(client_fd), logger::warning("client disconected"));
 
-	buffer[bytes_read] = '\0';
+	close(it->first);
+	delete it->second;
+	_client_connections.erase(it);
+}
+
+void WebServ::handleRequest(int client_fd) {
+
+	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	Connection *connection = it->second;
+
+	vector<char> buffer(BUFFER_SIZE);
+	int bytes_read = recv(client_fd, buffer.data(), BUFFER_SIZE, MSG_NOSIGNAL);
+	if (bytes_read == -1) {
+		logger::fatal("recv");
+		return closeConnection(client_fd);
+	} else if (bytes_read == 0) {
+		logger::warning("client disconected: " + connection->getIp());
+		return closeConnection(client_fd);
+	}
+
+	if (bytes_read > 0)
+		connection->append(buffer, bytes_read);
+
+	if (connection->getBuffer().find("\r\n\r\n") == string::npos)
+		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+
 	logger::info("received: ");
-	cout << buffer << endl;
+	cout << connection->getBuffer() << endl;
 	
-	string nbuffer = buffer;
-	size_t pos = nbuffer.find("\r\nHost: ");
-	if (pos != string::npos) {
-		hostname = nbuffer.substr(pos + 2, nbuffer.size() - pos - 2);
-		hostname = parser::find("Host: ", hostname, "\r\n");
-		cout << "hostname: " + hostname << endl;
-	}
-
-	epoll_event event = {};
-	event.events = EPOLLOUT | EPOLLET;
-	event.data.fd = client_fd;
-
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, client_fd, &event) == -1) {
-		logger::fatal("epoll_ctl");
-		close(client_fd);
-	}
+	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 string WebServ::getIpByFileDescriptor(int client_fd) {
@@ -225,68 +249,24 @@ string WebServ::getIpByFileDescriptor(int client_fd) {
 	return ss.str() + ":" + parser::toString(port);
 }
 
-std::vector<char> readGIF(const std::string& filename) {
-	std::ifstream file(filename.c_str(), std::ios::binary);
-	if (!file) {
-		std::cerr << "Error opening file: " << filename << std::endl;
-		//return std::vector<char>();
+void WebServ::handleResponse(int client_fd) {
+
+	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	Connection *connection = it->second;
+
+	string tmp = connection->getResponse(BUFFER_SIZE);
+
+	if (send(client_fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL) == -1) {
+		logger::fatal("client is no longer available to receive messages");
+		return closeConnection(client_fd);
 	}
 
-	// Seek to the end to get size
-	file.seekg(0, std::ios::end);
-	std::streamsize size = file.tellg();
-	file.seekg(0, std::ios::beg);
+	if (connection->getResponseSize())
+		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	// Read contents
-	std::vector<char> buffer(size);
-	if (!file.read(buffer.data(), size)) {
-		std::cerr << "Error reading file: " << filename << std::endl;
-		return std::vector<char>();
-	}
+	cout << *_client_connections.find(client_fd)->second << endl;
 
-	return buffer;
-}
-
-void WebServ::handle_client_response(int client_fd) {
-
-	cout << getIpByFileDescriptor(client_fd);
-
-	//Server it;
-	//if (directive::validateHttpListen(hostname))
-	//	it = _http->getServerByListen(getIpByFileDescriptor(client_fd));
-	//else {
-	//	list<string> tmp = parser::split(hostname, ':');
-	//	if (tmp.empty())
-	//		return;
-	//	it = _http->getServerByName(tmp.front());
-	//	hostname.clear();
-	//}
-
-	//cout << it.getMaxBodySize() << endl;
-
-	//vector<char> gif = readGIF("./teste.gif");
-
-	//ostringstream response;
-	//response << HTTP/1.1 200 OK\r\nContent-Type: image/gif\r\nContent-Length: " << gif.size() << "\r\n\r\n";
-	//response << "HTTP/1.1 200 OK\r\n";
-	//response << "Content-Type: image/gif\r\n";
-    //response << "Content-Length: " << gif.size() << "\r\n";
-    //response << "Connection: close\r\n\r\n";
-
-	//string s = response.str();
-	//s.append(gif.begin(), gif.end());
-
-	string response;
-	//if (!isBindedSocket(client_fd))
-	//	response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "+ parser::toString(it.getNames()[0].size() + 2)  +"\r\n\r\n" + it.getNames()[0] + "\r\n";
-	//else
-		response = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin\r\nContent-Length: 7\r\n\r\nwhat?\r\n";
-
-	if (send(client_fd, response.c_str(), response.size(), 0) == -1)
-	//if (send(client_fd, s.c_str(), s.size(), 0) == -1)
-		logger::fatal("send");
-
-	close(client_fd);
+	closeConnection(client_fd);
 }
 
 int WebServ::isBindedSocket(int fd) {
@@ -299,41 +279,58 @@ int WebServ::isBindedSocket(int fd) {
 	return false;
 }
 
+bool WebServ::isTimedOut(int client_fd) {
+
+	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	if (it == _client_connections.end()) {
+		controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+		return false;
+	}
+
+	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT) {
+		controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+		return false;
+	}
+
+	logger::warning("client timed out: " + it->second->getIp());
+	string response = "HTTP/1.1 504 Gateway Timeout\r\nConnection: closed\r\n\r\n";
+
+	if (send(client_fd, response.c_str(), response.size(), MSG_NOSIGNAL) == -1)
+		logger::fatal("send");
+
+	closeConnection(client_fd);
+
+	return true;
+}
+
 void WebServ::run(void) {
 
-	epoll_fd = epoll_create(1);
-	if (epoll_fd < 0)
+	_epoll_fd = epoll_create(1);
+	if (_epoll_fd < 0)
 		throw runtime_error("epoll");
 
 	map<string, int>::iterator it = _binded_sockets.begin();
-	for (; it != _binded_sockets.end(); it++) {
-		epoll_event event = (epoll_event){};
-		event.events = EPOLLIN;
-		event.data.fd = it->second;
-
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, it->second, &event) == -1)
-			throw runtime_error("epool_ctl");
-	}
+	for (; it != _binded_sockets.end(); it++)
+		controlEpoll(it->second, EPOLLIN, EPOLL_CTL_ADD);
 
 	epoll_event events[MAX_EVENTS];
 
 	while (true) {
 
-		int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT);
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
 		if (num_events == -1)
 			throw runtime_error("epoll_wait");
 
 		for (int i = 0; i < num_events; i++) {
 			cout << events[i].data.fd << endl;
-			if (isBindedSocket(events[i].data.fd)) {
+			if (isBindedSocket(events[i].data.fd))
 				acceptNewConnection(events[i].data.fd);
-			} else if (events[i].events & (EPOLLIN| EPOLLET)) {
-				handle_client_request(epoll_fd, events[i].data.fd);
-			} else if (events[i].events & (EPOLLOUT| EPOLLET)) {
-				handle_client_response(events[i].data.fd);
-			}
+			else if (events[i].events & (EPOLLIN| EPOLLET))
+				handleRequest(events[i].data.fd);
+			else if (events[i].events & (EPOLLOUT| EPOLLET))
+				handleResponse(events[i].data.fd);
+			if (isTimedOut(events[i].data.fd))
+				continue;
 		}
 	}
-
-	close(epoll_fd);
 }

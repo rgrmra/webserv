@@ -3,13 +3,17 @@
 
 #include "Connection.hpp"
 #include "Http.hpp"
+#include "parser.hpp"
 #include <map>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 class WebServ {
 	private:
+		Http *_http;
+		int _epoll_fd;
 		std::map<std::string, int> _binded_sockets;
+		std::map<int, Connection *> _client_connections;
 
 		bool isBinded(std::string listen);
 		void removeBindedPorts(std::string port);
@@ -20,20 +24,21 @@ class WebServ {
 		std::string getIpByFileDescriptor(int client_fd);
 		std::string getHostnameByFileDescriptor(int client_fd);
 		void acceptNewConnection(int client_fd);
+		void controlEpoll(int client_fd, int flag, int option);
+		void closeConnection(int client_fd);
+		void handleRequest(int client_fd);
+		void handleResponse(int client_fd);
+		bool isTimedOut(int client_fd);
 
 	public:
-		Http *_http;
-		std::map<int, Connection*> client_connections;
-		int epoll_fd;
-		static const int MAX_EVENTS = 10;
+		static const int BUFFER_SIZE = 1;
+		static const int MAX_EVENTS = 252;
+		static const long TIMEOUT = 1;
 		
 		WebServ(Http *http);
 		WebServ(const WebServ &src);
 		WebServ &operator=(const WebServ &rhs);
 		virtual ~WebServ(void);
-
-		void handle_client_request(int epoll_fd, int client_fd);
-		void handle_client_response(int client_fd);
 
 		void run(void);
 };

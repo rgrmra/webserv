@@ -14,7 +14,7 @@ using namespace std;
 
 Http *http = NULL;
 
-void sigint(int signal) {
+static void sigint(int signal) {
 
 	delete http;
 	struct dirent *file;
@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
 
 	signal(SIGINT, sigint);
 
+	int status = EXIT_SUCCESS;
+
 	try {
 
 		if (argc > 2)
@@ -53,12 +55,8 @@ int main(int argc, char *argv[]) {
 
 		logger::error(exception.what());
 
-		delete http;
-
-		return EXIT_FAILURE;
+		status = EXIT_FAILURE;
 	}
 
-	delete http;
-	
-	return EXIT_SUCCESS;
+	sigint(status);
 }
