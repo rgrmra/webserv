@@ -174,7 +174,7 @@ void directive::setURI(string uri, string &_uri) {
 
 bool directive::validateHttpMethod(string method) {
 
-	list<string> allowed_methods = parser::split(DEFAULT_ALLOW_METHODS, ' ');
+	list<string> allowed_methods = parser::split(parser::DEFAULT_ALLOW_METHODS, ' ');
 
 	list<string>::iterator it = allowed_methods.begin();
 	for (; it != allowed_methods.end(); it++)
@@ -232,9 +232,9 @@ void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex) {
 		return;
 
 	if (autoindex == "on")
-		_autoindex = AUTOINDEX_ON;
+		_autoindex = parser::AUTOINDEX_ON;
 	else if (autoindex == "off")
-		_autoindex = AUTOINDEX_OFF;
+		_autoindex = parser::AUTOINDEX_OFF;
 	else
 		throw runtime_error("invalid autoindex: " + autoindex);
 }
@@ -257,13 +257,13 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 		_max_body_size = tmp;
 
 	if (format.empty() || format == "B")
-		_max_body_size *= BYTE;
+		_max_body_size *= parser::BYTE;
 	else if (format == "K")
-		_max_body_size *= KILOBYTE;
+		_max_body_size *= parser::KILOBYTE;
 	else if (format == "M")
-		_max_body_size *= MEGABYTE;
+		_max_body_size *= parser::MEGABYTE;
 	else if (format == "G")
-		_max_body_size *= GIGABYTE;
+		_max_body_size *= parser::GIGABYTE;
 	else
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
@@ -380,22 +380,22 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 void directive::setHttpDefaultValues(Http &http) {
 
 	if (http.getMaxBodySize() == 0)
-		http.setMaxBodySize(DEFAULT_MAX_BODY_SIZE);
+		http.setMaxBodySize(parser::DEFAULT_MAX_BODY_SIZE);
 
 	if (http.getIndexes().size() == 0)
-		http.addIndex(DEFAULT_INDEXES);
+		http.addIndex(parser::DEFAULT_INDEXES);
 
 	if (http.getAccessLog().empty())
-		http.setAccessLog(DEFAULT_ACCESS_LOG);
+		http.setAccessLog(parser::DEFAULT_ACCESS_LOG);
 
-	if (http.getAutoIndexBitSet() == AUTOINDEX_NOT_SET)
-		http.setAutoIndex(AUTOINDEX_OFF);
+	if (http.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
+		http.setAutoIndex(parser::AUTOINDEX_OFF);
 
 	if (http.getErrorLog().empty())
-		http.setErrorLog(DEFAULT_ERROR_LOG);
+		http.setErrorLog(parser::DEFAULT_ERROR_LOG);
 
 	if (http.getRoot().empty())
-		http.setRoot(DEFAULT_ROOT);
+		http.setRoot(parser::DEFAULT_ROOT);
 
 	vector<Server> servers = http.getServers();
 	vector<Server>::iterator serversIt = servers.begin();
@@ -416,7 +416,7 @@ void directive::setServerDefaultValues(Http &http, Server &server) {
 	if (server.getIndexes().empty())
 		server.setIndexes(http.getIndexes());
 
-	if (server.getAutoIndexBitSet() == AUTOINDEX_NOT_SET)
+	if (server.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		server.setAutoIndex(http.getAutoIndexBitSet());
 
 	map<string, string> error_pages = server.getErrorPages();
@@ -440,9 +440,9 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 		location.setIndexes(server.getIndexes());
 
 	if (location.getDenyMethods() == false)
-		location.addMethod(DEFAULT_ALLOW_METHODS);
+		location.addMethod(parser::DEFAULT_ALLOW_METHODS);
 
-	if (location.getAutoIndexBitSet() == AUTOINDEX_NOT_SET)
+	if (location.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		location.setAutoIndex(server.getAutoIndexBitSet());
 
 	if (location.getMaxBodySize() == 0)

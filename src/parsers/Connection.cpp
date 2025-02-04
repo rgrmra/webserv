@@ -1,9 +1,14 @@
 #include "Connection.hpp"
+#include "directive.hpp"
+#include "response.hpp"
 #include "parser.hpp"
+#include "response.hpp"
 #include <ctime>
+#include <exception>
 #include <iostream>
 #include <netdb.h>
 #include <sstream>
+#include <string>
 #include <unistd.h>
 
 using namespace std;
@@ -11,10 +16,9 @@ using namespace std;
 Connection::Connection(int fd, string ip)
 	: _fd(fd),
 	  _ip(ip),
-	  _time(time(NULL)) {
-	
-	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\nConnection: closed\r\n\r\nwhat?";
-	
+	  _time(time(NULL)),
+	  _send(false) {
+
 }
 
 Connection::Connection(const Connection &src) {
@@ -34,11 +38,14 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_method = rhs._method;
 	_path = rhs._path;
 	_protocol = rhs._protocol;
+	_code = rhs._code;
+	_status = rhs._status;
 	_headers = rhs._headers;
 	_body = rhs._body;
 	_server = rhs._server;
 	_response = rhs._response;
 	_time = rhs._time;
+	_send = rhs._send;
 
 	return *this;
 }
@@ -47,75 +54,25 @@ Connection::~Connection(void) {
 
 }
 
-bool Connection::validateRequest(void) {
+void Connection::parseRequest(void) {
 
-	string tmp = _buffer.data();
+	//istringstream iss(_buffer);
 
-	if (tmp.find("GET ") == 0)
-		return validateGet();
-	else if (tmp.find("POST ") == 0)
-		return validatePost();
-	else if (tmp.find("DELETE") == 0)
-		return validateDelete();
+	//string line;
+	//getline(iss, line);
 
-	return false;
-}
+	_protocol = response::PROTOCOL;
+	_code = "200";
+	_status = "Ok";
 
-bool Connection::validateGet(void) {
-	
-	string tmp = _buffer.data();
-	
-	return true;
-}
+	_headers["Content-Type"] = "text/plain";
+	_headers["Content-Length"] = "3";
+	_headers["Connection"] = "closed";
 
-bool Connection::validatePost(void) {
+	_body = "Ok\n";
 
-	return true;
-}
-
-bool Connection::validateDelete(void) {
-
-	return true;
-}
-
-bool Connection::validatePut(void) {
-	
-	return true;
-}
-
-bool Connection::validatePatch(void) {
-
-	return true;
-}
-
-void Connection::append(std::vector<char> &text, int bytes) {
-
-	if (text.empty())
-		return;
-
-	vector<char>::iterator it = text.begin();
-	for (; it != text.begin() + bytes; it++)
-		_buffer.push_back(*it);
-
-	_time = time(NULL);
-}
-
-std::string Connection::getResponse(void) const {
-	ostringstream oss;
-	oss << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << getBuffer().size() << "\r\nConnection: closed\r\n\r\n" << getBuffer();
-
-	return oss.str();
-}
-
-std::string Connection::getResponse(int bytes) {
-
-	if (_response.empty())
-		return "";
-
-	string tmp = _response.substr(0, bytes);
-	_response.erase(0, bytes);
-
-	return tmp;
+	_send = true;
+	buildResponse();
 }
 
 int Connection::getFd(void) const {
@@ -123,37 +80,110 @@ int Connection::getFd(void) const {
 	return _fd;
 }
 
-std::string Connection::getIp(void) const {
+string Connection::getIp(void) const {
 
 	return _ip;
 }
 
-std::string Connection::getHost(void) const {
+void Connection::setHost(string host) {
+
+	host = _host;
+}
+
+string Connection::getHost(void) const {
 
 	return _host;
 }
 
-std::string Connection::getBuffer(void) const {
+void Connection::append(vector<char> &text, int bytes) {
+
+	if (!bytes || text.empty())
+		return;
+
+	_buffer.append(text.begin(), text.begin() + bytes);
+
+	if (_buffer.find("\r\n\r\n") != string::npos)
+		parseRequest();
+
+	_time = time(NULL);
+}
+
+string Connection::getBuffer(void) const {
 
 	return string().append(_buffer.begin(), _buffer.end());
 }
 
-std::string Connection::getMethod(void) const {
+void Connection::setMethod(string &method) {
+
+	_method = method;
+}
+
+string Connection::getMethod(void) const {
 
 	return _method;
 }
 
-std::string Connection::getPath(void) const {
+void Connection::setPath(string path) {
+
+	_path = path;
+}
+
+string Connection::getPath(void) const {
 
 	return _path;
 }
 
-std::string Connection::getProtocol(void) const {
+void Connection::setProtocol(string protocol) {
+
+	_protocol = protocol;
+}
+
+string Connection::getProtocol(void) const {
 
 	return _protocol;
 }
 
-std::string Connection::getHeaders(void) const {
+void Connection::setCode(string code) {
+
+	_code = code;
+}
+
+void Connection::setCode(size_t code) {
+
+	_code = parser::toString(code);
+}
+
+string Connection::getCode(void) const {
+
+	return _code;
+}
+
+void Connection::setStatus(string status) {
+
+	_status = status;
+}
+
+string Connection::getStatus(void) const {
+
+	return _status;
+}
+
+void Connection::addHeader(string key, string value) {
+
+	_headers[key] = value;
+}
+
+void Connection::addHeader(string key, size_t value) {
+
+	_headers[key] = parser::toString(value);
+}
+
+void Connection::setHeaders(map<string, string> headers) {
+
+	_headers = headers;
+}
+
+string Connection::getHeaders(void) const {
 
 	ostringstream oss;
 
@@ -164,9 +194,14 @@ std::string Connection::getHeaders(void) const {
 	return oss.str();
 }
 
-std::string Connection::getBody(void) const {
+void Connection::setBody(string body) {
 
-	return string().append(_body.begin(), _body.end());
+	_body = body;
+}
+
+string Connection::getBody(void) const {
+
+	return _body;
 }
 
 Server Connection::getServer(void) const {
@@ -179,12 +214,55 @@ time_t Connection::getTime(void) const {
 	return _time;
 }
 
+void Connection::buildResponse(void) {
+
+	if (_protocol.empty() || _code.empty() || _status.empty())
+		response::pageInternalServerError(this);
+
+	ostringstream oss;
+	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
+
+	map<string, string>::iterator it = _headers.begin();
+	for (; it != _headers.end(); it++)
+		oss << it->first + ": " + it->second + "\r\n";
+
+	oss << "\r\n" << _body;
+
+	_response = oss.str();
+}
+
+string Connection::getResponse(int bytes) {
+
+	if (_response.empty())
+		return "";
+
+	string tmp = _response.substr(0, bytes);
+	_response.erase(0, bytes);
+
+	return tmp;
+}
+
+string Connection::getResponse(void) const {
+
+	return _response;
+}
+
 size_t Connection::getResponseSize(void) const {
 
 	return _response.size();
 }
 
-std::ostream &operator<<(std::ostream &os, const Connection &src) {
+void Connection::setSend(bool send) {
+
+	_send = send;
+}
+
+bool Connection::getSend(void) const {
+
+	return _send;
+}
+
+ostream &operator<<(ostream &os, const Connection &src) {
 	
 	os << "Connection" << endl;
 	os << "client_fd: " << src.getFd() << endl;
@@ -194,6 +272,8 @@ std::ostream &operator<<(std::ostream &os, const Connection &src) {
 	os << "method: " << src.getMethod() << endl;
 	os << "path: " << src.getPath() << endl;
 	os << "protocol: " << src.getProtocol() << endl;
+	os << "code: " << src.getCode() << endl;
+	os << "status: " << src.getStatus() << endl;
 	os << "request headers: " << src.getHeaders() << endl;
 	os << "request body: " << src.getBody() << endl;
 	os << "http {\n" << src.getServer() << "\n}" << endl;
