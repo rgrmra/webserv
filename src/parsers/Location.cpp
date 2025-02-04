@@ -8,14 +8,14 @@ using namespace std;
 
 Location::Location(void)
 	: _deny_methods(false),
-	  _autoindex(AUTOINDEX_NOT_SET),
+	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 }
 
 Location::Location(string &configuration_file) 
 	: _deny_methods(false),
-	  _autoindex(AUTOINDEX_NOT_SET),
+	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 	parser::location(*this, configuration_file);
@@ -121,7 +121,7 @@ bitset<2> Location::getAutoIndexBitSet(void) const {
 
 bool Location::getAutoIndex(void) const {
 
-	return (_autoindex == AUTOINDEX_ON ? true : false);
+	return (_autoindex == parser::AUTOINDEX_ON ? true : false);
 }
 
 void Location::setMaxBodySize(string max_body_size) {

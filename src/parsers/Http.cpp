@@ -9,8 +9,10 @@
 
 using namespace std;
 
+WebServ *webserv;
+
 Http::Http(string filename)
-	: _autoindex(AUTOINDEX_NOT_SET),
+	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 	if (parser::basename(filename) != ".conf")
@@ -42,8 +44,8 @@ Http::Http(string filename)
 	parser::erase(buffer, " ;", 1);
 	parser::rerase(buffer, "; ", 1);
 
-	addErrorPage(DEFAULT_404_ERROR);
-	addErrorPage(DEFAULT_50x_ERROR);
+	addErrorPage(parser::DEFAULT_404_ERROR);
+	addErrorPage(parser::DEFAULT_50x_ERROR);
 
 	parser::http(*this, buffer);
 
@@ -78,6 +80,8 @@ Http &Http::operator=(const Http &rhs) {
 }
 
 Http::~Http(void) {
+
+	delete webserv;
 
 }
 
@@ -128,7 +132,7 @@ bitset<2> Http::getAutoIndexBitSet(void) const {
 
 bool Http::getAutoIndex() const {
 
-	return _autoindex == AUTOINDEX_ON ? true : false;
+	return _autoindex == parser::AUTOINDEX_ON ? true : false;
 }
 
 void Http::setMaxBodySize(string max_body_size) {
@@ -241,9 +245,9 @@ bool Http::empty(void) const {
 
 void Http::start(void) {
 
-	WebServ webserv = WebServ(this);
+	webserv = new WebServ(this);
 
-	webserv.run();
+	webserv->run();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {
