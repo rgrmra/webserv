@@ -2,7 +2,6 @@
 #include "directive.hpp"
 #include "response.hpp"
 #include "parser.hpp"
-#include "response.hpp"
 #include <ctime>
 #include <exception>
 #include <iostream>
