@@ -22,7 +22,6 @@ class WebServ {
 		struct epoll_event createEpollEvent(int client_fd, int flags, int ctl);
 		int isBindedSocket(int fd);
 		std::string getIpByFileDescriptor(int client_fd);
-		std::string getHostnameByFileDescriptor(int client_fd);
 		void acceptNewConnection(int client_fd);
 		void controlEpoll(int client_fd, int flag, int option);
 		void closeConnection(int client_fd);
@@ -31,9 +30,9 @@ class WebServ {
 		bool isTimedOut(int client_fd);
 
 	public:
-		static const int BUFFER_SIZE = 1;
+		static const int BUFFER_SIZE = MEGABYTE;
 		static const int MAX_EVENTS = 252;
-		static const long TIMEOUT = 1;
+		static const long TIMEOUT = 3;
 		
 		WebServ(Http *http);
 		WebServ(const WebServ &src);

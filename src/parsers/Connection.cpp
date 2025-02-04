@@ -13,7 +13,7 @@ Connection::Connection(int fd, string ip)
 	  _ip(ip),
 	  _time(time(NULL)) {
 	
-	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5 \r\n\r\nwhat?";
+	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\nConnection: closed\r\n\r\nwhat?";
 	
 }
 
@@ -102,7 +102,7 @@ void Connection::append(std::vector<char> &text, int bytes) {
 
 std::string Connection::getResponse(void) const {
 	ostringstream oss;
-	oss << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << getBuffer().size() << "\r\n\r\n" << getBuffer();
+	oss << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << getBuffer().size() << "\r\nConnection: closed\r\n\r\n" << getBuffer();
 
 	return oss.str();
 }

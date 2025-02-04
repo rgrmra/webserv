@@ -280,17 +280,12 @@ int WebServ::isBindedSocket(int fd) {
 }
 
 bool WebServ::isTimedOut(int client_fd) {
-
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	if (it == _client_connections.end()) {
-		controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	if (it == _client_connections.end())
 		return false;
-	}
 
-	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT) {
-		controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT)
 		return false;
-	}
 
 	logger::warning("client timed out: " + it->second->getIp());
 	string response = "HTTP/1.1 504 Gateway Timeout\r\nConnection: closed\r\n\r\n";
@@ -316,21 +311,21 @@ void WebServ::run(void) {
 	epoll_event events[MAX_EVENTS];
 
 	while (true) {
-
 		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
 		if (num_events == -1)
 			throw runtime_error("epoll_wait");
 
 		for (int i = 0; i < num_events; i++) {
-			cout << events[i].data.fd << endl;
 			if (isBindedSocket(events[i].data.fd))
 				acceptNewConnection(events[i].data.fd);
-			else if (events[i].events & (EPOLLIN| EPOLLET))
+			else if (events[i].events & (EPOLLIN | EPOLLET))
 				handleRequest(events[i].data.fd);
 			else if (events[i].events & (EPOLLOUT| EPOLLET))
 				handleResponse(events[i].data.fd);
-			if (isTimedOut(events[i].data.fd))
-				continue;
 		}
+		map<int, Connection *>::iterator ite = _client_connections.begin();
+		for (; ite != _client_connections.end(); ite++)
+			if (isTimedOut(ite->first))
+				break;
 	}
 }
