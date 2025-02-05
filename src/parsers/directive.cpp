@@ -197,6 +197,7 @@ void directive::setURI(string uri, string &_uri) {
 	if (uri.empty())
 		return;
 
+    // TODO: implement uriValidation function
 	if (uri.find_first_of(" ") != string::npos)
 		throw runtime_error("invalid path: " + uri);
 

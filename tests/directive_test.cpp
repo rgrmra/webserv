@@ -216,7 +216,7 @@ TEST(DirectiveTest, ValidateName) {
     EXPECT_FALSE(directive::validateName(string("example.name with space"))); // Contains space
 }
 
-TEST(DirectiveTest, AddNameTests) {
+TEST(DirectiveTest, AddName) {
     vector<string> nameList;
 
     // Test empty name
@@ -245,4 +245,24 @@ TEST(DirectiveTest, AddNameTests) {
     EXPECT_EQ(nameList[5], "example.com");
     EXPECT_EQ(nameList[6], "my-site");
     ASSERT_EQ(nameList.size(), 7) << "Expected 6 elements";
+}
+
+TEST(DirectiveTest, SetURI) {
+    string result = "unchanged";
+
+    // empty should not change the string
+    directive::setURI("", result);
+    EXPECT_EQ(result, "unchanged");
+
+    // invalid uri throw error
+    EXPECT_THROW(directive::setURI("invalid uri", result), runtime_error);
+
+    // valid path should change value
+    directive::setURI("/valid/path", result);
+    EXPECT_EQ(result, "/valid/path");
+
+    // need implement validation for specials character
+    // directive::setURI("/invalid/path@", result);
+    // EXPECT_EQ(result, "/valid/path");
+    // EXPECT_THROW(directive::setURI("/path/with/!@#$%^&*()_+-=", result), runtime_error);
 }
