@@ -24,6 +24,7 @@ class WebServ {
 		void acceptNewConnection(int client_fd);
 		void closeConnection(int client_fd);
 		void handleRequest(int client_fd);
+		int sendMessage(Connection *connection, std::string message);
 		void handleResponse(int client_fd);
 		int isBindedSocket(int fd);
 		bool isTimedOut(int client_fd);

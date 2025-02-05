@@ -14,29 +14,29 @@ using namespace std;
 
 Http *http = NULL;
 
-static void sigint(int signal) {
+static void sigexit(int signal) {
 
 	delete http;
-	struct dirent *file;
-	DIR *root = opendir("/proc/self/fd/");
-	if (!root)
-		exit(signal);
-	while (1)
-	{
-		file = readdir(root);
-		if (!file)
-			break ;
-		int fd = atoi(file->d_name);
-		if (fd > -1 && fd < 1024)
-			close(atoi(file->d_name));
-	}
-	closedir(root);
+	//struct dirent *file;
+	//DIR *root = opendir("/proc/self/fd/");
+	//if (!root)
+	//	exit(signal);
+	//while (1)
+	//{
+	//	file = readdir(root);
+	//	if (!file)
+	//		break ;
+	//	int fd = atoi(file->d_name);
+	//	if (fd > -1 && fd < 1024)
+	//		close(atoi(file->d_name));
+	//}
+	//closedir(root);
 	exit(signal);
 }
 
 int main(int argc, char *argv[]) {
 
-	signal(SIGINT, sigint);
+	signal(SIGINT, sigexit);
 
 	int status = EXIT_SUCCESS;
 
@@ -58,5 +58,5 @@ int main(int argc, char *argv[]) {
 		status = EXIT_FAILURE;
 	}
 
-	sigint(status);
+	sigexit(status);
 }
