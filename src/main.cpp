@@ -17,20 +17,7 @@ Http *http = NULL;
 static void sigexit(int signal) {
 
 	delete http;
-	//struct dirent *file;
-	//DIR *root = opendir("/proc/self/fd/");
-	//if (!root)
-	//	exit(signal);
-	//while (1)
-	//{
-	//	file = readdir(root);
-	//	if (!file)
-	//		break ;
-	//	int fd = atoi(file->d_name);
-	//	if (fd > -1 && fd < 1024)
-	//		close(atoi(file->d_name));
-	//}
-	//closedir(root);
+	
 	exit(signal);
 }
 
