@@ -29,7 +29,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 
 	if (this == &rhs)
 		return *this;
-	
+
 	_fd = rhs._fd;
 	_ip = rhs._ip;
 	_host = rhs._host;
@@ -59,6 +59,8 @@ void Connection::parseRequest(void) {
 
 	//string line;
 	//getline(iss, line);
+	_request.parseRequest(_buffer);
+	_request.printRequest(); //debug purposes
 
 	_protocol = response::PROTOCOL;
 	_code = "200";
@@ -189,7 +191,7 @@ string Connection::getHeaders(void) const {
 	map<string, string>::const_iterator it = _headers.begin();
 	for (; it != _headers.end(); it++)
 		oss << it->first << ": " << it->second << endl;
-	
+
 	return oss.str();
 }
 
@@ -262,7 +264,7 @@ bool Connection::getSend(void) const {
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {
-	
+
 	os << "Connection" << endl;
 	os << "client_fd: " << src.getFd() << endl;
 	os << "IP: " << src.getIp() << endl;
