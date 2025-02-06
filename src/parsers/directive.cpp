@@ -285,6 +285,14 @@ void directive::addIndex(string index, set<string> &_index) {
 	}
 }
 
+void directive::setFastCgi(string fastcgi, string &_fastcgi) {
+
+	if (fastcgi.empty())
+		return;
+
+	_fastcgi = fastcgi;
+}
+
 void directive::addErrorPage(string error_page, map<string, string> &_error_pages) {
 
 	if (error_page.empty())
