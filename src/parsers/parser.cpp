@@ -209,8 +209,9 @@ void parser::location(Location &location, string &buffer) {
 
 		location.addIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
-		location.setAutoIndex(find("autoindex ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
+		location.setAutoIndex(find("autoindex ", buffer, ";"));
+		location.setFastCgi(find("fastcgi_pass ", buffer, ";"));
 		location.addErrorPages(find("error_page ", buffer, ";"));
 		location.setReturn(find("return ", buffer, ";"));
 

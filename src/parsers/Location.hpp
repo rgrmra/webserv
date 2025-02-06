@@ -15,6 +15,7 @@ class Location {
 		std::bitset<2> _autoindex;
 		std::size_t _max_body_size;
 		std::set<std::string> _indexes;
+		std::string _fastcgi;
 		std::map<std::string, std::string> _error_pages;
 		std::string _return_code;
 		std::string _return_uri;
@@ -46,6 +47,8 @@ class Location {
 		void addIndex(std::string index);
 		void setIndexes(std::set<std::string> indexes);
 		std::set<std::string> getIndexes(void) const;
+		void setFastCgi(std::string fastcgi);
+		std::string getFastCgi(void) const;
 		void addErrorPages(std::string error_page);
 		void setErrorPages(std::map<std::string, std::string> error_pages);
 		std::map<std::string, std::string> getErrorPages(void) const;

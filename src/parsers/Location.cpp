@@ -38,6 +38,7 @@ Location &Location::operator=(const Location &rhs) {
 	_autoindex = rhs._autoindex;
 	_max_body_size = rhs._max_body_size;
 	_indexes = rhs._indexes;
+	_fastcgi = rhs._fastcgi;
 	_error_pages = rhs._error_pages;
 	_return_code = rhs._return_code;
 	_return_uri = rhs._return_uri;
@@ -144,6 +145,16 @@ void Location::setIndexes(set<string> indexes) {
 	_indexes = indexes;
 }
 
+void Location::setFastCgi(std::string fastcgi) {
+
+	directive::setFastCgi(fastcgi, _fastcgi);
+}
+
+std::string Location::getFastCgi(void) const {
+
+	return _fastcgi;
+}
+
 void Location::addErrorPages(string error_page) {
 
 	directive::addErrorPage(error_page, _error_pages);
@@ -210,6 +221,7 @@ ostream &operator<<(ostream &os, const Location &src) {
 
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
+	os << "\t\t\tfastcgi_pass " << src.getFastCgi() << ";" << endl;
 
 	map<string, string> error_pages = src.getErrorPages();
 	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
