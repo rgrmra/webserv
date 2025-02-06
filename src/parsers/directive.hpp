@@ -28,6 +28,7 @@ namespace directive {
 	void setAutoIndex(std::string autoindex, std::bitset<2> &_autoindex);
 	void setMaxBodySize(std::string max_body_size, std::size_t &_max_body_size);
 	void addIndex(std::string index, std::set<std::string> &_index);
+	void setFastCgi(std::string fastcgi, std::string &_fastcgi);
 	void addErrorPage(std::string error_page, std::map<std::string, std::string> &_error_pages);
 	void mergeErrorPages(std::map<std::string, std::string> error_pages, std::map<std::string, std::string> &_error_pages);
 	void addServer(Server server, std::vector<Server> &_servers);

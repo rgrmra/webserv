@@ -1,15 +1,3 @@
-/*test ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/13 20:17:15 by rde-mour          #+#    #+#             */
-/*   Updated: 2025/01/31 20:59:17 by rde-mour         ###   ########.org.br   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Http.hpp"
 #include "logger.hpp"
 #include "Server.hpp"
@@ -19,21 +7,38 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
+#include <dirent.h>
 
 using namespace std;
 
 Http *http = NULL;
 
-void sigint(int signal) {
+static void sigint(int signal) {
 
 	delete http;
-
+	struct dirent *file;
+	DIR *root = opendir("/proc/self/fd/");
+	if (!root)
+		exit(signal);
+	while (1)
+	{
+		file = readdir(root);
+		if (!file)
+			break ;
+		int fd = atoi(file->d_name);
+		if (fd > -1 && fd < 1024)
+			close(atoi(file->d_name));
+	}
+	closedir(root);
 	exit(signal);
 }
 
 int main(int argc, char *argv[]) {
 
 	signal(SIGINT, sigint);
+
+	int status = EXIT_SUCCESS;
 
 	try {
 
@@ -50,12 +55,8 @@ int main(int argc, char *argv[]) {
 
 		logger::error(exception.what());
 
-		delete http;
-
-		return EXIT_FAILURE;
+		status = EXIT_FAILURE;
 	}
 
-	delete http;
-	
-	return EXIT_SUCCESS;
+	sigint(status);
 }

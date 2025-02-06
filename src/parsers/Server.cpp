@@ -10,13 +10,13 @@
 using namespace std;
 
 Server::Server(void)
-	: _autoindex(AUTOINDEX_NOT_SET),
+	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 }
 
 Server::Server(string &configuration_file) 
-	: _autoindex(AUTOINDEX_NOT_SET),
+	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
@@ -113,7 +113,7 @@ bitset<2> Server::getAutoIndexBitSet(void) const {
 
 bool Server::getAutoIndex(void) const {
 
-	return (_autoindex == AUTOINDEX_ON ? true : false);
+	return _autoindex == parser::AUTOINDEX_ON ? true : false;
 }
 
 void Server::setMaxBodySize(string max_body_size) {

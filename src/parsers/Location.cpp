@@ -8,14 +8,14 @@ using namespace std;
 
 Location::Location(void)
 	: _deny_methods(false),
-	  _autoindex(AUTOINDEX_NOT_SET),
+	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 }
 
 Location::Location(string &configuration_file) 
 	: _deny_methods(false),
-	  _autoindex(AUTOINDEX_NOT_SET),
+	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 	parser::location(*this, configuration_file);
@@ -38,6 +38,7 @@ Location &Location::operator=(const Location &rhs) {
 	_autoindex = rhs._autoindex;
 	_max_body_size = rhs._max_body_size;
 	_indexes = rhs._indexes;
+	_fastcgi = rhs._fastcgi;
 	_error_pages = rhs._error_pages;
 	_return_code = rhs._return_code;
 	_return_uri = rhs._return_uri;
@@ -121,7 +122,7 @@ bitset<2> Location::getAutoIndexBitSet(void) const {
 
 bool Location::getAutoIndex(void) const {
 
-	return (_autoindex == AUTOINDEX_ON ? true : false);
+	return (_autoindex == parser::AUTOINDEX_ON ? true : false);
 }
 
 void Location::setMaxBodySize(string max_body_size) {
@@ -142,6 +143,16 @@ void Location::addIndex(string index) {
 void Location::setIndexes(set<string> indexes) {
 
 	_indexes = indexes;
+}
+
+void Location::setFastCgi(std::string fastcgi) {
+
+	directive::setFastCgi(fastcgi, _fastcgi);
+}
+
+std::string Location::getFastCgi(void) const {
+
+	return _fastcgi;
 }
 
 void Location::addErrorPages(string error_page) {
@@ -210,6 +221,7 @@ ostream &operator<<(ostream &os, const Location &src) {
 
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
+	os << "\t\t\tfastcgi_pass " << src.getFastCgi() << ";" << endl;
 
 	map<string, string> error_pages = src.getErrorPages();
 	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
