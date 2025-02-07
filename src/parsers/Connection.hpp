@@ -2,9 +2,7 @@
 #define CONNECTION_HPP
 
 #include "Server.hpp"
-#include <ctime>
 #include <map>
-#include <ostream>
 #include <string>
 #include <vector>
 
