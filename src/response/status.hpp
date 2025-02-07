@@ -2,6 +2,7 @@
 #define STATUS_HPP
 
 #include <string>
+
 namespace status {
 
 	static const std::string BAD_REQUEST = "Bad Request";

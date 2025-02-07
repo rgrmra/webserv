@@ -1,14 +1,10 @@
 #include "Http.hpp"
 #include "logger.hpp"
-#include "Server.hpp"
 #include <csignal>
 #include <cstdlib>
-#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
-#include <dirent.h>
 
 using namespace std;
 

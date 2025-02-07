@@ -1,10 +1,10 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "Connection.hpp"
-#include "Server.hpp"
 #include <map>
 #include <string>
+
+class Connection;
 
 namespace response {
 

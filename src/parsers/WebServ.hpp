@@ -1,12 +1,13 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "Connection.hpp"
-#include "Http.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
-#include <sys/epoll.h>
+#include <string>
+
+class Connection;
+class Http;
 
 class WebServ {
 	private:

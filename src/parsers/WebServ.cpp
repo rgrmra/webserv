@@ -1,26 +1,15 @@
 #include "Connection.hpp"
 #include "Http.hpp"
-#include "Server.hpp"
 #include "logger.hpp"
-#include "WebServ.hpp"
 #include "response.hpp"
-#include "parser.hpp"
-#include <asm-generic/socket.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fcntl.h>
+#include "WebServ.hpp"
+#include <cerrno>
 #include <iostream>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <sstream>
-#include <stdexcept>
 #include <string>
-#include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <vector>
-#include <cerrno>
 
 using namespace std;
 
@@ -141,7 +130,6 @@ int WebServ::createSocket(string host) {
 	struct linger opt = (struct linger){};
 	opt.l_onoff = 1;
 	opt.l_linger = 10;
-	//int opt = 0;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
 		(close(fd), freeaddrinfo(res));
 		throw runtime_error("setsockopt");
@@ -230,7 +218,7 @@ void WebServ::handleRequest(int client_fd) {
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	Connection *connection = it->second;
 
-	static vector<char> buffer(BUFFER_SIZE);
+	vector<char> buffer(BUFFER_SIZE);
 	int bytes_read = recv(client_fd, buffer.data(), BUFFER_SIZE, MSG_NOSIGNAL);
 	if (bytes_read == -1) {
 		logger::fatal("recv");
@@ -318,7 +306,7 @@ void WebServ::run(void) {
 		logger::debug("server started, listening on " + it->first);
 	}
 
-	static epoll_event events[MAX_EVENTS];
+	epoll_event events[MAX_EVENTS];
 
 	while (true) {
 		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
