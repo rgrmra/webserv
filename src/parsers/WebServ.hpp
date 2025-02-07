@@ -1,32 +1,44 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "Http.hpp"
-#include <list>
+#include "parser.hpp"
+#include <map>
 #include <netdb.h>
+#include <string>
 
-typedef struct s_socket {
-	int fd;
-	addrinfo addr;
-	addrinfo *p;
-	int opt;
-}	t_socket;
+class Connection;
+class Http;
 
 class WebServ {
 	private:
 		Http *_http;
-		std::list<t_socket> _sockets;
+		int _epoll_fd;
+		std::map<std::string, int> _binded_sockets;
+		std::map<int, Connection *> _client_connections;
 
-	protected:
-		bool handle_accept_new_connections(int epoll_fd, int client_fd);
-		void handle_client_request(int epoll_fd, int client_fd);
-		void handle_client_response(int client_fd);
+		void removeBindedPorts(std::string port);
+		bool isBinded(std::string listen);
+		struct addrinfo *getAddrInfo(std::string host);
+		int createSocket(std::string listen);
+		void controlEpoll(int client_fd, int flag, int option);
+		std::string getIpByFileDescriptor(int client_fd);
+		void acceptNewConnection(int client_fd);
+		void closeConnection(int client_fd);
+		void handleRequest(int client_fd);
+		int sendMessage(Connection *connection, std::string message);
+		void handleResponse(int client_fd);
+		int isBindedSocket(int fd);
+		bool isTimedOut(int client_fd);
 
 	public:
+		static const int BUFFER_SIZE = parser::MEGABYTE;
+		static const int MAX_EVENTS = 252;
+		static const long TIMEOUT = 30;
+		
 		WebServ(Http *http);
 		WebServ(const WebServ &src);
 		WebServ &operator=(const WebServ &rhs);
-		~WebServ(void);
+		virtual ~WebServ(void);
 
 		void run(void);
 };
