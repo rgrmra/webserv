@@ -1,23 +1,6 @@
 console.log("Quebrou");
 
 
-const requestDeleteJson = {
-    method: 'DELETE',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({id: 1})
-}
-
-const requestDeleteImage = {
-    method: 'DELETE',
-    headers: {}
-}
-
-fetch("http://127.0.0.1:8090/delete/json", requestDeleteJson);// request delet to Json
-fetch("http://127.0.0.1:8090/delete/image", requestDeleteImage);// request delet to Json
-
-
 const requestPostJson = {
     method: 'POST',
     headers: {
@@ -27,3 +10,8 @@ const requestPostJson = {
 }
 
 fetch("http://127.0.0.1:8090/delete/json", requestPostJson);
+
+
+
+
+let variavel = 1;

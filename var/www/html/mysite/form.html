@@ -11,7 +11,7 @@
 	<!-- <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" /> -->
 	<title>WebServer - Formulario</title>
 </head>
-<body>
+<body>ł
 	<main class="nes-container is-centered margin-10 height-full ">
 		<h1 class="nes-text is-primary title">Web Server</h1>
 		<nav class="header-nav">
@@ -25,20 +25,22 @@
 		<section class="nes-container with-title is-centered pos-relative height-100">
 
 			<h2 class="nes-text is-primary title">WebServ</h2>
-			<p class="nes-text">
-				Um servidor HTTP desenvolvido do zero, seguindo os princípios do RFC e permitindo a execução de CGI!
-			</p>
-			<div class="nes-container with-title is-centered">
-				<p class="title">Recursos</p>
-				<ul class="nes-list">
-					<li class="nes-balloon from-left">Suporte a múltiplas conexões</li>
-					<li class="nes-balloon from-left">Interpretação de arquivos de configuração</li>
-					<li class="nes-balloon from-left">Suporte a métodos HTTP (GET, POST, DELETE)</li>
-					<li class="nes-balloon from-left">Execução de scripts CGI</li>
-					<li class="nes-balloon from-left">Gerenciamento de erros e respostas HTTP</li>
-				</ul>
-			</div>
-			<button class="nes-btn is-primary">Saiba Mais</button>
+			<form action="/post" method="post">
+				<div class="nes-field is-inline">
+					<label for="name">Name</label>
+					<input type="text" id="name" class="nes-input" name="name" placeholder="Name">
+				</div>
+				<div class="nes-field is-inline">
+					<label for="email">Email</label>
+					<input type="text" id="email" class="nes-input" name="email" placeholder="Email">
+				</div>
+				<div class="nes-field is-inline">
+					<label for="phone">Phone</label>
+					<input type="text" id="phone" class="nes-input" name="phone" placeholder="Phone">
+				</div>
+				<button type="submit" class="nes-btn is-primary">Submit</button>
+				<input type="submit" value="Submit">
+			</form>
 
 		</section>
 	</main>
