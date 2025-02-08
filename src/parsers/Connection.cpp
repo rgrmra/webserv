@@ -50,10 +50,6 @@ Connection::~Connection(void) {
 
 void Connection::parseRequest(void) {
 
-	//istringstream iss(_buffer);
-
-	//string line;
-	//getline(iss, line);
 	_request.parseRequest(_buffer);
 	_request.printRequest(); //debug purposes
 
@@ -63,7 +59,10 @@ void Connection::parseRequest(void) {
 
 	_headers["Content-Type"] = "text/plain";
 	_headers["Content-Length"] = "3";
-	_headers["Connection"] = "closed";
+	if (_buffer.find("Keep-alive: true") != string::npos)
+		_headers["Keep-alive"] = "true";
+	else
+		_headers["Connection"] = "closed";
 
 	_body = "Ok\n";
 
@@ -179,6 +178,15 @@ void Connection::setHeaders(map<string, string> headers) {
 	_headers = headers;
 }
 
+string Connection::getHeaderByKey(string key) const {
+
+	map<string, string>::const_iterator it = _headers.find(key);
+	if (it->first == "")
+		return "";
+
+	return it->second;
+}
+
 string Connection::getHeaders(void) const {
 
 	ostringstream oss;
@@ -256,6 +264,23 @@ void Connection::setSend(bool send) {
 bool Connection::getSend(void) const {
 
 	return _send;
+}
+
+void Connection::resetConnection(void) {
+
+	_host.clear();
+	_buffer.clear();
+	_method.clear();
+	_path.clear();
+	_protocol.clear();
+	_code.clear();
+	_status.clear();
+	_headers.clear();
+	_body.clear();
+	_response.clear();
+
+	_time = time(NULL);
+	_send = false;
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {
