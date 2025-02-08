@@ -2,6 +2,8 @@
 #define CONNECTION_HPP
 
 #include "Server.hpp"
+#include "Request.hpp"
+#include <ctime>
 #include <map>
 #include <string>
 #include <vector>
@@ -20,6 +22,7 @@ class Connection {
 		std::map<std::string, std::string> _headers;
 		std::string _body;
 		Server _server;
+		Request _request;
 		std::string _response;
 		time_t _time;
 		bool _send;
