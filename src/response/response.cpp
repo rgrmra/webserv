@@ -1,16 +1,12 @@
-#include "response.hpp"
+#include "code.hpp"
 #include "Connection.hpp"
-#include "Server.hpp"
 #include "logger.hpp"
-#include "parser.hpp"
-#include "response/code.hpp"
-#include "response/status.hpp"
-#include <map>
+#include "response.hpp"
+#include "status.hpp"
 #include <sstream>
 #include <string>
 
 using namespace std;
-
 
 static void buildHeaderAndBody(Connection *connection) {
 

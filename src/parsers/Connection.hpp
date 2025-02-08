@@ -5,7 +5,6 @@
 #include "Request.hpp"
 #include <ctime>
 #include <map>
-#include <ostream>
 #include <string>
 #include <vector>
 

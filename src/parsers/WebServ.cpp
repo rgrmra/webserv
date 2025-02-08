@@ -1,33 +1,17 @@
 #include "Connection.hpp"
 #include "Http.hpp"
-#include "Server.hpp"
-#include "directive.hpp"
 #include "logger.hpp"
-#include "WebServ.hpp"
 #include "response.hpp"
-#include "parser.hpp"
-#include <asm-generic/socket.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <exception>
-#include <fcntl.h>
-#include <fstream>
+#include "WebServ.hpp"
+#include <cerrno>
 #include <iostream>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <sstream>
-#include <stdexcept>
 #include <string>
-#include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <vector>
-#include <cerrno>
 
 using namespace std;
-
-void sigint(int signal);
 
 WebServ::WebServ(Http *http)
 	: _http(http),
@@ -68,15 +52,18 @@ WebServ::~WebServ(void) {
 	if (_epoll_fd != -1)
 		close(_epoll_fd);
 
+	while (_client_connections.begin() != _client_connections.end()) {
+		map<int, Connection *>::iterator ic = _client_connections.begin();
+
+		if (sendMessage(ic->second, response::pageInternalServerError(ic->second)) == -1)
+			continue;
+
+		closeConnection(ic->first);
+	}
+
 	map<string, int>::iterator it = _binded_sockets.begin();
 	for (; it != _binded_sockets.end(); it++) {
 		close(it->second);
-	}
-
-	map<int, Connection *>::iterator ic = _client_connections.begin();
-	for (; ic != _client_connections.end(); ic++) {
-		close(ic->first);
-		delete ic->second;
 	}
 }
 
@@ -140,7 +127,9 @@ int WebServ::createSocket(string host) {
 	if (fd < 0)
 		throw runtime_error("socket");
 
-	int opt = 0;
+	struct linger opt = (struct linger){};
+	opt.l_onoff = 1;
+	opt.l_linger = 10;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
 		(close(fd), freeaddrinfo(res));
 		throw runtime_error("setsockopt");
@@ -251,17 +240,24 @@ void WebServ::handleRequest(int client_fd) {
 	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
+int WebServ::sendMessage(Connection *connection, std::string message) {
+
+	int status = send(connection->getFd(), message.c_str(), message.size(), MSG_NOSIGNAL);
+	if (status == -1) {
+		logger::fatal("client is no longer available to receive messages");
+		closeConnection(connection->getFd());
+	}
+
+	return status;
+}
+
 void WebServ::handleResponse(int client_fd) {
 
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	Connection *connection = it->second;
 
-	string tmp = connection->getResponse(BUFFER_SIZE);
-
-	if (send(client_fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL) == -1) {
-		logger::fatal("client is no longer available to receive messages");
-		return closeConnection(client_fd);
-	}
+	if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
+		return;
 
 	if (connection->getResponseSize())
 		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
@@ -282,6 +278,7 @@ int WebServ::isBindedSocket(int fd) {
 }
 
 bool WebServ::isTimedOut(int client_fd) {
+
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	if (it == _client_connections.end())
 		return false;
@@ -289,10 +286,8 @@ bool WebServ::isTimedOut(int client_fd) {
 	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT)
 		return false;
 
-	string response = response::pageGatewayTimeOut(it->second);
-
-	if (send(client_fd, response.c_str(), response.size(), MSG_NOSIGNAL) == -1)
-		logger::fatal("send");
+	if (sendMessage(it->second, response::pageGatewayTimeOut(it->second)) == -1)
+		return true;
 
 	closeConnection(client_fd);
 

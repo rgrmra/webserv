@@ -1,14 +1,9 @@
 #include "Connection.hpp"
-#include "directive.hpp"
-#include "response.hpp"
 #include "parser.hpp"
-#include <ctime>
-#include <exception>
-#include <iostream>
-#include <netdb.h>
+#include "response.hpp"
 #include <sstream>
 #include <string>
-#include <unistd.h>
+#include <vector>
 
 using namespace std;
 
