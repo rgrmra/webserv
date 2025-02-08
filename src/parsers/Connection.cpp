@@ -181,7 +181,7 @@ void Connection::setHeaders(map<string, string> headers) {
 string Connection::getHeaderByKey(string key) const {
 
 	map<string, string>::const_iterator it = _headers.find(key);
-	if (it->first == "")
+	if (it == _headers.end())
 		return "";
 
 	return it->second;
