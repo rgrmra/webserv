@@ -55,6 +55,7 @@ class Connection {
 		void addHeader(std::string key, std::string value);
 		void addHeader(std::string key, size_t value);
 		void setHeaders(std::map<std::string, std::string> headers);
+		std::string getHeaderByKey(std::string key) const;
 		std::string getHeaders(void) const;
 		void setBody(std::string body);
 		std::string getBody(void) const;
@@ -66,6 +67,7 @@ class Connection {
 		size_t getResponseSize(void) const;
 		void setSend(bool send);
 		bool getSend(void) const;
+		void resetConnection(void);
 
 };
 
