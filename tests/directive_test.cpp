@@ -441,3 +441,100 @@ TEST(DirectiveTest, setMaxBodySize) {
     EXPECT_THROW(directive::setMaxBodySize("1T", maxBodySize), std::runtime_error);
     EXPECT_THROW(directive::setMaxBodySize("abc", maxBodySize), std::runtime_error);
 }
+
+// Test suite for addIndex
+TEST(DirectiveTest, addIndex) {
+    std::set<string> indexes;
+    
+    // Test empty string
+    EXPECT_NO_THROW(directive::addIndex("", indexes));
+    EXPECT_TRUE(indexes.empty());
+    
+    // Test single index
+    EXPECT_NO_THROW(directive::addIndex("index.html", indexes));
+    EXPECT_EQ(indexes.size(), 1);
+    EXPECT_TRUE(indexes.find("index.html") != indexes.end());
+    
+    // Test multiple indexes
+    EXPECT_NO_THROW(directive::addIndex("index.html index.php default.html", indexes));
+    EXPECT_EQ(indexes.size(), 3);
+    EXPECT_TRUE(indexes.find("index.html") != indexes.end());
+    EXPECT_TRUE(indexes.find("index.php") != indexes.end());
+    EXPECT_TRUE(indexes.find("default.html") != indexes.end());
+}
+
+// Test suite for setFastCgi
+TEST(DirectiveTest, setFastCgi) {
+    std::string fastcgi;
+    
+    // Test empty string
+    EXPECT_NO_THROW(directive::setFastCgi("", fastcgi));
+    EXPECT_TRUE(fastcgi.empty());
+    
+    // Test setting value
+    EXPECT_NO_THROW(directive::setFastCgi("/path/to/fastcgi", fastcgi));
+    EXPECT_EQ(fastcgi, "/path/to/fastcgi");
+    
+    // Test overwriting value
+    EXPECT_NO_THROW(directive::setFastCgi("/new/path", fastcgi));
+    EXPECT_EQ(fastcgi, "/new/path");
+}
+
+// Test suite for addErrorPage
+TEST(DirectiveTest, addErrorPage) {
+    std::map<string, string> errorPages;
+    
+    // Test empty string
+    EXPECT_NO_THROW(directive::addErrorPage("", errorPages));
+    EXPECT_TRUE(errorPages.empty());
+    
+    // Test valid error page
+    EXPECT_NO_THROW(directive::addErrorPage("404 /404.html", errorPages));
+    EXPECT_EQ(errorPages["404"], "/404.html");
+    
+    // Test multiple error codes
+    EXPECT_NO_THROW(directive::addErrorPage("500 502 503 /50x.html", errorPages));
+    EXPECT_EQ(errorPages["500"], "/50x.html");
+    EXPECT_EQ(errorPages["502"], "/50x.html");
+    EXPECT_EQ(errorPages["503"], "/50x.html");
+    
+    // Test invalid cases
+    EXPECT_THROW(directive::addErrorPage("invalid", errorPages), std::runtime_error);
+    EXPECT_THROW(directive::addErrorPage("600 /error.html", errorPages), std::runtime_error);
+    EXPECT_THROW(directive::addErrorPage("abc /error.html", errorPages), std::runtime_error);
+}
+
+// Test suite for mergeErrorPages
+TEST(DirectiveTest, mergeErrorPages) {
+    std::map<string, string> basePages;
+    std::map<string, string> newPages;
+    
+    // Setup initial error pages
+    basePages["404"] = "/404.html";
+    basePages["500"] = "/500.html";
+    
+    // Setup new error pages
+    newPages["404"] = "/new404.html";
+    newPages["503"] = "/503.html";
+    
+    // Test merging
+    EXPECT_NO_THROW(directive::mergeErrorPages(newPages, basePages));
+    EXPECT_EQ(basePages["404"], "/404.html");  // Should keep original
+    EXPECT_EQ(basePages["500"], "/500.html");  // Should keep original
+    EXPECT_EQ(basePages["503"], "/503.html");  // Should add new
+}
+
+// Test suite for validateHttpCode
+TEST(DirectiveTest, validateHttpCode) {
+    // Test valid codes
+    EXPECT_TRUE(directive::validateHttpCode("200"));
+    EXPECT_TRUE(directive::validateHttpCode("404"));
+    EXPECT_TRUE(directive::validateHttpCode("500"));
+    
+    // Test invalid codes
+    EXPECT_FALSE(directive::validateHttpCode("99"));   // Too low
+    EXPECT_FALSE(directive::validateHttpCode("600"));  // Too high
+    EXPECT_FALSE(directive::validateHttpCode("abc"));  // Non-numeric
+    EXPECT_FALSE(directive::validateHttpCode("4o4"));  // Contains letters
+    EXPECT_FALSE(directive::validateHttpCode("-404")); // Negative
+}
