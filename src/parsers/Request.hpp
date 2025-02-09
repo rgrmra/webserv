@@ -1,36 +1,12 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
-#include <map>
-#include <sstream>
-#include <algorithm>
-#include <iostream>
-#include <string>
+#include "Connection.hpp"
 
-class Request
-{
-public:
-	Request();
-	Request(const std::string &raw_request);
-	~Request();
+namespace request {
 
-	void	printRequest() const; //debug purposes
+	void parseRequest(Connection *connection);
 
-	const	std::string &getMethod() const;
-	const	std::string &getUri() const;
-	const	std::string &getVersion() const;
-	const	std::map<std::string, std::string> &getHeaders() const;
-	const	std::string &getBody() const;
-	void	parseRequest(const std::string &raw_request);
+}
 
-private:
-	std::string							_method;
-	std::string							_uri;
-	std::string							_version;
-	std::map<std::string, std::string>	_headers;
-	std::string 						_body;
-
-};
-
-#endif
+#endif /* REQUEST_HPP */

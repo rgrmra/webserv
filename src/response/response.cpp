@@ -31,7 +31,7 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->buildResponse();
 }
 
-string response::pageBadRequest(Connection * connection) {
+string response::pageBadRequest(Connection *connection) {
 
 	connection->setCode(code::BAD_REQUEST);
 	connection->setStatus(status::BAD_REQUEST);
@@ -40,7 +40,7 @@ string response::pageBadRequest(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageUnauthorized(Connection * connection) {
+string response::pageUnauthorized(Connection *connection) {
 
 	connection->setCode(code::UNAUTHORIZED);
 	connection->setStatus(status::UNAUTHORIZED);
@@ -49,7 +49,7 @@ string pageUnauthorized(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageForbbiden(Connection * connection) {
+string response::pageForbbiden(Connection *connection) {
 
 	connection->setCode(code::FORBBIDEN);
 	connection->setStatus(status::FORBBIDEN);
@@ -58,7 +58,7 @@ string pageForbbiden(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageNotFound(Connection * connection) {
+string response::pageNotFound(Connection *connection) {
 
 	connection->setCode(code::NOT_FOUND);
 	connection->setStatus(status::NOT_FOUND);
@@ -67,7 +67,7 @@ string pageNotFound(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageMethodNotAllowed(Connection * connection) {
+string response::pageMethodNotAllowed(Connection *connection) {
 
 	connection->setCode(code::METHOD_NOT_ALLOWED);
 	connection->setStatus(status::METHOD_NOT_ALLOWED);
@@ -76,7 +76,7 @@ string pageMethodNotAllowed(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageLengthRequired(Connection * connection) {
+string response::pageLengthRequired(Connection *connection) {
 
 	connection->setCode(code::LENGTH_REQUIRED);
 	connection->setStatus(status::LENGTH_REQUIRED);
@@ -85,7 +85,7 @@ string pageLengthRequired(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pagePayloadTooLarge(Connection * connection) {
+string response::pagePayloadTooLarge(Connection *connection) {
 
 	connection->setCode(code::PAYLOAD_TOO_LARGE);
 	connection->setStatus(status::PAYLOAD_TOO_LARGE);
@@ -94,7 +94,7 @@ string pagePayloadTooLarge(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageUnsupportedMediaType(Connection * connection) {
+string response::pageUnsupportedMediaType(Connection *connection) {
 
 	connection->setCode(code::UNSUPORTED_MEDIA_TYPE);
 	connection->setStatus(status::UNSUPPORTED_MEDI_TYPE);
@@ -103,7 +103,16 @@ string pageUnsupportedMediaType(Connection * connection) {
 	return connection->getResponse();
 }
 
-string response::pageInternalServerError(Connection * connection) {
+string response::pageUnprocessableContent(Connection *connection) {
+
+	connection->setCode(code::UNPROCESSABLE_CONTENT);
+	connection->setStatus(status::UNPROCESSABLE_CONTENT);
+	buildHeaderAndBody(connection);
+
+	return connection->getResponse();
+}
+
+string response::pageInternalServerError(Connection *connection) {
 
 	connection->setCode(code::INTERNAL_SERVER_ERROR);
 	connection->setStatus(status::INTERNAL_SERVER_ERROR);

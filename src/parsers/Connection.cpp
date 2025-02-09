@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "parser.hpp"
+#include "Request.hpp"
 #include "response.hpp"
 #include <sstream>
 #include <string>
@@ -50,21 +51,22 @@ Connection::~Connection(void) {
 
 void Connection::parseRequest(void) {
 
-	_request.parseRequest(_buffer);
-	_request.printRequest(); //debug purposes
+	//_request.parseRequest(_buffer);
+	//_request.printRequest(); //debug purposes
 
-	_protocol = response::PROTOCOL;
-	_code = "200";
-	_status = "Ok";
+	request::parseRequest(this);
+	//_protocol = response::PROTOCOL;
+	//_code = "200";
+	//_status = "Ok";
 
-	_headers["Content-Type"] = "text/plain";
-	_headers["Content-Length"] = "3";
-	if (_buffer.find("Keep-alive: true") != string::npos)
-		_headers["Keep-alive"] = "true";
-	else
-		_headers["Connection"] = "closed";
+	//_headers["Content-Type"] = "text/plain";
+	//_headers["Content-Length"] = "3";
+	//if (_buffer.find("Keep-alive: true") != string::npos)
+	//	_headers["Keep-alive"] = "true";
+	//else
+	//	_headers["Connection"] = "closed";
 
-	_body = "Ok\n";
+	//_body = "Ok\n";
 
 	_send = true;
 	buildResponse();
