@@ -1,12 +1,13 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "Connection.hpp"
-#include "Http.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
-#include <sys/epoll.h>
+#include <string>
+
+class Connection;
+class Http;
 
 class WebServ {
 	private:
@@ -24,6 +25,7 @@ class WebServ {
 		void acceptNewConnection(int client_fd);
 		void closeConnection(int client_fd);
 		void handleRequest(int client_fd);
+		int sendMessage(Connection *connection, std::string message);
 		void handleResponse(int client_fd);
 		int isBindedSocket(int fd);
 		bool isTimedOut(int client_fd);

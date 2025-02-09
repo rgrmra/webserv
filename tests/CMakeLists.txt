@@ -2,6 +2,8 @@ if(BUILD_TESTING)
     add_executable(webreq
             main.cpp
             directive_test.cpp
+            parser_test.cpp
+      			location_test.cpp
     )
 
     target_link_libraries(webreq
