@@ -10,6 +10,7 @@
 #include <bitset>
 #include <map>
 #include <limits>
+#include <vector>
 
 using namespace std;
 
@@ -411,130 +412,258 @@ TEST(DirectiveTest, setAutoIndex) {
 
 // Test suite for setMaxBodySize
 TEST(DirectiveTest, setMaxBodySize) {
-    size_t maxBodySize = 0;
-    
-    // Test empty string
-    EXPECT_NO_THROW(directive::setMaxBodySize("", maxBodySize));
-    EXPECT_EQ(maxBodySize, 0);
-    
-    // Test zero value (should set to max size_t)
-    EXPECT_NO_THROW(directive::setMaxBodySize("0", maxBodySize));
-    EXPECT_EQ(maxBodySize, std::numeric_limits<size_t>::max());
-    
-    // Test different formats
-    EXPECT_NO_THROW(directive::setMaxBodySize("1024", maxBodySize));
-    EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
-    
-    EXPECT_NO_THROW(directive::setMaxBodySize("1024B", maxBodySize));
-    EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
-    
-    EXPECT_NO_THROW(directive::setMaxBodySize("1K", maxBodySize));
-    EXPECT_EQ(maxBodySize, 1 * parser::KILOBYTE);
-    
-    EXPECT_NO_THROW(directive::setMaxBodySize("1M", maxBodySize));
-    EXPECT_EQ(maxBodySize, 1 * parser::MEGABYTE);
-    
-    EXPECT_NO_THROW(directive::setMaxBodySize("1G", maxBodySize));
-    EXPECT_EQ(maxBodySize, 1 * parser::GIGABYTE);
-    
-    // Test invalid format
-    EXPECT_THROW(directive::setMaxBodySize("1T", maxBodySize), std::runtime_error);
-    EXPECT_THROW(directive::setMaxBodySize("abc", maxBodySize), std::runtime_error);
+  size_t maxBodySize = 0;
+
+  // Test empty string
+  EXPECT_NO_THROW(directive::setMaxBodySize("", maxBodySize));
+  EXPECT_EQ(maxBodySize, 0);
+
+  // Test zero value (should set to max size_t)
+  EXPECT_NO_THROW(directive::setMaxBodySize("0", maxBodySize));
+  EXPECT_EQ(maxBodySize, std::numeric_limits<size_t>::max());
+
+  // Test different formats
+  EXPECT_NO_THROW(directive::setMaxBodySize("1024", maxBodySize));
+  EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+
+  EXPECT_NO_THROW(directive::setMaxBodySize("1024B", maxBodySize));
+  EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+
+  EXPECT_NO_THROW(directive::setMaxBodySize("1K", maxBodySize));
+  EXPECT_EQ(maxBodySize, 1 * parser::KILOBYTE);
+
+  EXPECT_NO_THROW(directive::setMaxBodySize("1M", maxBodySize));
+  EXPECT_EQ(maxBodySize, 1 * parser::MEGABYTE);
+
+  EXPECT_NO_THROW(directive::setMaxBodySize("1G", maxBodySize));
+  EXPECT_EQ(maxBodySize, 1 * parser::GIGABYTE);
+
+  // Test invalid format
+  EXPECT_THROW(directive::setMaxBodySize("1T", maxBodySize), std::runtime_error);
+  EXPECT_THROW(directive::setMaxBodySize("abc", maxBodySize), std::runtime_error);
 }
 
 // Test suite for addIndex
 TEST(DirectiveTest, addIndex) {
-    std::set<string> indexes;
-    
-    // Test empty string
-    EXPECT_NO_THROW(directive::addIndex("", indexes));
-    EXPECT_TRUE(indexes.empty());
-    
-    // Test single index
-    EXPECT_NO_THROW(directive::addIndex("index.html", indexes));
-    EXPECT_EQ(indexes.size(), 1);
-    EXPECT_TRUE(indexes.find("index.html") != indexes.end());
-    
-    // Test multiple indexes
-    EXPECT_NO_THROW(directive::addIndex("index.html index.php default.html", indexes));
-    EXPECT_EQ(indexes.size(), 3);
-    EXPECT_TRUE(indexes.find("index.html") != indexes.end());
-    EXPECT_TRUE(indexes.find("index.php") != indexes.end());
-    EXPECT_TRUE(indexes.find("default.html") != indexes.end());
+  std::set<string> indexes;
+
+  // Test empty string
+  EXPECT_NO_THROW(directive::addIndex("", indexes));
+  EXPECT_TRUE(indexes.empty());
+
+  // Test single index
+  EXPECT_NO_THROW(directive::addIndex("index.html", indexes));
+  EXPECT_EQ(indexes.size(), 1);
+  EXPECT_TRUE(indexes.find("index.html") != indexes.end());
+
+  // Test multiple indexes
+  EXPECT_NO_THROW(directive::addIndex("index.html index.php default.html", indexes));
+  EXPECT_EQ(indexes.size(), 3);
+  EXPECT_TRUE(indexes.find("index.html") != indexes.end());
+  EXPECT_TRUE(indexes.find("index.php") != indexes.end());
+  EXPECT_TRUE(indexes.find("default.html") != indexes.end());
 }
 
 // Test suite for setFastCgi
 TEST(DirectiveTest, setFastCgi) {
-    std::string fastcgi;
-    
-    // Test empty string
-    EXPECT_NO_THROW(directive::setFastCgi("", fastcgi));
-    EXPECT_TRUE(fastcgi.empty());
-    
-    // Test setting value
-    EXPECT_NO_THROW(directive::setFastCgi("/path/to/fastcgi", fastcgi));
-    EXPECT_EQ(fastcgi, "/path/to/fastcgi");
-    
-    // Test overwriting value
-    EXPECT_NO_THROW(directive::setFastCgi("/new/path", fastcgi));
-    EXPECT_EQ(fastcgi, "/new/path");
+  std::string fastcgi;
+
+  // Test empty string
+  EXPECT_NO_THROW(directive::setFastCgi("", fastcgi));
+  EXPECT_TRUE(fastcgi.empty());
+
+  // Test setting value
+  EXPECT_NO_THROW(directive::setFastCgi("/path/to/fastcgi", fastcgi));
+  EXPECT_EQ(fastcgi, "/path/to/fastcgi");
+
+  // Test overwriting value
+  EXPECT_NO_THROW(directive::setFastCgi("/new/path", fastcgi));
+  EXPECT_EQ(fastcgi, "/new/path");
 }
 
 // Test suite for addErrorPage
 TEST(DirectiveTest, addErrorPage) {
-    std::map<string, string> errorPages;
-    
-    // Test empty string
-    EXPECT_NO_THROW(directive::addErrorPage("", errorPages));
-    EXPECT_TRUE(errorPages.empty());
-    
-    // Test valid error page
-    EXPECT_NO_THROW(directive::addErrorPage("404 /404.html", errorPages));
-    EXPECT_EQ(errorPages["404"], "/404.html");
-    
-    // Test multiple error codes
-    EXPECT_NO_THROW(directive::addErrorPage("500 502 503 /50x.html", errorPages));
-    EXPECT_EQ(errorPages["500"], "/50x.html");
-    EXPECT_EQ(errorPages["502"], "/50x.html");
-    EXPECT_EQ(errorPages["503"], "/50x.html");
-    
-    // Test invalid cases
-    EXPECT_THROW(directive::addErrorPage("invalid", errorPages), std::runtime_error);
-    EXPECT_THROW(directive::addErrorPage("600 /error.html", errorPages), std::runtime_error);
-    EXPECT_THROW(directive::addErrorPage("abc /error.html", errorPages), std::runtime_error);
+  std::map<string, string> errorPages;
+
+  // Test empty string
+  EXPECT_NO_THROW(directive::addErrorPage("", errorPages));
+  EXPECT_TRUE(errorPages.empty());
+
+  // Test valid error page
+  EXPECT_NO_THROW(directive::addErrorPage("404 /404.html", errorPages));
+  EXPECT_EQ(errorPages["404"], "/404.html");
+
+  // Test multiple error codes
+  EXPECT_NO_THROW(directive::addErrorPage("500 502 503 /50x.html", errorPages));
+  EXPECT_EQ(errorPages["500"], "/50x.html");
+  EXPECT_EQ(errorPages["502"], "/50x.html");
+  EXPECT_EQ(errorPages["503"], "/50x.html");
+
+  // Test invalid cases
+  EXPECT_THROW(directive::addErrorPage("invalid", errorPages), std::runtime_error);
+  EXPECT_THROW(directive::addErrorPage("600 /error.html", errorPages), std::runtime_error);
+  EXPECT_THROW(directive::addErrorPage("abc /error.html", errorPages), std::runtime_error);
 }
 
 // Test suite for mergeErrorPages
 TEST(DirectiveTest, mergeErrorPages) {
-    std::map<string, string> basePages;
-    std::map<string, string> newPages;
-    
-    // Setup initial error pages
-    basePages["404"] = "/404.html";
-    basePages["500"] = "/500.html";
-    
-    // Setup new error pages
-    newPages["404"] = "/new404.html";
-    newPages["503"] = "/503.html";
-    
-    // Test merging
-    EXPECT_NO_THROW(directive::mergeErrorPages(newPages, basePages));
-    EXPECT_EQ(basePages["404"], "/404.html");  // Should keep original
-    EXPECT_EQ(basePages["500"], "/500.html");  // Should keep original
-    EXPECT_EQ(basePages["503"], "/503.html");  // Should add new
+  std::map<string, string> basePages;
+  std::map<string, string> newPages;
+
+  // Setup initial error pages
+  basePages["404"] = "/404.html";
+  basePages["500"] = "/500.html";
+
+  // Setup new error pages
+  newPages["404"] = "/new404.html";
+  newPages["503"] = "/503.html";
+
+  // Test merging
+  EXPECT_NO_THROW(directive::mergeErrorPages(newPages, basePages));
+  EXPECT_EQ(basePages["404"], "/404.html");  // Should keep original
+  EXPECT_EQ(basePages["500"], "/500.html");  // Should keep original
+  EXPECT_EQ(basePages["503"], "/503.html");  // Should add new
 }
 
 // Test suite for validateHttpCode
 TEST(DirectiveTest, validateHttpCode) {
-    // Test valid codes
-    EXPECT_TRUE(directive::validateHttpCode("200"));
-    EXPECT_TRUE(directive::validateHttpCode("404"));
-    EXPECT_TRUE(directive::validateHttpCode("500"));
+  // Test valid codes
+  EXPECT_TRUE(directive::validateHttpCode("200"));
+  EXPECT_TRUE(directive::validateHttpCode("404"));
+  EXPECT_TRUE(directive::validateHttpCode("500"));
+
+  // Test invalid codes
+  EXPECT_FALSE(directive::validateHttpCode("99"));   // Too low
+  EXPECT_FALSE(directive::validateHttpCode("600"));  // Too high
+  EXPECT_FALSE(directive::validateHttpCode("abc"));  // Non-numeric
+  EXPECT_FALSE(directive::validateHttpCode("4o4"));  // Contains letters
+  EXPECT_FALSE(directive::validateHttpCode("-404")); // Negative
+}
+
+// Test suite for setReturn
+TEST(DirectiveTest, setReturn) {
+  std::string code, uri;
+
+  // Test empty string
+  EXPECT_NO_THROW(directive::setReturn("", code, uri));
+  EXPECT_TRUE(code.empty());
+  EXPECT_TRUE(uri.empty());
+
+  // Test valid return with only code
+  EXPECT_NO_THROW(directive::setReturn("404", code, uri));
+  EXPECT_EQ(code, "404");
+  EXPECT_TRUE(uri.empty());
+
+  // Test valid return with code and URI
+  EXPECT_NO_THROW(directive::setReturn("301 /redirect", code, uri));
+  EXPECT_EQ(code, "301");
+  EXPECT_EQ(uri, "/redirect");
+
+  // Test invalid cases
+  EXPECT_THROW(directive::setReturn("invalid", code, uri), std::runtime_error);
+  EXPECT_THROW(directive::setReturn("600 /error", code, uri), std::runtime_error);
+  EXPECT_THROW(directive::setReturn("200 /ok extra", code, uri), std::runtime_error);
+}
+
+// Test suite for addServer
+TEST(DirectiveTest, addServer) {
+  std::vector<Server> servers;
+  Server server1, server2;
+
+  // Setup test servers
+  std::vector<std::string> listen1;
+  listen1.push_back("127.0.0.1:8080");
+  server1.setListen(listen1);
+
+  std::vector<std::string> names1;
+  names1.push_back("server1");
+  server1.setNames(names1);
+
+  // Test adding first server
+  EXPECT_NO_THROW(directive::addServer(server1, servers));
+  EXPECT_EQ(servers.size(), 1);
+
+  // Setup second server with same port but different IP
+  std::vector<std::string> listen2;
+  listen2.push_back("192.168.1.1:8080");
+  server2.setListen(listen2);
+
+  std::vector<std::string> names2;
+  names2.push_back("server2");
+  server2.setNames(names2);
+
+  // Test adding second server
+  EXPECT_NO_THROW(directive::addServer(server2, servers));
+  EXPECT_EQ(servers.size(), 2);
+
+  // Setup third server with conflicting address
+  Server server3;
+  server3.setListen(listen1);  // Same as server1
+  std::vector<std::string> names3;
+  names3.push_back("server3");
+  server3.setNames(names3);
+
+  // Test adding conflicting server (should log warning and modify listen)
+  // EXPECT_NO_THROW(directive::addServer(server3, servers)); // NOTE: This test maybe be wrong.
+}
+
+#include <cstdlib>
+#include <iostream>
+
+TEST(DirectiveTest, setHttpDefaultValues) {
+    Http http("../../configurations/default.conf");
     
-    // Test invalid codes
-    EXPECT_FALSE(directive::validateHttpCode("99"));   // Too low
-    EXPECT_FALSE(directive::validateHttpCode("600"));  // Too high
-    EXPECT_FALSE(directive::validateHttpCode("abc"));  // Non-numeric
-    EXPECT_FALSE(directive::validateHttpCode("4o4"));  // Contains letters
-    EXPECT_FALSE(directive::validateHttpCode("-404")); // Negative
+    // Test setting default values
+    EXPECT_NO_THROW(directive::setHttpDefaultValues(http));
+    
+    // Verify default values were set
+    EXPECT_FALSE(http.getIndexes().empty());
+    EXPECT_EQ(http.getAccessLog(), "/var/log/access.log");
+    EXPECT_EQ(http.getAutoIndexBitSet().to_ulong(), parser::AUTOINDEX_OFF);
+    EXPECT_EQ(http.getErrorLog(), "test");
+    EXPECT_EQ(http.getRoot(), "/var/www/html");
+}
+
+// Test suite for setServerDefaultValues
+TEST(DirectiveTest, setServerDefaultValues) {
+  Http http("../../configurations/default.conf");
+  Server server;
+
+  // Setup http with some values
+  http.setMaxBodySize("1024");
+  http.setRoot("/var/www");
+
+  // Test setting server default values
+  EXPECT_NO_THROW(directive::setServerDefaultValues(http, server));
+
+  // Verify values were inherited from http
+  EXPECT_EQ(server.getMaxBodySize(), 1024);
+  EXPECT_EQ(server.getRoot(), "/var/www");
+  
+  std::set<std::string> indexes;
+  indexes.insert("index.htm");
+  indexes.insert("index.html");
+  EXPECT_EQ(server.getIndexes(), indexes);
+}
+
+// Test suite for setLocationDefaultValues
+TEST(DirectiveTest, setLocationDefaultValues) {
+  Server server;
+  Location location;
+
+  // Setup server with some values
+  server.setMaxBodySize("1024");
+  server.setRoot("/var/www");
+  std::set<std::string> indexes;
+  indexes.insert("index.html");
+  server.setIndexes(indexes);
+
+  // Test setting location default values
+  EXPECT_NO_THROW(directive::setLocationDefaultValues(server, location));
+
+  // Verify values were inherited from server
+  EXPECT_EQ(location.getMaxBodySize(), 1024);
+  EXPECT_EQ(location.getRoot(), "/var/www");
+  EXPECT_EQ(location.getIndexes(), indexes);
+  EXPECT_FALSE(location.getDenyMethods());  // Should be set to default allow methods
 }
