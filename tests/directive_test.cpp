@@ -344,7 +344,15 @@ TEST(DirectiveTest, addMethod) {
 }
 
 TEST(DirectiveTest, setDenyMethods) {
-  bool denyMet;
-  strin metName;
-  // TODO: finish test, I need to ruuuuun
+  bool denyMethod = false;
+
+  EXPECT_NO_THROW(directive::setDenyMethods("", denyMethod));
+
+  // send `all` and then check if denyMethod turn from false to true.
+  directive::setDenyMethods("all", denyMethod);
+  EXPECT_TRUE(denyMethod);
+
+  // send another word instead all and expect a excpetion throw
+  EXPECT_THROW(directive::setDenyMethods("anything", denyMethod), runtime_error);
 }
+
