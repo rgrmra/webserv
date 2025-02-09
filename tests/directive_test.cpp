@@ -4,7 +4,6 @@
 
 #include "directive.hpp"
 #include <gtest/gtest.h>
-#include <vector>
 
 using namespace std;
 
@@ -316,5 +315,18 @@ TEST(DirectiveTest, SetURI) {
 }
 
 TEST(DirectiveTest, validateHttpMethod) {
+  // test get method
   EXPECT_TRUE(directive::validateHttpMethod("GET"));
+
+  // test post method
+  EXPECT_TRUE(directive::validateHttpMethod("POST"));
+
+  // test delete method
+  EXPECT_TRUE(directive::validateHttpMethod("DELETE"));
+
+  // test put method, expected false
+  EXPECT_FALSE(directive::validateHttpMethod("PUT"));
+
+  // test patch method, expected false
+  EXPECT_FALSE(directive::validateHttpMethod("PATCH"));
 }
