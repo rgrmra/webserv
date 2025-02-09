@@ -3,9 +3,11 @@
 //
 
 #include "directive.hpp"
+#include "parser.hpp"
 #include <gtest/gtest.h>
 #include <set>
 #include <stdexcept>
+#include <bitset>
 
 using namespace std;
 
@@ -24,7 +26,7 @@ TEST(DirectiveTest, SetAcessLog) {
 
   // Test with an access log containing spaces
   EXPECT_THROW(directive::setAcessLog("invalid access log", result),
-               runtime_error);
+      runtime_error);
   EXPECT_TRUE(result.empty()); // Ensure result is not modified on error
 
   // Test with an access log containing only spaces
@@ -33,7 +35,7 @@ TEST(DirectiveTest, SetAcessLog) {
 
   // Test with an access log containing leading/trailing spaces
   EXPECT_THROW(directive::setAcessLog("  leading_trailing  ", result),
-               runtime_error);
+      runtime_error);
   EXPECT_TRUE(result.empty()); // Ensure result is not modified on error
 }
 
@@ -52,7 +54,7 @@ TEST(DirectiveTest, SetErrorLog) {
 
   // Test with an error log containing spaces
   EXPECT_THROW(directive::setErrorLog("invalid error log", result),
-               runtime_error);
+      runtime_error);
   EXPECT_TRUE(result.empty()); // Ensure result is not modified on error
 
   // Test with an error log containing only spaces
@@ -61,7 +63,7 @@ TEST(DirectiveTest, SetErrorLog) {
 
   // Test with an error log containing leading/trailing spaces
   EXPECT_THROW(directive::setErrorLog("  leading_trailing  ", result),
-               runtime_error);
+      runtime_error);
   EXPECT_TRUE(result.empty()); // Ensure result is not modified on error
 }
 
@@ -77,13 +79,13 @@ TEST(DirectiveTest, ValidateHttpListen) {
   // Test with valid IPv6 address
   EXPECT_FALSE(directive::validateHttpListen("[::1]:8080"));
   EXPECT_FALSE(directive::validateHttpListen(
-      "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80"));
+        "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80"));
 
   // Test with invalid characters
   EXPECT_FALSE(
       directive::validateHttpListen("127.0.0.1:abc")); // Non-numeric port
   EXPECT_FALSE(directive::validateHttpListen(
-      "127.0.0.1:8080a")); // Invalid character at the end
+        "127.0.0.1:8080a")); // Invalid character at the end
   EXPECT_FALSE(directive::validateHttpListen("127.0.0.1:8080:")); // Extra colon
   EXPECT_FALSE(
       directive::validateHttpListen("127.0.0.1:8080 ")); // Space at the end
@@ -98,12 +100,12 @@ TEST(DirectiveTest, ValidateHttpListen) {
 
   // Test with more than two parts after splitting by colon
   EXPECT_FALSE(directive::validateHttpListen(
-      "127.0.0.1:8080:extra")); // More than two parts
+        "127.0.0.1:8080:extra")); // More than two parts
 
   // Test with valid port-only input
   EXPECT_TRUE(directive::validateHttpListen("8080")); // Port only
   EXPECT_FALSE(directive::validateHttpListen(
-      ":8080")); // Port only with leading colon (invalid in your function)
+        ":8080")); // Port only with leading colon (invalid in your function)
   EXPECT_FALSE(
       directive::validateHttpListen("8080:")); // Port only with trailing colon
 
@@ -123,7 +125,7 @@ TEST(DirectiveTest, ValidateHttpHost) {
 
   // Test with invalid characters
   EXPECT_FALSE(directive::validateHttpHost(
-      string("192.168.1.a"))); // Contains non-numeric character
+        string("192.168.1.a"))); // Contains non-numeric character
   EXPECT_FALSE(
       directive::validateHttpHost(string("192.168.1.1 "))); // Contains space
   EXPECT_FALSE(
@@ -131,7 +133,7 @@ TEST(DirectiveTest, ValidateHttpHost) {
 
   // Test with consecutive dots
   EXPECT_FALSE(directive::validateHttpHost(
-      string("192..168.1.1"))); // Contains consecutive dots
+        string("192..168.1.1"))); // Contains consecutive dots
 
   // Test with leading or trailing dots
   EXPECT_FALSE(
@@ -149,9 +151,9 @@ TEST(DirectiveTest, ValidateHttpHost) {
   EXPECT_FALSE(
       directive::validateHttpHost(string("256.168.1.1"))); // First octet > 255
   EXPECT_FALSE(directive::validateHttpHost(
-      string("192.168.256.1"))); // Third octet > 255
+        string("192.168.256.1"))); // Third octet > 255
   EXPECT_FALSE(directive::validateHttpHost(
-      string("192.168.1.256"))); // Fourth octet > 255
+        string("192.168.1.256"))); // Fourth octet > 255
 
   // Test with empty string
   EXPECT_FALSE(directive::validateHttpHost(string(""))); // Empty string
@@ -175,7 +177,7 @@ TEST(DirectiveTest, ValidateHttpPort) {
 
   // Test with non-numeric characters
   EXPECT_FALSE(directive::validateHttpPort(
-      string("8080a"))); // Contains non-numeric character
+        string("8080a"))); // Contains non-numeric character
   EXPECT_FALSE(directive::validateHttpPort(string("80 80"))); // Contains space
   EXPECT_FALSE(directive::validateHttpPort(string("80.80"))); // Contains dot
 
@@ -209,28 +211,28 @@ TEST(DirectiveTest, AddListen) {
 
   // Test with invalid listen string (invalid characters)
   EXPECT_THROW(directive::addListen(string("192.168.1.1:8080a"), listenList),
-               runtime_error);
+      runtime_error);
 
   // Test with invalid listen string (invalid host)
   EXPECT_THROW(directive::addListen(string("256.256.256.256:8080"), listenList),
-               runtime_error);
+      runtime_error);
 
   // Test with invalid listen string (invalid port)
   EXPECT_THROW(directive::addListen(string("192.168.1.1:65536"), listenList),
-               runtime_error);
+      runtime_error);
 
   // Test with duplicate listen string
   EXPECT_THROW(directive::addListen(string("192.168.1.1:8080"), listenList),
-               runtime_error); // Already added
+      runtime_error); // Already added
 }
 
 TEST(DirectiveTest, ValidateName) {
   // Test with valid names
   EXPECT_TRUE(directive::validateName(string("example"))); // Alphanumeric
   EXPECT_TRUE(directive::validateName(
-      string("example123"))); // Alphanumeric with numbers
+        string("example123"))); // Alphanumeric with numbers
   EXPECT_TRUE(directive::validateName(
-      string("example-name"))); // Alphanumeric with hyphen
+        string("example-name"))); // Alphanumeric with hyphen
   EXPECT_TRUE(
       directive::validateName(string("example.name"))); // Alphanumeric with dot
 
@@ -239,15 +241,15 @@ TEST(DirectiveTest, ValidateName) {
   EXPECT_FALSE(
       directive::validateName(string("example name"))); // Contains space
   EXPECT_FALSE(directive::validateName(
-      string("example@name"))); // Contains special character
+        string("example@name"))); // Contains special character
   EXPECT_FALSE(directive::validateName(
-      string("example!name"))); // Contains special character
+        string("example!name"))); // Contains special character
   EXPECT_FALSE(
       directive::validateName(string("example_name"))); // Contains underscore
   EXPECT_FALSE(directive::validateName(
-      string("example#name"))); // Contains special character
+        string("example#name"))); // Contains special character
   EXPECT_FALSE(directive::validateName(
-      string("example!name"))); // Contains special character
+        string("example!name"))); // Contains special character
 
   // Test with leading/trailing invalid characters
   EXPECT_FALSE(
@@ -258,9 +260,9 @@ TEST(DirectiveTest, ValidateName) {
 
   // Test with mixed valid and invalid characters
   EXPECT_FALSE(directive::validateName(
-      string("example-name@domain"))); // Contains special character
+        string("example-name@domain"))); // Contains special character
   EXPECT_FALSE(directive::validateName(
-      string("example.name with space"))); // Contains space
+        string("example.name with space"))); // Contains space
 }
 
 TEST(DirectiveTest, AddName) {
@@ -284,8 +286,8 @@ TEST(DirectiveTest, AddName) {
 
   // Test invalid name throwing exception
   EXPECT_THROW(directive::addName("validname @invalid! anothervalid", nameList),
-               runtime_error)
-      << "Expected exception for invalid name";
+      runtime_error)
+    << "Expected exception for invalid name";
   EXPECT_EQ(nameList[4], "validname");
 
   // Test lowercase conversion
@@ -356,3 +358,51 @@ TEST(DirectiveTest, setDenyMethods) {
   EXPECT_THROW(directive::setDenyMethods("anything", denyMethod), runtime_error);
 }
 
+
+// Test suite for setRoot function
+TEST(DirectiveTest, setRoot) {
+  std::string root;
+
+  // Test empty string - should not modify root
+  EXPECT_NO_THROW(directive::setRoot("", root));
+  EXPECT_TRUE(root.empty());
+
+  // Test valid root path
+  EXPECT_NO_THROW(directive::setRoot("/path/to/root", root));
+  EXPECT_EQ(root, "/path/to/root");
+
+  // Test invalid root path with spaces
+  EXPECT_THROW(directive::setRoot("invalid path", root), std::runtime_error);
+
+  // Test multiple consecutive valid calls
+  EXPECT_NO_THROW(directive::setRoot("/another/path", root));
+  EXPECT_EQ(root, "/another/path");
+
+  // Test path with special characters but no spaces
+  EXPECT_NO_THROW(directive::setRoot("/path-with_special.chars", root));
+  EXPECT_EQ(root, "/path-with_special.chars");
+}
+
+// Test suite for setAutoIndex function
+TEST(DirectiveTest, setAutoIndex) {
+  std::bitset<2> autoindex;
+
+  // Test empty string - should not modify autoindex
+  EXPECT_NO_THROW(directive::setAutoIndex("", autoindex));
+  EXPECT_EQ(autoindex.to_ulong(), 0);
+
+  // Test setting to "on"
+  EXPECT_NO_THROW(directive::setAutoIndex("on", autoindex));
+  EXPECT_EQ(autoindex.to_ulong(), parser::AUTOINDEX_ON);
+
+  // Test setting to "off"
+  EXPECT_NO_THROW(directive::setAutoIndex("off", autoindex));
+  EXPECT_EQ(autoindex.to_ulong(), parser::AUTOINDEX_OFF);
+
+  // Test invalid value
+  EXPECT_THROW(directive::setAutoIndex("invalid", autoindex), std::runtime_error);
+
+  // Test case sensitivity
+  EXPECT_THROW(directive::setAutoIndex("ON", autoindex), std::runtime_error);
+  EXPECT_THROW(directive::setAutoIndex("OFF", autoindex), std::runtime_error);
+}
