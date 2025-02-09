@@ -314,6 +314,7 @@ TEST(DirectiveTest, SetURI) {
   directive::setURI("/valid/path", result);
   EXPECT_EQ(result, "/valid/path");
 
+  // TODO: instruction bellow
   // need implement validation for specials character
   // directive::setURI("/invalid/path@", result);
   // EXPECT_EQ(result, "/valid/path");
