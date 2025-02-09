@@ -8,6 +8,8 @@
 #include <set>
 #include <stdexcept>
 #include <bitset>
+#include <map>
+#include <limits>
 
 using namespace std;
 
@@ -405,4 +407,37 @@ TEST(DirectiveTest, setAutoIndex) {
   // Test case sensitivity
   EXPECT_THROW(directive::setAutoIndex("ON", autoindex), std::runtime_error);
   EXPECT_THROW(directive::setAutoIndex("OFF", autoindex), std::runtime_error);
+}
+
+// Test suite for setMaxBodySize
+TEST(DirectiveTest, setMaxBodySize) {
+    size_t maxBodySize = 0;
+    
+    // Test empty string
+    EXPECT_NO_THROW(directive::setMaxBodySize("", maxBodySize));
+    EXPECT_EQ(maxBodySize, 0);
+    
+    // Test zero value (should set to max size_t)
+    EXPECT_NO_THROW(directive::setMaxBodySize("0", maxBodySize));
+    EXPECT_EQ(maxBodySize, std::numeric_limits<size_t>::max());
+    
+    // Test different formats
+    EXPECT_NO_THROW(directive::setMaxBodySize("1024", maxBodySize));
+    EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+    
+    EXPECT_NO_THROW(directive::setMaxBodySize("1024B", maxBodySize));
+    EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+    
+    EXPECT_NO_THROW(directive::setMaxBodySize("1K", maxBodySize));
+    EXPECT_EQ(maxBodySize, 1 * parser::KILOBYTE);
+    
+    EXPECT_NO_THROW(directive::setMaxBodySize("1M", maxBodySize));
+    EXPECT_EQ(maxBodySize, 1 * parser::MEGABYTE);
+    
+    EXPECT_NO_THROW(directive::setMaxBodySize("1G", maxBodySize));
+    EXPECT_EQ(maxBodySize, 1 * parser::GIGABYTE);
+    
+    // Test invalid format
+    EXPECT_THROW(directive::setMaxBodySize("1T", maxBodySize), std::runtime_error);
+    EXPECT_THROW(directive::setMaxBodySize("abc", maxBodySize), std::runtime_error);
 }
