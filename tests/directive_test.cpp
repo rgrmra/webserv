@@ -4,6 +4,8 @@
 
 #include "directive.hpp"
 #include <gtest/gtest.h>
+#include <set>
+#include <stdexcept>
 
 using namespace std;
 
@@ -329,4 +331,20 @@ TEST(DirectiveTest, validateHttpMethod) {
 
   // test patch method, expected false
   EXPECT_FALSE(directive::validateHttpMethod("PATCH"));
+}
+
+TEST(DirectiveTest, addMethod) {
+  set<string> allow_methods = {"GET POST DELETE"};
+
+  EXPECT_THROW(directive::addMethod("MATCH", allow_methods), runtime_error);
+  EXPECT_THROW(directive::addMethod("PATCH", allow_methods), runtime_error);
+  EXPECT_THROW(directive::addMethod("PUT", allow_methods), runtime_error);
+  EXPECT_THROW(directive::addMethod("PUT", allow_methods), runtime_error);
+  EXPECT_NO_THROW(directive::addMethod("", allow_methods));
+}
+
+TEST(DirectiveTest, setDenyMethods) {
+  bool denyMet;
+  strin metName;
+  // TODO: finish test, I need to ruuuuun
 }
