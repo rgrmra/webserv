@@ -10,7 +10,7 @@ using namespace std;
 size_t parser::toSizeT(string value) {
 
 	stringstream ss;
-	size_t tmp;
+	size_t tmp = 0;
 
 	ss << value;
 	ss >> tmp;
