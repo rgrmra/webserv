@@ -2,6 +2,7 @@
 #include "parser.hpp"
 #include "Request.hpp"
 #include "response.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -13,6 +14,9 @@ Connection::Connection(int fd, string ip)
 	  _ip(ip),
 	  _time(time(NULL)),
 	  _send(false) {
+
+	_startline_parsed = false;
+	_headers_parsed = false;
 
 }
 
@@ -40,6 +44,8 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_server = rhs._server;
 	_response = rhs._response;
 	_time = rhs._time;
+	_startline_parsed = rhs._startline_parsed;
+	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
 
 	return *this;
@@ -51,13 +57,21 @@ Connection::~Connection(void) {
 
 void Connection::parseRequest(void) {
 
-	//_request.parseRequest(_buffer);
-	//_request.printRequest(); //debug purposes
+	istringstream iss(_buffer);
+	string line;
 
-	request::parseRequest(this);
-	//_protocol = response::PROTOCOL;
-	//_code = "200";
-	//_status = "Ok";
+	getline(iss, line);
+
+	request::parseRequest(this, line);
+
+	size_t pos = _buffer.find("\r\n");
+	if (pos != string::npos && !_headers_parsed)
+		_buffer = _buffer.substr(pos + 2);
+
+	cout << "buffer: " + _buffer + ";" << endl;
+
+	_code = "200";
+	_status = "Ok";
 
 	//_headers["Content-Type"] = "text/plain";
 	//_headers["Content-Length"] = "3";
@@ -68,8 +82,9 @@ void Connection::parseRequest(void) {
 
 	//_body = "Ok\n";
 
-	_send = true;
-	buildResponse();
+	//_send = true;
+	if (_send)
+		buildResponse();
 }
 
 int Connection::getFd(void) const {
@@ -99,7 +114,7 @@ void Connection::append(vector<char> &text, int bytes) {
 
 	_buffer.append(text.begin(), text.begin() + bytes);
 
-	if (_buffer.find("\r\n\r\n") != string::npos)
+	if (_buffer.find("\r\n") != string::npos)
 		parseRequest();
 
 	_time = time(NULL);
@@ -183,10 +198,10 @@ void Connection::setHeaders(map<string, string> headers) {
 string Connection::getHeaderByKey(string key) const {
 
 	map<string, string>::const_iterator it = _headers.find(key);
-	if (it->first == "")
-		return "";
+	if (it->first == key)
+		return it->second;
 
-	return it->second;
+	return "";
 }
 
 string Connection::getHeaders(void) const {
@@ -235,6 +250,7 @@ void Connection::buildResponse(void) {
 	oss << "\r\n" << _body;
 
 	_response = oss.str();
+	_send = true;
 }
 
 string Connection::getResponse(int bytes) {
@@ -256,6 +272,25 @@ string Connection::getResponse(void) const {
 size_t Connection::getResponseSize(void) const {
 
 	return _response.size();
+}
+void Connection::setStartLineParsed(bool value) {
+
+	_startline_parsed = value;
+}
+
+bool Connection::getStartLineParsed(void) const {
+
+	return _startline_parsed;
+}
+
+void Connection::setHeadersParsed(bool value) {
+
+	_headers_parsed = value;
+}
+
+bool Connection::getHeadersParsed(void) const {
+
+	return _headers_parsed;
 }
 
 void Connection::setSend(bool send) {

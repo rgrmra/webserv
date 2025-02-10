@@ -4,56 +4,96 @@
 #include "response.hpp"
 #include <cstdio>
 #include <iostream>
-#include <list>
+#include <pthread.h>
 #include <sstream>
 #include <string>
 
 using namespace std;
 
-void request::parseRequest(Connection *connection) {
+void request::parseRequest(Connection *connection, string line) {
 
-	istringstream iss(connection->getBuffer());
-	string line;
+	string method, path, protocol, key, value, body;
 
-	getline(iss, line);
-	list<string> startline = parser::split(line, ' ');	
-	if (startline.size() != 3) {
-		response::pageBadRequest(connection);
-		return;
-	}
+	if (!connection->getStartLineParsed()) {
 
-	cout << connection << endl;
-	while(getline(iss, line) && line != "\r\n") {
+		if (line.empty()) {
+			response::pageBadRequest(connection); 
+			return;
+		}
 
-		list<string> header = parser::split(line, ' ');
-
-		if (header.size() != 2) {
+		istringstream startline(line);
+		if (!(startline >> method >> path >> protocol)) {
 			response::pageBadRequest(connection);
 			return;
 		}
 
-		connection->addHeader(*header.begin(), *header.end());
+		if (method != "GET" && method != "PUT" && method != "PATCH" && method != "POST" && method != "DELETE") {
+			response::pageBadRequest(connection);
+			return;
+		}
+
+		if (protocol != response::PROTOCOL) {
+			response::pageHttpVersionNotSupported(connection);
+			return;
+		}
+
+		connection->setMethod(method);
+		connection->setPath(path);
+		connection->setProtocol(protocol);
+		connection->setStartLineParsed(true);
+
+		cout << line << endl;
+		return;
 	}
 
-	string body;
-	while (getline(iss, line))
-		body.append(line);
+	if (connection->getStartLineParsed() && !connection->getHeadersParsed()) {
 
+		if (line == "\r" || line == "\r\n" || line.empty()) {
+			return connection->setHeadersParsed(true);
+		}
 
-	connection->setBody(body);
-	//istringstream first_line(line);
-	//first_line >> _method >> _uri >> _version;
+		size_t separator = line.find(":");
+		if (separator == string::npos) {
+			response::pageBadRequest(connection);
+			return;
+		}
 
-	//while (getline(iss, line) && !line.empty())
-	//{
-	//	string::size_type pos = line.find(": ");
-	//	string key = line.substr(0, pos);
-	//	string value = line.substr(pos + 2);
-	//	connection->addHeader(key, value);
-	//}
+		parser::trim(line, " \r");
 
-	//iss >> _body;
-	//while (getline(iss, line)) {
-	//	_body += line + "\n";
-	//}
+		string key = line.substr(0, separator);
+		string value = line.substr(separator + 1);
+
+		if (key.find(" ") != string::npos) {
+			response::pageBadRequest(connection);
+			return;
+		}
+
+		parser::trim(value, " ");
+
+		if (value.find(" ") != string::npos) {
+			response::pageBadRequest(connection);
+			return;
+		}
+
+		connection->addHeader(key, value);
+	}
+
+	if (connection->getHeadersParsed() && !connection->getSend()) {
+
+		cout << "body_line: " << line << endl;
+		string tmp = connection->getBody();
+		tmp += line;
+		connection->setBody(tmp);
+		size_t body_size = connection->getBody().size();
+		size_t content_length = parser::toSizeT(connection->getHeaderByKey("Content-Length"));
+
+		cout << "body: " << body_size << ", length: " << content_length << endl;
+
+		if (body_size == content_length) {
+			connection->setSend(true);
+		} else if (body_size > content_length) {
+			response::pageBadRequest(connection);
+			return;
+		}
+	}
 }
