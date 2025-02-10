@@ -228,8 +228,7 @@ void WebServ::handleRequest(int client_fd) {
 		return closeConnection(client_fd);
 	}
 
-	if (bytes_read > 0)
-		connection->append(buffer, bytes_read);
+	connection->append(buffer, bytes_read);
 
 	if (connection->getSend() == false)
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
