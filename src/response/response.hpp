@@ -10,7 +10,7 @@ namespace response {
 
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
-
+	
 	std::string pageBadRequest(Connection * connection);
 	std::string pageUnauthorized(Connection * connection);
 	std::string pageForbbiden(Connection * connection);
@@ -22,6 +22,12 @@ namespace response {
 	std::string pageInternalServerError(Connection * connection);
 	std::string pageGatewayTimeOut(Connection *connection);
 	std::string pageHttpVersionNotSupported(Connection * connection);
+	std::string setPageWithPath(Connection * connection);
+	std::string pageOk(Connection * connection);
+
+	void		setContentTypes(Connection * connection);
+	void		setHeader(Connection * connection);
+	void		setBody(Connection * connection);
 
 }
 

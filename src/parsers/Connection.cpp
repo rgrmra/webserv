@@ -67,7 +67,8 @@ void Connection::parseRequest(void) {
 	_body = "Ok\n";
 
 	_send = true;
-	buildResponse();
+	// buildResponse();
+	response::pageOk(this);
 }
 
 int Connection::getFd(void) const {

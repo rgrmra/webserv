@@ -255,7 +255,7 @@ void WebServ::handleResponse(int client_fd) {
 
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	Connection *connection = it->second;
-
+	
 	if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
 		return;
 
