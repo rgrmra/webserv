@@ -604,8 +604,7 @@ TEST(DirectiveTest, addServer) {
   names3.push_back("server3");
   server3.setNames(names3);
 
-  // Test adding conflicting server (should log warning and modify listen)
-  // EXPECT_NO_THROW(directive::addServer(server3, servers)); // NOTE: This test maybe be wrong.
+  EXPECT_THROW(directive::addServer(server3, servers), runtime_error); 
 }
 
 #include <cstdlib>
