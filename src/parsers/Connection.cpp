@@ -209,6 +209,11 @@ string Connection::getBody(void) const {
 	return _body;
 }
 
+void Connection::setServer(Server server) {
+
+	_server = server;
+}
+
 Server Connection::getServer(void) const {
 
 	return _server;

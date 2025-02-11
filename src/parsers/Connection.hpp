@@ -59,6 +59,7 @@ class Connection {
 		std::string getHeaders(void) const;
 		void setBody(std::string body);
 		std::string getBody(void) const;
+		void setServer(Server server);
 		Server getServer(void) const;
 		time_t getTime(void) const;
 		void buildResponse(void);
