@@ -1,4 +1,5 @@
 #include "Connection.hpp"
+#include "header.hpp"
 #include "parser.hpp"
 #include "Request.hpp"
 #include "response.hpp"
@@ -13,10 +14,9 @@ Connection::Connection(int fd, string ip)
 	: _fd(fd),
 	  _ip(ip),
 	  _time(time(NULL)),
+	  _startline_parsed(false),
+	  _headers_parsed(true),
 	  _send(false) {
-
-	_startline_parsed = false;
-	_headers_parsed = false;
 
 }
 
@@ -60,31 +60,28 @@ void Connection::parseRequest(void) {
 	istringstream iss(_buffer);
 	string line;
 
-	getline(iss, line);
+	while (getline(iss, line) && !line.empty()) {
 
-	request::parseRequest(this, line);
+		if (!_headers_parsed) {
+		request::parseRequest(this, line);
 
-	size_t pos = _buffer.find("\r\n");
-	if (pos != string::npos && !_headers_parsed)
-		_buffer = _buffer.substr(pos + 2);
+		size_t pos = _buffer.find("\r\n");
+		if (pos != string::npos)
+			_buffer = _buffer.substr(pos + 2);
+		} else {
+			request::parseRequest(this, _buffer);
+		}
+	}
 
-	cout << "buffer: " + _buffer + ";" << endl;
+	if (!_send)
+		return;
 
-	_code = "200";
-	_status = "Ok";
+	if (_code.empty()) {
+		_code = "200";
+		_status = "Ok";
+	}
 
-	//_headers["Content-Type"] = "text/plain";
-	//_headers["Content-Length"] = "3";
-	//if (_buffer.find("Keep-alive: true") != string::npos)
-	//	_headers["Keep-alive"] = "true";
-	//else
-	//	_headers["Connection"] = "closed";
-
-	//_body = "Ok\n";
-
-	//_send = true;
-	if (_send)
-		buildResponse();
+	buildResponse();
 }
 
 int Connection::getFd(void) const {
@@ -182,6 +179,12 @@ string Connection::getStatus(void) const {
 
 void Connection::addHeader(string key, string value) {
 
+	if (key == header::HOST) {
+		if (value.empty())
+			return response::pageBadRequest(this);
+
+	}
+
 	_headers[key] = value;
 }
 
@@ -239,6 +242,11 @@ void Connection::buildResponse(void) {
 
 	if (_protocol.empty() || _code.empty() || _status.empty())
 		response::pageInternalServerError(this);
+
+	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
+		_headers[header::CONNECTION] = "close";
+
+	_headers[header::SERVER] = "webserv/0.1.0";
 
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
@@ -317,6 +325,9 @@ void Connection::resetConnection(void) {
 	_response.clear();
 
 	_time = time(NULL);
+
+	_startline_parsed = false;
+	_headers_parsed = false;
 	_send = false;
 }
 
