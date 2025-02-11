@@ -15,7 +15,7 @@ Connection::Connection(int fd, string ip)
 	  _ip(ip),
 	  _time(time(NULL)),
 	  _startline_parsed(false),
-	  _headers_parsed(true),
+	  _headers_parsed(false),
 	  _send(false) {
 
 }
@@ -182,7 +182,8 @@ void Connection::addHeader(string key, string value) {
 	if (key == header::HOST) {
 		if (value.empty())
 			return response::pageBadRequest(this);
-
+		
+		_host = value;
 	}
 
 	_headers[key] = value;

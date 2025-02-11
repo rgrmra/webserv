@@ -45,8 +45,13 @@ void request::parseRequest(Connection *connection, string line) {
 
 	if (!connection->getHeadersParsed()) {
 
-		if (line == "\r")
-			return connection->setHeadersParsed(true);
+		if (line == "\r") {
+			connection->setHeadersParsed(true);
+			if (!parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)))
+				connection->setSend(true);
+
+			return;
+		}
 
 		size_t separator = line.find(":");
 		if (separator == string::npos)
@@ -62,12 +67,15 @@ void request::parseRequest(Connection *connection, string line) {
 		return;
 	}
 
-	size_t body_size = connection->getBuffer().size();
-	size_t content_length = parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH));
+	if (connection->getHeadersParsed()) {
 
-	if (body_size == content_length) {
-		connection->setBody(connection->getBuffer());
-		connection->setSend(true);
-	} else if (body_size > content_length)
-		return response::pageBadRequest(connection);
+		size_t body_size = connection->getBuffer().size();
+		size_t content_length = parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH));
+
+		if (body_size == content_length) {
+			connection->setBody(connection->getBuffer());
+			connection->setSend(true);
+		} else if (body_size > content_length)
+			return response::pageBadRequest(connection);
+	}
 }
