@@ -269,7 +269,7 @@ void WebServ::handleResponse(int client_fd) {
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 	}
 
-	//cout << *_client_connections.find(client_fd)->second << endl;
+	cout << *_client_connections.find(client_fd)->second << endl;
 
 	closeConnection(client_fd);
 }

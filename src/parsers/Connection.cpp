@@ -182,7 +182,8 @@ void Connection::addHeader(string key, string value) {
 	if (key == header::HOST) {
 		if (value.empty())
 			return response::pageBadRequest(this);
-
+		
+		_host = value;
 	}
 
 	_headers[key] = value;
