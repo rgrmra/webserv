@@ -1,9 +1,11 @@
 #include "Connection.hpp"
+#include "header.hpp"
 #include "Http.hpp"
 #include "logger.hpp"
 #include "response.hpp"
 #include "WebServ.hpp"
 #include <cerrno>
+#include <cstdio>
 #include <iostream>
 #include <netdb.h>
 #include <sstream>
@@ -55,9 +57,11 @@ WebServ::~WebServ(void) {
 	while (_client_connections.begin() != _client_connections.end()) {
 		map<int, Connection *>::iterator ic = _client_connections.begin();
 
-		if (sendMessage(ic->second, response::pageInternalServerError(ic->second)) == -1)
-			continue;
+		response::pageInternalServerError(ic->second);
 
+		if (sendMessage(ic->second, ic->second->getResponse()) == -1)
+			continue;
+			
 		closeConnection(ic->first);
 	}
 
@@ -223,13 +227,12 @@ void WebServ::handleRequest(int client_fd) {
 	if (bytes_read == -1) {
 		logger::fatal("recv");
 		return closeConnection(client_fd);
-	} else if (bytes_read == 0) {
+	} else if (bytes_read == 0 || buffer.at(0) == EOF) {
 		logger::warning(connection->getIp() + " disconected");
 		return closeConnection(client_fd);
 	}
 
-	if (bytes_read > 0)
-		connection->append(buffer, bytes_read);
+	connection->append(buffer, bytes_read);
 
 	if (connection->getSend() == false)
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
@@ -261,12 +264,12 @@ void WebServ::handleResponse(int client_fd) {
 
 	if (connection->getResponseSize())
 		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-	else if (connection->getHeaderByKey("Keep-alive") == "true") {
+	else if (connection->getHeaderByKey(header::CONNECTION) == "keep-alive") {
 		connection->resetConnection();
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 	}
 
-	cout << *_client_connections.find(client_fd)->second << endl;
+	//cout << *_client_connections.find(client_fd)->second << endl;
 
 	closeConnection(client_fd);
 }
@@ -290,10 +293,9 @@ bool WebServ::isTimedOut(int client_fd) {
 	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT)
 		return false;
 
-	if (sendMessage(it->second, response::pageGatewayTimeOut(it->second)) == -1)
-		return true;
+	response::pageGatewayTimeOut(it->second);
 
-	closeConnection(client_fd);
+	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	return true;
 }

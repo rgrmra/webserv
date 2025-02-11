@@ -1,6 +1,9 @@
 #include "Connection.hpp"
+#include "header.hpp"
 #include "parser.hpp"
+#include "Request.hpp"
 #include "response.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -11,6 +14,8 @@ Connection::Connection(int fd, string ip)
 	: _fd(fd),
 	  _ip(ip),
 	  _time(time(NULL)),
+	  _startline_parsed(false),
+	  _headers_parsed(true),
 	  _send(false) {
 
 }
@@ -39,6 +44,8 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_server = rhs._server;
 	_response = rhs._response;
 	_time = rhs._time;
+	_startline_parsed = rhs._startline_parsed;
+	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
 
 	return *this;
@@ -50,23 +57,30 @@ Connection::~Connection(void) {
 
 void Connection::parseRequest(void) {
 
-	_request.parseRequest(_buffer);
-	_request.printRequest(); //debug purposes
+	istringstream iss(_buffer);
+	string line;
 
-	_protocol = response::PROTOCOL;
-	_code = "200";
-	_status = "Ok";
+	while (getline(iss, line) && !line.empty()) {
 
-	_headers["Content-Type"] = "text/plain";
-	_headers["Content-Length"] = "3";
-	if (_buffer.find("Keep-alive: true") != string::npos)
-		_headers["Keep-alive"] = "true";
-	else
-		_headers["Connection"] = "closed";
+		if (!_headers_parsed) {
+		request::parseRequest(this, line);
 
-	_body = "Ok\n";
+		size_t pos = _buffer.find("\r\n");
+		if (pos != string::npos)
+			_buffer = _buffer.substr(pos + 2);
+		} else {
+			request::parseRequest(this, _buffer);
+		}
+	}
 
-	_send = true;
+	if (!_send)
+		return;
+
+	if (_code.empty()) {
+		_code = "200";
+		_status = "Ok";
+	}
+
 	buildResponse();
 }
 
@@ -97,7 +111,7 @@ void Connection::append(vector<char> &text, int bytes) {
 
 	_buffer.append(text.begin(), text.begin() + bytes);
 
-	if (_buffer.find("\r\n\r\n") != string::npos)
+	if (_buffer.find("\r\n") != string::npos)
 		parseRequest();
 
 	_time = time(NULL);
@@ -165,6 +179,12 @@ string Connection::getStatus(void) const {
 
 void Connection::addHeader(string key, string value) {
 
+	if (key == header::HOST) {
+		if (value.empty())
+			return response::pageBadRequest(this);
+
+	}
+
 	_headers[key] = value;
 }
 
@@ -181,10 +201,10 @@ void Connection::setHeaders(map<string, string> headers) {
 string Connection::getHeaderByKey(string key) const {
 
 	map<string, string>::const_iterator it = _headers.find(key);
-	if (it == _headers.end())
-		return "";
+	if (it->first == key)
+		return it->second;
 
-	return it->second;
+	return "";
 }
 
 string Connection::getHeaders(void) const {
@@ -223,6 +243,11 @@ void Connection::buildResponse(void) {
 	if (_protocol.empty() || _code.empty() || _status.empty())
 		response::pageInternalServerError(this);
 
+	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
+		_headers[header::CONNECTION] = "close";
+
+	_headers[header::SERVER] = "webserv/0.1.0";
+
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
@@ -233,6 +258,7 @@ void Connection::buildResponse(void) {
 	oss << "\r\n" << _body;
 
 	_response = oss.str();
+	_send = true;
 }
 
 string Connection::getResponse(int bytes) {
@@ -254,6 +280,25 @@ string Connection::getResponse(void) const {
 size_t Connection::getResponseSize(void) const {
 
 	return _response.size();
+}
+void Connection::setStartLineParsed(bool value) {
+
+	_startline_parsed = value;
+}
+
+bool Connection::getStartLineParsed(void) const {
+
+	return _startline_parsed;
+}
+
+void Connection::setHeadersParsed(bool value) {
+
+	_headers_parsed = value;
+}
+
+bool Connection::getHeadersParsed(void) const {
+
+	return _headers_parsed;
 }
 
 void Connection::setSend(bool send) {
@@ -280,6 +325,9 @@ void Connection::resetConnection(void) {
 	_response.clear();
 
 	_time = time(NULL);
+
+	_startline_parsed = false;
+	_headers_parsed = false;
 	_send = false;
 }
 
