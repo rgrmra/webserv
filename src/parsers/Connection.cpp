@@ -68,7 +68,7 @@ void Connection::parseRequest(void) {
 
 	_send = true;
 	// buildResponse();
-	response::pageOk(this);
+	response::setResponse(this);
 }
 
 int Connection::getFd(void) const {
@@ -226,8 +226,8 @@ time_t Connection::getTime(void) const {
 
 void Connection::buildResponse(void) {
 
-	if (_protocol.empty() || _code.empty() || _status.empty())
-		response::pageInternalServerError(this);
+	// if (_protocol.empty() || _code.empty() || _status.empty())
+	// 	response::pageInternalServerError(this);
 
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";

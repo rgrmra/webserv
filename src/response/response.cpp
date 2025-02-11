@@ -48,6 +48,28 @@ void	response::setHeader(Connection *connection)
 	
 }
 
+Location response::isPathValid(Connection *connection) {
+	string path = connection->getPath();
+	if (path.find("..") != string::npos || path.find('/') == string::npos)
+		return Location();
+		
+	while (!path.empty()) {
+		Location temp = connection->getServer().getLocationByURI(path);
+		if (!temp.getURI().empty())
+			return temp;
+
+		size_t lastSlash = path.find_last_of('/');
+		if (lastSlash == 0) {
+			path = "/";
+		} else if (lastSlash != string::npos) {
+			path = path.substr(0, lastSlash);
+		} else {
+			path.clear();
+		}
+	}
+	return Location();
+}
+
 static void buildHeaderAndBody(Connection *connection) {
 
 	string tmp;
@@ -74,37 +96,85 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->buildResponse();
 }
 
-string response::pageOk(Connection * connection) {
+bool response::checkIndexAndAutoIndex(const Location &location, Connection *connection) {
 
-	cout << "Buffer: " << connection->getBuffer() << endl;
-	istringstream iss(connection->getBuffer());
-	string method, uri;
-	iss >> method >> uri;
-	connection->setMethod(method);
-	connection->setPath(uri);
+	const std::set<std::string> &indexes = location.getIndexes();
+    for (std::set<std::string>::const_iterator it = indexes.begin(); it != indexes.end(); ++it) {
+        std::string indexPath = "." + connection->getServer().getRoot() + location.getURI() + *it;
+		cout << "Index path:::::: " << indexPath << endl;
+		cout << "connection path:::::: " << connection->getPath() << endl;
+        ifstream file(indexPath.c_str());
+        if (file.is_open()) {
+            connection->setPath(location.getURI() + *it);
+            file.close();
+            return true;
+        }
+		file.close();
+    }
 
-	connection->setCode(200);
-	connection->setStatus("Ok");
-	logger::info(connection->getIp() 
-		+ " " + connection->getMethod() 
-		+ " " + connection->getPath() 
-		+ " " + connection->getCode() 
-		+ " " + connection->getStatus());
-	logger::info(connection->getPath());
 
-	string path = "./var/www/html/mysite" + connection->getPath();
-	ifstream file(path.c_str());
-	if (not file.is_open())
-		return response::pageNotFound(connection);
-	string line;
-	string body;
-	while (getline(file, line))
-		body += line;
-	file.close();
-	logger::info(body);
-	connection->setBody(body);
-	buildHeaderAndBody(connection);
-	return connection->getResponse();
+    // if (location.getAutoIndex()) {
+    //     connection->setCode(200);
+    //     connection->setStatus("Ok");
+    //     connection->setBody("<html><body><h1>Autoindex is enabled</h1></body></html>");
+    //     buildHeaderAndBody(connection);
+    //     return true;
+    // }
+
+    return false;
+}
+
+string response::setResponse(Connection * connection) {
+	if (connection->getProtocol().empty() || connection->getCode().empty() || connection->getStatus().empty())
+		return response::pageInternalServerError(connection);
+	else
+	{
+		cout << "Connection root:::::: " << connection->getServer().getRoot() << endl;
+		istringstream iss(connection->getBuffer());
+		string method, uri;
+		iss >> method >> uri;
+
+		connection->setPath(uri);
+		connection->setMethod(method);
+		cout << "Connection path:::::: " << connection->getPath() << endl;
+		
+		Location location = isPathValid(connection);
+		if (location.getURI().empty())
+			return response::pageNotFound(connection);
+
+		if (connection->getPath()
+			.find_last_of("/") == connection->getPath().size() - 1
+			&& not checkIndexAndAutoIndex(location, connection))
+			return response::pageForbbiden(connection);
+
+		connection->setCode(200);
+		connection->setStatus("Ok");
+	
+		string root = connection->getServer().getRoot();
+		string path = "." + root + connection->getPath();
+		response::buildResponseBody(connection, path);
+		return connection->getResponse();
+	}
+}
+
+void response::buildResponseBody(Connection *connection, const std::string &path) {
+    ifstream file(path.c_str());
+    if (not file.is_open()) {
+        connection->setCode(code::NOT_FOUND);
+        connection->setStatus(status::NOT_FOUND);
+        buildHeaderAndBody(connection);
+        return;
+    }
+
+    string line;
+    string body;
+    while (getline(file, line))
+        body += line;
+    file.close();
+
+    logger::info(body);
+    connection->setBody(body);
+    buildHeaderAndBody(connection);
 }
 
 string response::pageBadRequest(Connection * connection) {
@@ -125,7 +195,7 @@ string pageUnauthorized(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageForbbiden(Connection * connection) {
+string response::pageForbbiden(Connection * connection) {
 
 	connection->setCode(code::FORBBIDEN);
 	connection->setStatus(status::FORBBIDEN);

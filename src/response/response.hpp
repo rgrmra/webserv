@@ -23,11 +23,14 @@ namespace response {
 	std::string pageGatewayTimeOut(Connection *connection);
 	std::string pageHttpVersionNotSupported(Connection * connection);
 	std::string setPageWithPath(Connection * connection);
-	std::string pageOk(Connection * connection);
+	std::string setResponse(Connection * connection);
 
 	void		setContentTypes(Connection * connection);
 	void		setHeader(Connection * connection);
 	void		setBody(Connection * connection);
+	void		buildResponseBody(Connection *connection, const std::string &path);
+	Location	isPathValid(Connection * connection);
+	bool		checkIndexAndAutoIndex(const Location &location, Connection * connection);
 
 }
 
