@@ -15,7 +15,7 @@ Connection::Connection(int fd, string ip)
 	  _ip(ip),
 	  _time(time(NULL)),
 	  _startline_parsed(false),
-	  _headers_parsed(true),
+	  _headers_parsed(false),
 	  _send(false) {
 
 }

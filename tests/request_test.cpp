@@ -67,4 +67,24 @@ TEST(RequestTest, ParseRequest) {
         request::parseRequest(&connection, line);
         EXPECT_EQ(connection.getCode(), "505") << "Code should be 400";
     }
+
+    // NOTE: HEADER TESTS
+
+    {
+        Connection connection(5, "127.0.0.1");
+        string line = "GET /index.html HTTP/1.1\r";
+        request::parseRequest(&connection, line);
+        line = "\r";
+        request::parseRequest(&connection, line);
+        EXPECT_TRUE(connection.getHeadersParsed()) << "Headers should be parsed";
+
+    }
+
+    {
+        Connection connection(5, "127.0.0.1");
+        string line = "GET /index.html HTTP/1.1";
+        request::parseRequest(&connection, line);
+        EXPECT_FALSE(connection.getHeadersParsed()) << "Headers should not be parsed";
+        EXPECT_EQ(connection.getCode(), "400") << "Code should be 400";
+    }
 }
