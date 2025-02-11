@@ -61,7 +61,8 @@ test_clean:
 	$(call print_color, $(RED), "Removing test library")
 
 define run_colorized_tests
-	GTEST_COLOR=1 ctest --test-dir build --output-on-failure -j12
+	@cd build && \
+	GTEST_COLOR=1 ctest --output-on-failure -j12
 endef
 
 export TERM=xterm-256color
@@ -70,4 +71,4 @@ define print_color
     @echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: 			all clean fclean re tests sub
+.PHONY: 			all clean fclean re test test_clean sub
