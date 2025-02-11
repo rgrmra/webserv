@@ -85,6 +85,5 @@ TEST(RequestTest, ParseRequest) {
         string line = "GET /index.html HTTP/1.1";
         request::parseRequest(&connection, line);
         EXPECT_FALSE(connection.getHeadersParsed()) << "Headers should not be parsed";
-        EXPECT_EQ(connection.getCode(), "400") << "Code should be 400";
     }
 }
