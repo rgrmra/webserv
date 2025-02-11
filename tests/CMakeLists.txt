@@ -3,6 +3,7 @@ if(BUILD_TESTING)
             main.cpp
             directive_test.cpp
             location_test.cpp
+            request_test.cpp
     )
 
     target_link_libraries(webreq
