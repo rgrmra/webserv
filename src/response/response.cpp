@@ -178,11 +178,13 @@ void response::setResponse(Connection * connection) {
 		if (location.getURI().empty())
 			response::pageNotFound(connection);
 
+		string queryString = connection->getPath().find('?') != string::npos ?
+			connection->getPath().substr(connection->getPath().find('?')) : "";
+		logger::info("Query string: " + queryString);
 		string root = location.getRoot().empty() ?
-			connection->getServer().getRoot()
-			: location.getRoot();
+			connection->getServer().getRoot() : location.getRoot();
 		string path = "." + root + connection->getPath();
-
+		path = path.find('?') != string::npos ? path.substr(0, path.find('?')) : path;
 		connection->setPath(path);
 		if (isDirectory(path)
 			&& not checkIndex(location, connection))
