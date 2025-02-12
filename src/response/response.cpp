@@ -25,8 +25,6 @@ bool response::isFile(const std::string &path) {
         return false;
 
 	}
-	cout << "is file Path:::::: " << path << " " <<
-		((info.st_mode & S_IFREG) != 0 ? "TRUE" : "FALSE") << endl;
     return (info.st_mode & S_IFREG) != 0;
 }
 
@@ -91,7 +89,6 @@ Location response::isPathValid(Connection *connection) {
 		Location temp = connection->getServer().getLocationByURI(path);
 		if (not temp.getURI().empty())
 		{
-			cout << "Is Path::: valid -> TRUE " << path << endl;
 			return temp;
 		}
 
@@ -128,13 +125,14 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
 
-	connection->addHeader(header::CONTENT_TYPE, "text/html");
+	// connection->addHeader(header::CONTENT_TYPE, "text/html");
+	response::setContentTypes(connection);
 	connection->addHeader(header::CONTENT_LENGTH, tmp.size());
 	connection->addHeader(header::CONNECTION, "close");
 
-	connection->setBody(tmp);
-	connection->buildResponse();
-	response::setHeader(connection);
+	// connection->setBody(tmp);
+	// connection->buildResponse();
+	// response::setHeader(connection);
 
 	if (connection->getBody().empty())
 	{
@@ -153,58 +151,49 @@ bool response::checkIndex(const Location &location, Connection *connection) {
 	typedef std::set<std::string>::const_iterator set_iterator;
 	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
         std::string indexPath = path + bar + *it;
-		cout << "Index Path:::::: " << indexPath << endl;
         if (isFile(indexPath)) {
             connection->setPath(indexPath);
-			cout << "Index Path TRUE:::::: " << indexPath << endl;
             return true;
         }
     }
     return false;
 }
 
-void response::setPathAndMethod(Connection *connection) {
-	istringstream iss(connection->getBuffer());
-	string method, uri;
-	iss >> method >> uri;
 
-	connection->setPath(uri);
-	connection->setMethod(method);
-}
 
 bool response::isValidMethod(const std::string &method) {
 	return method == "GET" || method == "POST" || method == "DELETE";
 }
 
-string response::setResponse(Connection * connection) {
+void response::setResponse(Connection * connection) {
 	if (connection->getProtocol().empty()
 		|| connection->getCode().empty() || connection->getStatus().empty())
-		return response::pageInternalServerError(connection);
+		response::pageInternalServerError(connection);
 	else
 	{
-		setPathAndMethod(connection);
 		if (not isValidMethod(connection->getMethod()))
-			return response::pageMethodNotAllowed(connection);
-		cout << "Connection Path:::::: " << connection->getPath() << endl;
+			response::pageMethodNotAllowed(connection);
 
 		Location location = isPathValid(connection);
 		if (location.getURI().empty())
-			return response::pageNotFound(connection);
+			response::pageNotFound(connection);
 
 		string root = location.getRoot().empty() ?
 			connection->getServer().getRoot()
 			: location.getRoot();
 		string path = "." + root + connection->getPath();
 
-		cout << "Set Response Path:::::: " << path << endl;
 		connection->setPath(path);
 		if (isDirectory(path)
 			&& not checkIndex(location, connection))
-			return response::pageForbbiden(connection);
+			{
+				response::pageForbbiden(connection);
+				return;
+			}
 
 		if (isCGI(path))
 		{
-			cout << "CGI Path:::::: " << path << endl;
+			// cout << "CGI Path:::::: " << path << endl;
 			// function to handle CGI
 		}
 
@@ -212,16 +201,13 @@ string response::setResponse(Connection * connection) {
 		connection->setStatus("Ok");
 
 		response::buildResponseBody(connection);
-		return connection->getResponse();
 	}
 }
 
 void response::buildResponseBody(Connection *connection) {
     ifstream file(connection->getPath().c_str());
     if (not file.is_open()) {
-        connection->setCode(code::NOT_FOUND);
-        connection->setStatus(status::NOT_FOUND);
-        buildHeaderAndBody(connection);
+		response::pageNotFound(connection);
         return;
     }
 
@@ -250,7 +236,7 @@ void response::pageUnauthorized(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
-void response::response::pageForbbiden(Connection *connection) {
+void response::pageForbbiden(Connection *connection) {
 
 	connection->setCode(code::FORBBIDEN);
 	connection->setStatus(status::FORBBIDEN);

@@ -24,7 +24,8 @@ namespace response {
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
 	std::string setPageWithPath(Connection * connection);
-	std::string setResponse(Connection * connection);
+
+	void setResponse(Connection * connection);
 
 	void		setContentTypes(Connection * connection);
 	void		setHeader(Connection * connection);
