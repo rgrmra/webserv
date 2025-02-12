@@ -1,5 +1,6 @@
 #include "code.hpp"
 #include "Connection.hpp"
+#include "header.hpp"
 #include "logger.hpp"
 #include "response.hpp"
 #include "status.hpp"
@@ -24,7 +25,7 @@ bool response::isFile(const std::string &path) {
         return false;
 
 	}
-	cout << "is file Path:::::: " << path << " " << 
+	cout << "is file Path:::::: " << path << " " <<
 		((info.st_mode & S_IFREG) != 0 ? "TRUE" : "FALSE") << endl;
     return (info.st_mode & S_IFREG) != 0;
 }
@@ -78,14 +79,14 @@ void	response::setHeader(Connection *connection)
 {
 	setContentTypes(connection);
 	connection->addHeader("Connection", "closed");
-	
+
 }
 
 Location response::isPathValid(Connection *connection) {
 	string path = connection->getPath();
 	if (path.find("..") != string::npos || path.find('/') == string::npos)
 		return Location();
-		
+
 	while (!path.empty()) {
 		Location temp = connection->getServer().getLocationByURI(path);
 		if (not temp.getURI().empty())
@@ -95,11 +96,11 @@ Location response::isPathValid(Connection *connection) {
 		}
 
 		size_t lastSlash = path.find_last_of('/');
-		if (lastSlash == 0) 
+		if (lastSlash == 0)
 			path = "/";
-		else if (lastSlash != string::npos) 
+		else if (lastSlash != string::npos)
 			path = path.substr(0, lastSlash);
-		else 
+		else
 			path.clear();
 	}
 	return Location();
@@ -110,15 +111,29 @@ static void buildHeaderAndBody(Connection *connection) {
 	string tmp;
 
 	if (tmp.empty()) {
+
+		tmp = connection->getCode() + " " + connection->getStatus();
+
 		ostringstream oss;
-		oss << "<html><head><title>" + connection->getCode() + " " + connection->getStatus() + "</title>"
-			"</head><body><center><h1>" + connection->getCode() + " " + connection->getStatus() + "</h1>"
-			"</center><hr><center>webserv</center></body></html>";
+		oss << "<html>\n"
+			"<head><title>" + tmp + "</title></head>\n"
+			"<body>\n"
+			"<center><h1>" + tmp + "</h1></center>\n"
+			"<hr><center>webserv</center>\n"
+			"</body>\n"
+			"</html>\n";
 		tmp = oss.str();
 	}
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
+
+	connection->addHeader(header::CONTENT_TYPE, "text/html");
+	connection->addHeader(header::CONTENT_LENGTH, tmp.size());
+	connection->addHeader(header::CONNECTION, "close");
+
+	connection->setBody(tmp);
+	connection->buildResponse();
 	response::setHeader(connection);
 
 	if (connection->getBody().empty())
@@ -134,7 +149,7 @@ bool response::checkIndex(const Location &location, Connection *connection) {
 	const std::set<std::string> &indexes = location.getIndexes();
 	const string &path = connection->getPath();
 	const string &bar = path.find_last_of('/') == path.size() - 1 ? "" : "/";
-	
+
 	typedef std::set<std::string>::const_iterator set_iterator;
 	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
         std::string indexPath = path + bar + *it;
@@ -162,7 +177,7 @@ bool response::isValidMethod(const std::string &method) {
 }
 
 string response::setResponse(Connection * connection) {
-	if (connection->getProtocol().empty() 
+	if (connection->getProtocol().empty()
 		|| connection->getCode().empty() || connection->getStatus().empty())
 		return response::pageInternalServerError(connection);
 	else
@@ -171,13 +186,13 @@ string response::setResponse(Connection * connection) {
 		if (not isValidMethod(connection->getMethod()))
 			return response::pageMethodNotAllowed(connection);
 		cout << "Connection Path:::::: " << connection->getPath() << endl;
-		
+
 		Location location = isPathValid(connection);
 		if (location.getURI().empty())
 			return response::pageNotFound(connection);
 
-		string root = location.getRoot().empty() ? 
-			connection->getServer().getRoot() 
+		string root = location.getRoot().empty() ?
+			connection->getServer().getRoot()
 			: location.getRoot();
 		string path = "." + root + connection->getPath();
 
@@ -186,7 +201,7 @@ string response::setResponse(Connection * connection) {
 		if (isDirectory(path)
 			&& not checkIndex(location, connection))
 			return response::pageForbbiden(connection);
-		
+
 		if (isCGI(path))
 		{
 			cout << "CGI Path:::::: " << path << endl;
@@ -195,7 +210,7 @@ string response::setResponse(Connection * connection) {
 
 		connection->setCode(200);
 		connection->setStatus("Ok");
-	
+
 		response::buildResponseBody(connection);
 		return connection->getResponse();
 	}
@@ -221,104 +236,89 @@ void response::buildResponseBody(Connection *connection) {
     buildHeaderAndBody(connection);
 }
 
-string response::pageBadRequest(Connection * connection) {
+void response::pageBadRequest(Connection *connection) {
 
 	connection->setCode(code::BAD_REQUEST);
 	connection->setStatus(status::BAD_REQUEST);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string pageUnauthorized(Connection * connection) {
+void response::pageUnauthorized(Connection *connection) {
 
 	connection->setCode(code::UNAUTHORIZED);
 	connection->setStatus(status::UNAUTHORIZED);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string response::pageForbbiden(Connection * connection) {
+void response::response::pageForbbiden(Connection *connection) {
 
 	connection->setCode(code::FORBBIDEN);
 	connection->setStatus(status::FORBBIDEN);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string response::pageNotFound(Connection * connection) {
+void response::pageNotFound(Connection *connection) {
 
 	connection->setCode(code::NOT_FOUND);
 	connection->setStatus(status::NOT_FOUND);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string response::pageMethodNotAllowed(Connection * connection) {
+void response::pageMethodNotAllowed(Connection *connection) {
 
 	connection->setCode(code::METHOD_NOT_ALLOWED);
 	connection->setStatus(status::METHOD_NOT_ALLOWED);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string pageLengthRequired(Connection * connection) {
+void response::pageLengthRequired(Connection *connection) {
 
 	connection->setCode(code::LENGTH_REQUIRED);
 	connection->setStatus(status::LENGTH_REQUIRED);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string pagePayloadTooLarge(Connection * connection) {
+void response::pagePayloadTooLarge(Connection *connection) {
 
 	connection->setCode(code::PAYLOAD_TOO_LARGE);
 	connection->setStatus(status::PAYLOAD_TOO_LARGE);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string pageUnsupportedMediaType(Connection * connection) {
+void response::pageUnsupportedMediaType(Connection *connection) {
 
 	connection->setCode(code::UNSUPORTED_MEDIA_TYPE);
-	connection->setStatus(status::UNSUPPORTED_MEDI_TYPE);
+	connection->setStatus(status::UNSUPPORTED_MEDIA_TYPE);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string response::pageInternalServerError(Connection * connection) {
+void response::pageUnprocessableContent(Connection *connection) {
+
+	connection->setCode(code::UNPROCESSABLE_CONTENT);
+	connection->setStatus(status::UNPROCESSABLE_CONTENT);
+	buildHeaderAndBody(connection);
+}
+
+void response::pageInternalServerError(Connection *connection) {
 
 	connection->setCode(code::INTERNAL_SERVER_ERROR);
 	connection->setStatus(status::INTERNAL_SERVER_ERROR);
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }
 
-string response::pageGatewayTimeOut(Connection *connection) {
+void response::pageGatewayTimeOut(Connection *connection) {
 
 	connection->setCode(code::GATEWAY_TIMEOUT);
 	connection->setStatus(status::GATEWAY_TIMEOUT);
 	buildHeaderAndBody(connection);
-	
-	logger::warning(connection->getIp() + " timed out");
 
-	return connection->getResponse();
+	logger::warning(connection->getIp() + " timed out");
 }
 
-string response::pageHttpVersionNotSupported(Connection * connection) {
+void response::pageHttpVersionNotSupported(Connection * connection) {
 
 	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
 	connection->setStatus(status::HTTP_VERSION_NOT_SUPPPORTED);
 
 	buildHeaderAndBody(connection);
-
-	return connection->getResponse();
 }

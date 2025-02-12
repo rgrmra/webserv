@@ -2,7 +2,6 @@
 #define CONNECTION_HPP
 
 #include "Server.hpp"
-#include "Request.hpp"
 #include <ctime>
 #include <map>
 #include <string>
@@ -22,9 +21,10 @@ class Connection {
 		std::map<std::string, std::string> _headers;
 		std::string _body;
 		Server _server;
-		Request _request;
 		std::string _response;
 		time_t _time;
+		bool _startline_parsed;
+		bool _headers_parsed;
 		bool _send;
 
 		void parseRequest(void);
@@ -66,6 +66,10 @@ class Connection {
 		std::string getResponse(int bytes);
 		std::string getResponse(void) const;
 		size_t getResponseSize(void) const;
+		void setStartLineParsed(bool value);
+		bool getStartLineParsed(void) const;
+		void setHeadersParsed(bool value);
+		bool getHeadersParsed(void) const;
 		void setSend(bool send);
 		bool getSend(void) const;
 		void resetConnection(void);
