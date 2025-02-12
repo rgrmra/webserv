@@ -28,10 +28,16 @@ namespace response {
 	void		setContentTypes(Connection * connection);
 	void		setHeader(Connection * connection);
 	void		setBody(Connection * connection);
-	void		buildResponseBody(Connection *connection, const std::string &path);
+	void		buildResponseBody(Connection *connection);
+	void		setPathAndMethod(Connection *connection);
 	Location	isPathValid(Connection * connection);
-	bool		checkIndexAndAutoIndex(const Location &location, Connection * connection);
 
+
+	bool		checkIndex(const Location &location, Connection * connection);
+	bool		isDirectory(const std::string &path);
+	bool		isFile(const std::string &path);
+	bool		isValidMethod(const std::string &method);
+	bool		isCGI(const std::string &path);
 }
 
 #endif /* RESPONSE_HPP */

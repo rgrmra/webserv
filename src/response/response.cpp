@@ -6,11 +6,46 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
 
 using namespace std;
 
+bool response::isDirectory(const std::string &path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    return (info.st_mode & S_IFDIR) != 0;
+}
+
+bool response::isFile(const std::string &path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+	{
+        return false;
+
+	}
+	cout << "is file Path:::::: " << path << " " << 
+		((info.st_mode & S_IFREG) != 0 ? "TRUE" : "FALSE") << endl;
+    return (info.st_mode & S_IFREG) != 0;
+}
+
+bool response::isCGI(const std::string &path) {
+    size_t pos = path.find_last_of(".");
+    if (pos == std::string::npos) {
+        return false;
+    }
+    std::string extension = path.substr(pos);
+    return extension == ".php" || extension == ".py" || extension == ".go" || extension == ".cgi";
+}
+
 void	response::setContentTypes(Connection *connection)
 {
+	if (connection->getCode() != "200")
+	{
+		connection->addHeader("Content-Type", "text/html");
+		return;
+	}
+
 	map<string, string> content_types;
 
 	content_types[".html"] = "text/html";
@@ -37,8 +72,6 @@ void	response::setContentTypes(Connection *connection)
 		else
 			connection->addHeader("Content-Type", "text/plain");
 	}
-		
-	logger::debug("Content-Type: " + connection->getHeaderByKey("Content-Type"));
 }
 
 void	response::setHeader(Connection *connection)
@@ -55,17 +88,19 @@ Location response::isPathValid(Connection *connection) {
 		
 	while (!path.empty()) {
 		Location temp = connection->getServer().getLocationByURI(path);
-		if (!temp.getURI().empty())
+		if (not temp.getURI().empty())
+		{
+			cout << "Is Path::: valid -> TRUE " << path << endl;
 			return temp;
+		}
 
 		size_t lastSlash = path.find_last_of('/');
-		if (lastSlash == 0) {
+		if (lastSlash == 0) 
 			path = "/";
-		} else if (lastSlash != string::npos) {
+		else if (lastSlash != string::npos) 
 			path = path.substr(0, lastSlash);
-		} else {
+		else 
 			path.clear();
-		}
 	}
 	return Location();
 }
@@ -88,77 +123,86 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	if (connection->getBody().empty())
 	{
-		connection->addHeader("Content-Lenght", tmp.size());
+		connection->addHeader("Content-Length", tmp.size());
 		connection->setBody(tmp);
 	}
 	else
-		connection->addHeader("Content-Lenght", connection->getBody().size());
-	connection->buildResponse();
+		connection->addHeader("Content-Length", connection->getBody().size());
 }
 
-bool response::checkIndexAndAutoIndex(const Location &location, Connection *connection) {
-
+bool response::checkIndex(const Location &location, Connection *connection) {
 	const std::set<std::string> &indexes = location.getIndexes();
-    for (std::set<std::string>::const_iterator it = indexes.begin(); it != indexes.end(); ++it) {
-        std::string indexPath = "." + connection->getServer().getRoot() + location.getURI() + *it;
-		cout << "Index path:::::: " << indexPath << endl;
-		cout << "connection path:::::: " << connection->getPath() << endl;
-        ifstream file(indexPath.c_str());
-        if (file.is_open()) {
-            connection->setPath(location.getURI() + *it);
-            file.close();
+	const string &path = connection->getPath();
+	const string &bar = path.find_last_of('/') == path.size() - 1 ? "" : "/";
+	
+	typedef std::set<std::string>::const_iterator set_iterator;
+	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
+        std::string indexPath = path + bar + *it;
+		cout << "Index Path:::::: " << indexPath << endl;
+        if (isFile(indexPath)) {
+            connection->setPath(indexPath);
+			cout << "Index Path TRUE:::::: " << indexPath << endl;
             return true;
         }
-		file.close();
     }
-
-
-    // if (location.getAutoIndex()) {
-    //     connection->setCode(200);
-    //     connection->setStatus("Ok");
-    //     connection->setBody("<html><body><h1>Autoindex is enabled</h1></body></html>");
-    //     buildHeaderAndBody(connection);
-    //     return true;
-    // }
-
     return false;
 }
 
+void response::setPathAndMethod(Connection *connection) {
+	istringstream iss(connection->getBuffer());
+	string method, uri;
+	iss >> method >> uri;
+
+	connection->setPath(uri);
+	connection->setMethod(method);
+}
+
+bool response::isValidMethod(const std::string &method) {
+	return method == "GET" || method == "POST" || method == "DELETE";
+}
+
 string response::setResponse(Connection * connection) {
-	if (connection->getProtocol().empty() || connection->getCode().empty() || connection->getStatus().empty())
+	if (connection->getProtocol().empty() 
+		|| connection->getCode().empty() || connection->getStatus().empty())
 		return response::pageInternalServerError(connection);
 	else
 	{
-		cout << "Connection root:::::: " << connection->getServer().getRoot() << endl;
-		istringstream iss(connection->getBuffer());
-		string method, uri;
-		iss >> method >> uri;
-
-		connection->setPath(uri);
-		connection->setMethod(method);
-		cout << "Connection path:::::: " << connection->getPath() << endl;
+		setPathAndMethod(connection);
+		if (not isValidMethod(connection->getMethod()))
+			return response::pageMethodNotAllowed(connection);
+		cout << "Connection Path:::::: " << connection->getPath() << endl;
 		
 		Location location = isPathValid(connection);
 		if (location.getURI().empty())
 			return response::pageNotFound(connection);
 
-		if (connection->getPath()
-			.find_last_of("/") == connection->getPath().size() - 1
-			&& not checkIndexAndAutoIndex(location, connection))
+		string root = location.getRoot().empty() ? 
+			connection->getServer().getRoot() 
+			: location.getRoot();
+		string path = "." + root + connection->getPath();
+
+		cout << "Set Response Path:::::: " << path << endl;
+		connection->setPath(path);
+		if (isDirectory(path)
+			&& not checkIndex(location, connection))
 			return response::pageForbbiden(connection);
+		
+		if (isCGI(path))
+		{
+			cout << "CGI Path:::::: " << path << endl;
+			// function to handle CGI
+		}
 
 		connection->setCode(200);
 		connection->setStatus("Ok");
 	
-		string root = connection->getServer().getRoot();
-		string path = "." + root + connection->getPath();
-		response::buildResponseBody(connection, path);
+		response::buildResponseBody(connection);
 		return connection->getResponse();
 	}
 }
 
-void response::buildResponseBody(Connection *connection, const std::string &path) {
-    ifstream file(path.c_str());
+void response::buildResponseBody(Connection *connection) {
+    ifstream file(connection->getPath().c_str());
     if (not file.is_open()) {
         connection->setCode(code::NOT_FOUND);
         connection->setStatus(status::NOT_FOUND);
@@ -213,7 +257,7 @@ string response::pageNotFound(Connection * connection) {
 	return connection->getResponse();
 }
 
-string pageMethodNotAllowed(Connection * connection) {
+string response::pageMethodNotAllowed(Connection * connection) {
 
 	connection->setCode(code::METHOD_NOT_ALLOWED);
 	connection->setStatus(status::METHOD_NOT_ALLOWED);
@@ -273,6 +317,7 @@ string response::pageHttpVersionNotSupported(Connection * connection) {
 
 	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
 	connection->setStatus(status::HTTP_VERSION_NOT_SUPPPORTED);
+
 	buildHeaderAndBody(connection);
 
 	return connection->getResponse();

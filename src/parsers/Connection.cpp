@@ -64,11 +64,10 @@ void Connection::parseRequest(void) {
 	else
 		_headers["Connection"] = "closed";
 
-	_body = "Ok\n";
+	_body = "";
 
 	_send = true;
-	// buildResponse();
-	response::setResponse(this);
+	buildResponse();
 }
 
 int Connection::getFd(void) const {
@@ -225,9 +224,9 @@ time_t Connection::getTime(void) const {
 }
 
 void Connection::buildResponse(void) {
-
 	// if (_protocol.empty() || _code.empty() || _status.empty())
 	// 	response::pageInternalServerError(this);
+	response::setResponse(this);
 
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
