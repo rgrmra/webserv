@@ -34,6 +34,7 @@ class WebServ {
 		static const int BUFFER_SIZE = parser::MEGABYTE;
 		static const int MAX_EVENTS = 252;
 		static const long TIMEOUT = 30;
+		static const long KEEP_ALIVE = 5;
 		
 		WebServ(Http *http);
 		WebServ(const WebServ &src);
