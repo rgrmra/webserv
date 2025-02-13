@@ -13,9 +13,6 @@
 #include <cstring>
 #include <sstream>
 
-#define pythonInterpreter "/bin/python3"
-#define phpInterpreter "/usr/bin/php-cgi"
-
 class Cgi
 {
 
@@ -31,11 +28,9 @@ public:
 	private:
 	Request								&_req;
 	std::map<std::string, std::string>	_env;
-	char *								_interpreter;
 
 	std::string		_cgi_output;
 	void			_launchCgi();
-	void			_defineInterpreter();
 	void			_dealocateArgEnv(char **argv, char **envp);
 
 };

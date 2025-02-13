@@ -7,7 +7,11 @@ Cgi::Cgi(Request &req) : _req(req)
 	std::ostringstream oss;
 	oss << req.getBody().size();
 	_env["CONTENT_LENGTH"] = oss.str();
-	_defineInterpreter();
+	_env["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	_env["SCRIPT_NAME"] = req.getUri();
+	_env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	_env["HTTP_USER_AGENT"] = req.getHeader("User-Agent");
+	_env["HTTP_COOKIE"] = req.getHeader("Cookie");
 }
 
 Cgi::~Cgi()
@@ -38,7 +42,7 @@ void Cgi::_launchCgi()
 		dup2(input[0], STDIN_FILENO);
 		dup2(output[1], STDOUT_FILENO);
 		char **envp = const_cast<char**>(convertMapToEnv(_env));
-		char *argv[] = {_interpreter, strdup(_req.getUri().c_str()), NULL};
+		char *argv[] = {strdup(_req.getUri().c_str()), NULL};
 		execve(argv[0], argv, envp);
 		_dealocateArgEnv(argv, envp);
 		close(input[0]);
@@ -75,24 +79,6 @@ void Cgi::timeout_handler(int sig) {
 	std::cerr << "CGI timed out." << std::endl;
 }
 
-void Cgi::_defineInterpreter()
-{
-	std::string path = _req.getUri();
-	if (path.find(".py") != std::string::npos)
-		_interpreter = pythonInterpreter;
-	else if (path.find(".php") != std::string::npos)
-		_interpreter = phpInterpreter;
-}
-
-const char **Cgi::createArgv(const std::string &path)
-{
-	const char **argv = new const char*[3];
-	argv[0] = _interpreter;
-	argv[1] = strdup(path.c_str());
-	argv[2] = NULL;
-	return argv;
-}
-
 std::string Cgi::getCgiOutput() const
 {
 	return _cgi_output;
@@ -114,9 +100,7 @@ const char** Cgi::convertMapToEnv(std::map<std::string, std::string> &env)
 
 void Cgi::_dealocateArgEnv(char **argv, char **envp)
 {
-	free(argv[1]);
-	delete[] argv;
+	free(argv[0]);
 	for (size_t i = 0; envp[i] != NULL; i++)
 		free(envp[i]);
-	delete[] envp;
 }
