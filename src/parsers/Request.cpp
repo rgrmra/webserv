@@ -49,9 +49,25 @@ const map<string, string>	&Request::getHeaders() const
 	return _headers;
 }
 
+const string	&Request::getHeader(const string &key) const
+{
+	map<string, string>::const_iterator it = _headers.find(key);
+	if (it == _headers.end())
+		return "";
+	return it->second;
+}
+
 const string	&Request::getBody() const
 {
 	return _body;
+}
+
+const string	Request::getQueryString() const
+{
+	string::size_type pos = _uri.find("?");
+	if (pos == string::npos)
+		return "";
+	return _uri.substr(pos + 1);
 }
 
 void	Request::parseRequest(const string &raw_request)

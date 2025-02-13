@@ -21,7 +21,9 @@ public:
 	const	std::string &getUri() const;
 	const	std::string &getVersion() const;
 	const	std::map<std::string, std::string> &getHeaders() const;
+	const	std::string &getHeader(const std::string &key) const;
 	const	std::string &getBody() const;
+	const	std::string getQueryString() const;
 	void	parseRequest(const std::string &raw_request);
 
 private:

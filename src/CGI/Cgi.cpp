@@ -2,6 +2,12 @@
 
 Cgi::Cgi(Request &req) : _req(req)
 {
+	_env["REQUEST_METHOD"] = req.getMethod();
+	_env["QUERY_STRING"] = req.getQueryString();
+	std::ostringstream oss;
+	oss << req.getBody().size();
+	_env["CONTENT_LENGTH"] = oss.str();
+	_defineInterpreter();
 }
 
 Cgi::~Cgi()
@@ -31,10 +37,13 @@ void Cgi::_launchCgi()
 		close(output[0]);
 		dup2(input[0], STDIN_FILENO);
 		dup2(output[1], STDOUT_FILENO);
-		char *argv[] = {"/bin/python3", "./src/CGI/cgi_test.py", NULL};
-		execve("/bin/python3", argv, NULL);
+		char **envp = const_cast<char**>(convertMapToEnv(_env));
+		char *argv[] = {_interpreter, strdup(_req.getUri().c_str()), NULL};
+		execve(argv[0], argv, envp);
+		_dealocateArgEnv(argv, envp);
 		close(input[0]);
 		close(output[1]);
+		exit(1);
 	}
 	else
 	{
@@ -46,10 +55,8 @@ void Cgi::_launchCgi()
 
 		char buffer[4096];
 		ssize_t bytes_read;
-		std::string cgi_output;
-		while (!_timeout &&
-				(bytes_read = read(output[0], buffer, sizeof(buffer))) > 0) {
-			cgi_output.append(buffer, bytes_read);
+		while ((bytes_read = read(output[0], buffer, sizeof(buffer))) > 0) {
+			_cgi_output.append(buffer, bytes_read);
 		}
 
 		alarm(0);
@@ -66,5 +73,50 @@ void Cgi::_launchCgi()
 void Cgi::timeout_handler(int sig) {
 	(void)sig;
 	std::cerr << "CGI timed out." << std::endl;
-	_timeout = true;
+}
+
+void Cgi::_defineInterpreter()
+{
+	std::string path = _req.getUri();
+	if (path.find(".py") != std::string::npos)
+		_interpreter = pythonInterpreter;
+	else if (path.find(".php") != std::string::npos)
+		_interpreter = phpInterpreter;
+}
+
+const char **Cgi::createArgv(const std::string &path)
+{
+	const char **argv = new const char*[3];
+	argv[0] = _interpreter;
+	argv[1] = strdup(path.c_str());
+	argv[2] = NULL;
+	return argv;
+}
+
+std::string Cgi::getCgiOutput() const
+{
+	return _cgi_output;
+}
+
+const char** Cgi::convertMapToEnv(std::map<std::string, std::string> &env)
+{
+	const char **envp = new const char*[env.size() + 1];
+	size_t i = 0;
+	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
+	{
+		std::string env_var = it->first + "=" + it->second;
+		envp[i] = strdup(env_var.c_str());
+		i++;
+	}
+	envp[i] = NULL;
+	return envp;
+}
+
+void Cgi::_dealocateArgEnv(char **argv, char **envp)
+{
+	free(argv[1]);
+	delete[] argv;
+	for (size_t i = 0; envp[i] != NULL; i++)
+		free(envp[i]);
+	delete[] envp;
 }
