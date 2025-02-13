@@ -22,6 +22,7 @@ class Connection {
 		std::string _body;
 		Server _server;
 		std::string _response;
+		std::string _query_string;
 		time_t _time;
 		bool _startline_parsed;
 		bool _headers_parsed;

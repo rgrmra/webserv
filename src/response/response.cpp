@@ -34,7 +34,7 @@ bool response::isCGI(const std::string &path) {
         return false;
     }
     std::string extension = path.substr(pos);
-    return extension == ".php" || extension == ".py" || extension == ".go" || extension == ".cgi";
+    return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
 void	response::setContentTypes(Connection *connection)
@@ -188,10 +188,10 @@ void response::setResponse(Connection * connection) {
 		connection->setPath(path);
 		if (isDirectory(path)
 			&& not checkIndex(location, connection))
-			{
-				response::pageForbbiden(connection);
-				return;
-			}
+		{
+			response::pageForbbiden(connection);
+			return;
+		}
 
 		if (isCGI(path))
 		{
@@ -207,20 +207,24 @@ void response::setResponse(Connection * connection) {
 }
 
 void response::buildResponseBody(Connection *connection) {
-    ifstream file(connection->getPath().c_str());
+    ifstream file(connection->getPath().c_str(), ios::binary);
     if (not file.is_open()) {
 		response::pageNotFound(connection);
         return;
     }
+	file.seekg(0, ios::end);
+	std::streamsize size = file.tellg();
+	file.seekg(0, ios::beg);
 
-    string line;
-    string body;
-    while (getline(file, line))
-        body += line;
-    file.close();
+	vector<char> buffer(size);
+	if (not file.read(buffer.data(), size))
+	{
+		response::pageInternalServerError(connection);
+		return;
+	}
 
-    logger::info(body);
-    connection->setBody(body);
+    // logger::info(body.str());
+    connection->setBody(buffer.data());
     buildHeaderAndBody(connection);
 }
 
