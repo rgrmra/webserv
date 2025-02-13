@@ -27,6 +27,7 @@ class Connection {
 		bool _startline_parsed;
 		bool _headers_parsed;
 		bool _send;
+		size_t _transfers;
 
 		void parseRequest(void);
 
@@ -73,6 +74,7 @@ class Connection {
 		bool getHeadersParsed(void) const;
 		void setSend(bool send);
 		bool getSend(void) const;
+		size_t getTransfers(void) const;
 		void resetConnection(void);
 		void setQueryString(std::string query_string);
 		std::string getQueryString(void) const;

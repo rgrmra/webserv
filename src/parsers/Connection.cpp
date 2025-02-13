@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "header.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
 #include "Request.hpp"
 #include "response.hpp"
@@ -16,7 +17,8 @@ Connection::Connection(int fd, string ip)
 	  _time(time(NULL)),
 	  _startline_parsed(false),
 	  _headers_parsed(false),
-	  _send(false) {
+	  _send(false),
+	  _transfers(0) {
 
 }
 
@@ -47,6 +49,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_startline_parsed = rhs._startline_parsed;
 	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
+	_transfers = rhs._transfers;
 
 	return *this;
 }
@@ -80,6 +83,8 @@ void Connection::parseRequest(void) {
 		_code = "200";
 		_status = "Ok";
 	}
+
+	logger::info(_host + " " + _method + " " + _path + " " + _protocol + " " + _code + " - " + _headers["User-Agent"]);
 
 	buildResponse();
 }
@@ -251,6 +256,9 @@ void Connection::buildResponse(void) {
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
 
+	_transfers++;
+
+	_headers[header::CONTENT_LENGTH] = parser::toString(_body.size());
 	_headers[header::SERVER] = "webserv/0.1.0";
 
 	ostringstream oss;
@@ -260,6 +268,7 @@ void Connection::buildResponse(void) {
 	for (; it != _headers.end(); it++)
 		oss << it->first + ": " + it->second + "\r\n";
 
+	_body.clear();
 	oss << "\r\n" << _body;
 
 	_response = oss.str();
@@ -317,13 +326,15 @@ bool Connection::getSend(void) const {
 }
 
 void Connection::setQueryString(string query_string) {
-
 	_query_string = query_string;
 }
 
 std::string Connection::getQueryString(void) const {
-
 	return _query_string;
+}
+
+size_t Connection::getTransfers(void) const {
+  return _transfers;
 }
 
 void Connection::resetConnection(void) {
