@@ -172,22 +172,29 @@ void response::setResponse(Connection * connection) {
 	else
 	{
 		if (not isValidMethod(connection->getMethod()))
+		{
 			response::pageMethodNotAllowed(connection);
+			return;
+		}
 
 		Location location = isPathValid(connection);
 		if (location.getURI().empty())
+		{
 			response::pageNotFound(connection);
+			return;
+		}
 
 		string queryString = connection->getPath().find('?') != string::npos ?
 			connection->getPath().substr(connection->getPath().find('?')) : "";
-		logger::info("Query string: " + queryString);
+		if (not queryString.empty())
+			connection->setQueryString(queryString);
+
 		string root = location.getRoot().empty() ?
 			connection->getServer().getRoot() : location.getRoot();
 		string path = "." + root + connection->getPath();
-		path = path.find('?') != string::npos ? path.substr(0, path.find('?')) : path;
+		path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
 		connection->setPath(path);
-		if (isDirectory(path)
-			&& not checkIndex(location, connection))
+		if (isDirectory(path) && not checkIndex(location, connection))
 		{
 			response::pageForbbiden(connection);
 			return;

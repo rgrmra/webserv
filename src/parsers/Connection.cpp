@@ -317,6 +317,16 @@ bool Connection::getSend(void) const {
 	return _send;
 }
 
+void Connection::setQueryString(string query_string) {
+
+	_query_string = query_string;
+}
+
+std::string Connection::getQueryString(void) const {
+
+	return _query_string;
+}
+
 void Connection::resetConnection(void) {
 
 	_host.clear();
@@ -329,6 +339,7 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 	_response.clear();
+	_query_string.clear();
 
 	_time = time(NULL);
 

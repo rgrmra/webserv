@@ -74,6 +74,8 @@ class Connection {
 		void setSend(bool send);
 		bool getSend(void) const;
 		void resetConnection(void);
+		void setQueryString(std::string query_string);
+		std::string getQueryString(void) const;
 
 };
 
