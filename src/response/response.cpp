@@ -223,8 +223,11 @@ void response::buildResponseBody(Connection *connection) {
 		return;
 	}
 
+	std::string body;
+	for (vector<char>::iterator it = buffer.begin(); it != buffer.end(); it++)
+		body += *it;
     // logger::info(body.str());
-    connection->setBody(buffer.data());
+    connection->setBody(body);
     buildHeaderAndBody(connection);
 }
 
