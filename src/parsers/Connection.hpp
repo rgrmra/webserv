@@ -22,6 +22,7 @@ class Connection {
 		std::string _body;
 		Server _server;
 		std::string _response;
+		std::string _query_string;
 		time_t _time;
 		bool _startline_parsed;
 		bool _headers_parsed;
@@ -60,6 +61,7 @@ class Connection {
 		std::string getHeaders(void) const;
 		void setBody(std::string body);
 		std::string getBody(void) const;
+		void setServer(Server server);
 		Server getServer(void) const;
 		time_t getTime(void) const;
 		void buildResponse(void);
@@ -74,6 +76,8 @@ class Connection {
 		bool getSend(void) const;
 		size_t getTransfers(void) const;
 		void resetConnection(void);
+		void setQueryString(std::string query_string);
+		std::string getQueryString(void) const;
 
 };
 

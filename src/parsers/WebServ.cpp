@@ -201,6 +201,8 @@ void WebServ::acceptNewConnection(int client_fd) {
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
 	_client_connections[fd] = new Connection(fd, host);
+	_client_connections[fd]->setHost(host);
+	_client_connections[fd]->setServer(_http->getServerByListen(host));
 }
 
 void WebServ::closeConnection(int client_fd) {
@@ -255,7 +257,7 @@ void WebServ::handleResponse(int client_fd) {
 
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	Connection *connection = it->second;
-
+	
 	if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
 		return;
 

@@ -23,7 +23,23 @@ namespace response {
 	void pageInternalServerError(Connection *connection);
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
+	std::string setPageWithPath(Connection * connection);
 
+	void setResponse(Connection * connection);
+
+	void		setContentTypes(Connection * connection);
+	void		setHeader(Connection * connection);
+	void		setBody(Connection * connection);
+	void		buildResponseBody(Connection *connection);
+	void		setPathAndMethod(Connection *connection);
+	Location	isPathValid(Connection * connection);
+
+
+	bool		checkIndex(const Location &location, Connection * connection);
+	bool		isDirectory(const std::string &path);
+	bool		isFile(const std::string &path);
+	bool		isValidMethod(const std::string &method);
+	bool		isCGI(const std::string &path);
 }
 
 #endif /* RESPONSE_HPP */

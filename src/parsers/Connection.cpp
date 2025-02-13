@@ -187,7 +187,7 @@ void Connection::addHeader(string key, string value) {
 	if (key == header::HOST) {
 		if (value.empty())
 			return response::pageBadRequest(this);
-		
+
 		_host = value;
 	}
 
@@ -234,6 +234,11 @@ string Connection::getBody(void) const {
 	return _body;
 }
 
+void Connection::setServer(Server server) {
+
+	_server = server;
+}
+
 Server Connection::getServer(void) const {
 
 	return _server;
@@ -245,9 +250,8 @@ time_t Connection::getTime(void) const {
 }
 
 void Connection::buildResponse(void) {
-
-	if (_protocol.empty() || _code.empty() || _status.empty())
-		response::pageInternalServerError(this);
+	
+	response::setResponse(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
@@ -321,9 +325,16 @@ bool Connection::getSend(void) const {
 	return _send;
 }
 
-size_t Connection::getTransfers(void) const {
+void Connection::setQueryString(string query_string) {
+	_query_string = query_string;
+}
 
-	return _transfers;
+std::string Connection::getQueryString(void) const {
+	return _query_string;
+}
+
+size_t Connection::getTransfers(void) const {
+  return _transfers;
 }
 
 void Connection::resetConnection(void) {
@@ -338,6 +349,7 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 	_response.clear();
+	_query_string.clear();
 
 	_time = time(NULL);
 
