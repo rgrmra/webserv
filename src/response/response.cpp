@@ -20,10 +20,8 @@ bool response::isDirectory(const std::string &path) {
 
 bool response::isFile(const std::string &path) {
     struct stat info;
-    if (stat(path.c_str(), &info) != 0)
-	{
+    if (stat(path.c_str(), &info) != 0){
         return false;
-
 	}
     return (info.st_mode & S_IFREG) != 0;
 }
@@ -37,10 +35,8 @@ bool response::isCGI(const std::string &path) {
     return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
-void	response::setContentTypes(Connection *connection)
-{
-	if (connection->getCode() != "200")
-	{
+void	response::setContentTypes(Connection *connection){
+	if (connection->getCode() != "200"){
 		connection->addHeader("Content-Type", "text/html");
 		return;
 	}
@@ -62,8 +58,7 @@ void	response::setContentTypes(Connection *connection)
 	string path = connection->getPath();
 	size_t pos = path.find_last_of(".");
 
-	if (pos != string::npos)
-	{
+	if (pos != string::npos){
 		string extension = path.substr(pos);
 		map<string, string>::iterator it = content_types.find(extension);
 		if (it != content_types.end())
@@ -73,8 +68,7 @@ void	response::setContentTypes(Connection *connection)
 	}
 }
 
-void	response::setHeader(Connection *connection)
-{
+void	response::setHeader(Connection *connection){
 	setContentTypes(connection);
 	connection->addHeader("Connection", "closed");
 
@@ -125,14 +119,9 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
 
-	// connection->addHeader(header::CONTENT_TYPE, "text/html");
 	response::setContentTypes(connection);
 	connection->addHeader(header::CONTENT_LENGTH, tmp.size());
 	connection->addHeader(header::CONNECTION, "close");
-
-	// connection->setBody(tmp);
-	// connection->buildResponse();
-	// response::setHeader(connection);
 
 	if (connection->getBody().empty())
 	{
@@ -233,7 +222,6 @@ void response::buildResponseBody(Connection *connection) {
 	std::string body;
 	for (vector<char>::iterator it = buffer.begin(); it != buffer.end(); it++)
 		body += *it;
-    // logger::info(body.str());
     connection->setBody(body);
     buildHeaderAndBody(connection);
 }

@@ -245,8 +245,7 @@ time_t Connection::getTime(void) const {
 }
 
 void Connection::buildResponse(void) {
-	// if (_protocol.empty() || _code.empty() || _status.empty())
-	// 	response::pageInternalServerError(this);
+	
 	response::setResponse(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
