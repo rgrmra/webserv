@@ -1,9 +1,13 @@
+#include "File.hpp"
+#include "Page.hpp"
 #include "code.hpp"
 #include "Connection.hpp"
 #include "header.hpp"
 #include "logger.hpp"
+#include "parser.hpp"
 #include "response.hpp"
 #include "status.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <fstream>
@@ -54,7 +58,7 @@ void	response::setContentTypes(Connection *connection){
 	content_types[".ico"] = "image/x-icon";
 	content_types[".svg"] = "image/svg+xml";
 	content_types[".mp3"] = "audio/mpeg";
-
+	
 	string path = connection->getPath();
 	size_t pos = path.find_last_of(".");
 
@@ -68,16 +72,17 @@ void	response::setContentTypes(Connection *connection){
 	}
 }
 
-void	response::setHeader(Connection *connection){
-	setContentTypes(connection);
-	connection->addHeader("Connection", "closed");
-
-}
+//void	response::setHeader(Connection *connection){
+//	setContentTypes(connection);
+//	connection->addHeader("Connection", "closed");
+//
+//}
 
 Location response::isPathValid(Connection *connection) {
 	string path = connection->getPath();
-	if (path.find("..") != string::npos || path.find('/') == string::npos)
+	if (path.find("..") != string::npos || path.find('/') == string::npos) {
 		return Location();
+	}
 
 	while (!path.empty()) {
 		Location temp = connection->getServer().getLocationByURI(path);
@@ -99,37 +104,42 @@ Location response::isPathValid(Connection *connection) {
 
 static void buildHeaderAndBody(Connection *connection) {
 
-	string tmp;
+	connection->setFile(new Page(connection->getCode(), connection->getStatus()));
 
-	if (tmp.empty()) {
+	//string tmp;
 
-		tmp = connection->getCode() + " " + connection->getStatus();
+	//if (tmp.empty()) {
 
-		ostringstream oss;
-		oss << "<html>\n"
-			"<head><title>" + tmp + "</title></head>\n"
-			"<body>\n"
-			"<center><h1>" + tmp + "</h1></center>\n"
-			"<hr><center>webserv</center>\n"
-			"</body>\n"
-			"</html>\n";
-		tmp = oss.str();
-	}
+	//	string tmp = connection->getCode() + " " + connection->getStatus();
+
+	//	ostringstream oss;
+	//	oss << "<html>\n"
+	//		"<head><title>" + tmp + "</title></head>\n"
+	//		"<body>\n"
+	//		"<center><h1>" + tmp + "</h1></center>\n"
+	//		"<hr><center>webserv</center>\n"
+	//		"</body>\n"
+	//		"</html>\n";
+	//	tmp = oss.str();
+	//}
+	string header_connection = connection->getHeaderByKey(header::CONNECTION);
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
 
-	response::setContentTypes(connection);
-	connection->addHeader(header::CONTENT_LENGTH, tmp.size());
-	connection->addHeader(header::CONNECTION, "close");
+	//response::setContentTypes(connection);
+	//connection->addHeader(header::CONTENT_TYPE, "text/html");
+	//connection->addHeader(header::CONTENT_LENGTH, tmp.size());
+	connection->addHeader(header::CONNECTION, header_connection);
 
-	if (connection->getBody().empty())
-	{
-		connection->addHeader("Content-Length", tmp.size());
-		connection->setBody(tmp);
-	}
-	else
-		connection->addHeader("Content-Length", connection->getBody().size());
+	//if (connection->getBody().empty())
+	//{
+	//	connection->addHeader("Content-Length", tmp.size());
+	//	connection->setBody(tmp);
+	//}
+	//else
+	//	connection->addHeader("Content-Length", connection->getBody().size());
+	connection->setSend(true);
 }
 
 bool response::checkIndex(const Location &location, Connection *connection) {
@@ -150,44 +160,40 @@ bool response::checkIndex(const Location &location, Connection *connection) {
 
 
 
-bool response::isValidMethod(const std::string &method) {
-	return method == "GET" || method == "POST" || method == "DELETE";
-}
+//bool response::isValidMethod(closedconst std::string &method) {
+//	return method == "GET" || method == "POST" || method == "DELETE";
+//}
 
-void response::setResponse(Connection * connection) {
-	if (connection->getProtocol().empty()
-		|| connection->getCode().empty() || connection->getStatus().empty())
-		response::pageInternalServerError(connection);
-	else
-	{
-		if (not isValidMethod(connection->getMethod()))
-		{
-			response::pageMethodNotAllowed(connection);
-			return;
-		}
+void response::pageOK(Connection *connection) {
+
+	connection->setCode(code::OK);
+	connection->setStatus(status::OK);
+
+	//if (connection->getProtocol().empty()
+	//	|| connection->getCode().empty() || connection->getStatus().empty())
+	//	response::pageInternalServerError(connection);
+	//else
+	//{
+	//	if (not isValidMethod(connection->getMethod()))
+	//	{
+	//		response::pageMethodNotAllowed(connection);
+	//		return;
+	//	}
 
 		Location location = isPathValid(connection);
-		if (location.getURI().empty())
-		{
-			response::pageNotFound(connection);
-			return;
-		}
+		if (location.empty())
+			return response::pageNotFound(connection);
 
-		string queryString = connection->getPath().find('?') != string::npos ?
-			connection->getPath().substr(connection->getPath().find('?')) : "";
+		string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
 		if (not queryString.empty())
 			connection->setQueryString(queryString);
 
-		string root = location.getRoot().empty() ?
-			connection->getServer().getRoot() : location.getRoot();
-		string path = "." + root + connection->getPath();
+		//string root = location.getRoot().empty() ? connection->getServer().getRoot() : location.getRoot();
+		string path = location.getRoot() + connection->getPath();
 		path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
 		connection->setPath(path);
 		if (isDirectory(path) && not checkIndex(location, connection))
-		{
-			response::pageForbbiden(connection);
-			return;
-		}
+			return response::pageForbbiden(connection);
 
 		if (isCGI(path))
 		{
@@ -195,36 +201,49 @@ void response::setResponse(Connection * connection) {
 			// function to handle CGI
 		}
 
-		connection->setCode(200);
-		connection->setStatus("Ok");
+		logger::info(connection->getHost() + " "
+				+ connection->getMethod() + " "
+				+ connection->getPath() + " "
+				+ connection->getProtocol() + " "
+				+ connection->getCode() + " - "
+				+ connection->getHeaderByKey(header::USER_AGENT));
 
-		response::buildResponseBody(connection);
-	}
+		//buildHeaderAndBody(connection);
+		string header_connection = connection->getHeaderByKey(header::CONNECTION);
+		connection->setHeaders(response::EMPTY_HEADER);
+		connection->addHeader(header::CONNECTION, header_connection);
+
+		connection->setFile(new File(connection->getPath()));
+		connection->buildResponse();
+		connection->setSend(true);
+		//response::buildResponseBody(connection);
+	//}
 }
 
-void response::buildResponseBody(Connection *connection) {
-    ifstream file(connection->getPath().c_str(), ios::binary);
-    if (not file.is_open()) {
-		response::pageNotFound(connection);
-        return;
-    }
-	file.seekg(0, ios::end);
-	std::streamsize size = file.tellg();
-	file.seekg(0, ios::beg);
-
-	vector<char> buffer(size);
-	if (not file.read(buffer.data(), size))
-	{
-		response::pageInternalServerError(connection);
-		return;
-	}
-
-	std::string body;
-	for (vector<char>::iterator it = buffer.begin(); it != buffer.end(); it++)
-		body += *it;
-    connection->setBody(body);
-    buildHeaderAndBody(connection);
-}
+//void response::buildResponseBody(Connection *connection) {
+//    ifstream file(connection->getPath().c_str(), ios::binary);
+//    if (not file.is_open()) {
+//		response::pageNotFound(connection);
+//        return;
+//    }
+//	file.seekg(0, ios::end);
+//	std::streamsize size = file.tellg();
+//	file.seekg(0, ios::beg);
+//
+//	vector<char> buffer(size);
+//	if (not file.read(buffer.data(), size))
+//	{
+//		response::pageInternalServerError(connection);
+//		return;
+//	}
+//
+//	std::string body;
+//	for (vector<char>::iterator it = buffer.begin(); it != buffer.end(); it++)
+//		body += *it;
+//    connection->setBody(body);
+//    //buildHeaderAndBody(connection);
+//	connection->setSend(true);
+//}
 
 void response::pageBadRequest(Connection *connection) {
 
@@ -254,10 +273,10 @@ void response::pageNotFound(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
-void response::pageMethodNotAllowed(Connection *connection) {
+void response::pageNotAllowed(Connection *connection) {
 
-	connection->setCode(code::METHOD_NOT_ALLOWED);
-	connection->setStatus(status::METHOD_NOT_ALLOWED);
+	connection->setCode(code::NOT_ALLOWED);
+	connection->setStatus(status::NOT_ALLOWED);
 	buildHeaderAndBody(connection);
 }
 
@@ -305,7 +324,7 @@ void response::pageGatewayTimeOut(Connection *connection) {
 	logger::warning(connection->getIp() + " timed out");
 }
 
-void response::pageHttpVersionNotSupported(Connection * connection) {
+void response::pageHttpVersionNotSupported(Connection *connection) {
 
 	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
 	connection->setStatus(status::HTTP_VERSION_NOT_SUPPPORTED);

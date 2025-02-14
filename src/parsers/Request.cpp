@@ -17,8 +17,7 @@ void request::parseRequest(Connection *connection, string line) {
 	string method, path, protocol;
 
 	if (!connection->getStartLineParsed()) {
-		
-		// IGNORE EMPTY FIRST LINES?
+
 		if (line.find_first_not_of(" \t\v\r") == string::npos)
 			return;
 
@@ -30,7 +29,7 @@ void request::parseRequest(Connection *connection, string line) {
 			return response::pageBadRequest(connection);
 
 		if (!directive::validateHttpMethod(method))
-			return response::pageBadRequest(connection);
+			return response::pageNotAllowed(connection);
 
 		if (protocol != response::PROTOCOL)
 			return response::pageHttpVersionNotSupported(connection);
@@ -47,8 +46,12 @@ void request::parseRequest(Connection *connection, string line) {
 
 		if (line == "\r") {
 			connection->setHeadersParsed(true);
-			if (!parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)))
-				connection->setSend(true);
+
+			if (connection->getHeaders().size() == 0)
+				return response::pageBadRequest(connection);
+
+			if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
+				return response::pageOK(connection);
 
 			return;
 		}
