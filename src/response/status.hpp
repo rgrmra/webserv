@@ -6,11 +6,12 @@
 
 namespace status {
 
+	static const std::string OK = "OK";
 	static const std::string BAD_REQUEST = "Bad Request";
 	static const std::string UNAUTHORIZED = "Unauthorized";
 	static const std::string FORBBIDEN = "Forbbiden";
 	static const std::string NOT_FOUND = "Not Found";
-	static const std::string METHOD_NOT_ALLOWED = "Method Not Allowed";
+	static const std::string NOT_ALLOWED = "Not Allowed";
 	static const std::string LENGTH_REQUIRED = "Length Required";
 	static const std::string PAYLOAD_TOO_LARGE = "Payload Too Large";
 	static const std::string UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
