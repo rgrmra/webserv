@@ -12,6 +12,15 @@
 #include <signal.h>
 #include <cstring>
 #include <sstream>
+#include <vector>
+#include <cerrno>
+
+#define CGI_SUCCESS 200
+#define CGI_TIMEOUT 504
+#define CGI_BAD_GATEWAY 502
+#define CGI_INTERNAL_ERROR 500
+#define CGI_NOT_FOUND 404
+#define CGI_FORBIDDEN 403
 
 class Cgi
 {
@@ -21,17 +30,20 @@ public:
 	~Cgi();
 
 	static void			timeout_handler(int signum);
-	const char ** 		createArgv(const std::string &path);
-	std::string			getCgiOutput() const;
-	const static char**	convertMapToEnv(std::map<std::string, std::string> &env);
+	const std::string	&getCgiOutput() const;
+	const int			&getExitStatus() const;
+	std::vector<char*>	convertMapToEnv(const std::map<std::string, std::string>& env);
+	static std::string	sanitizeQueryString(const std::string& query);
 
-	private:
+private:
 	Request								&_req;
 	std::map<std::string, std::string>	_env;
-
+	int									_exit_status;
 	std::string		_cgi_output;
 	void			_launchCgi();
-	void			_dealocateArgEnv(char **argv, char **envp);
+	std::string		_getScriptName();
+	void			_validateScript();
+	void			_dealocateArgEnv(char **argv, std::vector<char*> envp);
 
 };
 

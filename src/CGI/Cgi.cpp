@@ -2,13 +2,14 @@
 
 Cgi::Cgi(Request &req) : _req(req)
 {
+	_env["SCRIPT_NAME"] = _getScriptName();
+	_validateScript();
 	_env["REQUEST_METHOD"] = req.getMethod();
-	_env["QUERY_STRING"] = req.getQueryString();
+	_env["QUERY_STRING"] = sanitizeQueryString(req.getQueryString());
 	std::ostringstream oss;
 	oss << req.getBody().size();
 	_env["CONTENT_LENGTH"] = oss.str();
 	_env["CONTENT_TYPE"] = req.getHeader("Content-Type");
-	_env["SCRIPT_NAME"] = req.getUri();
 	_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	_env["HTTP_USER_AGENT"] = req.getHeader("User-Agent");
 	_env["HTTP_COOKIE"] = req.getHeader("Cookie");
@@ -24,43 +25,53 @@ void Cgi::_launchCgi()
 	int output[2];
 	pid_t pid;
 
-	if (pipe(input) == -1 || pipe(output) == -1)
-	{
+	if (pipe(input) == -1 || pipe(output) == -1) {
 		std::cerr << "Error: pipe failed" << std::endl;
-		exit(1);
+		_exit_status = CGI_INTERNAL_ERROR;
+		throw std::runtime_error("Pipe failed");
 	}
+
 	pid = fork();
-	if (pid == -1)
-	{
+	if (pid == -1) {
 		std::cerr << "Error: fork failed" << std::endl;
-		exit(1);
+		_exit_status = CGI_INTERNAL_ERROR;
+		throw std::runtime_error("Fork failed");
 	}
-	if (pid == 0)
-	{
+
+	if (pid == 0) {
 		close(input[1]);
 		close(output[0]);
 		dup2(input[0], STDIN_FILENO);
 		dup2(output[1], STDOUT_FILENO);
-		char **envp = const_cast<char**>(convertMapToEnv(_env));
-		char *argv[] = {strdup(_req.getUri().c_str()), NULL};
-		execve(argv[0], argv, envp);
+		std::vector<char*> envp = convertMapToEnv(_env);
+		char *argv[] = {strdup(_env["SCRIPT_NAME"].c_str()), NULL};
+		execve(argv[0], argv, envp.data());
 		_dealocateArgEnv(argv, envp);
 		close(input[0]);
 		close(output[1]);
 		exit(1);
 	}
-	else
-	{
+	else {
 		close(input[0]);
 		close(output[1]);
+
+		write(input[1], _req.getBody().data(), _req.getBody().size());
+		close(input[1]);
 
 		signal(SIGALRM, timeout_handler);
 		alarm(5);
 
 		char buffer[4096];
 		ssize_t bytes_read;
-		while ((bytes_read = read(output[0], buffer, sizeof(buffer))) > 0) {
-			_cgi_output.append(buffer, bytes_read);
+		while (true) {
+			bytes_read = read(output[0], buffer, sizeof(buffer));
+			if (bytes_read > 0) {
+				_cgi_output.append(buffer, bytes_read);
+			} else if (bytes_read == -1 && errno == EINTR) {
+				break; // Timeout triggered
+			} else {
+				break; // Error or EOF
+			}
 		}
 
 		alarm(0);
@@ -69,8 +80,37 @@ void Cgi::_launchCgi()
 		if (waitpid(pid, &status, WNOHANG) == 0) {
 			kill(pid, SIGKILL);
 			waitpid(pid, &status, 0);
-			std::cerr << "CGI timed out." << std::endl;
+			_exit_status = CGI_TIMEOUT;
+			throw std::runtime_error("CGI timed out");
 		}
+		_exit_status = WEXITSTATUS(status);
+		if (_exit_status != 0) {
+			_exit_status = CGI_BAD_GATEWAY;
+			throw std::runtime_error("CGI failed");
+		}
+		_exit_status = CGI_SUCCESS;
+	}
+}
+
+std::string Cgi::_getScriptName()
+{
+	std::string script_name = _req.getUri();
+	std::string::size_type pos = script_name.find("?");
+	if (pos != std::string::npos) {
+		script_name = script_name.substr(0, pos);
+	}
+	return script_name;
+}
+
+void Cgi::_validateScript()
+{
+	if (access(_env["SCRIPT_NAME"].c_str(), F_OK) == -1) {
+		_exit_status = 404;
+		throw std::runtime_error("Script not found");
+	}
+	if (access(_env["SCRIPT_NAME"].c_str(), X_OK) == -1) {
+		_exit_status = 403;
+		throw std::runtime_error("Script not executable");
 	}
 }
 
@@ -79,28 +119,48 @@ void Cgi::timeout_handler(int sig) {
 	std::cerr << "CGI timed out." << std::endl;
 }
 
-std::string Cgi::getCgiOutput() const
+const std::string &Cgi::getCgiOutput() const
 {
 	return _cgi_output;
 }
 
-const char** Cgi::convertMapToEnv(std::map<std::string, std::string> &env)
+const int &Cgi::getExitStatus() const
 {
-	const char **envp = new const char*[env.size() + 1];
-	size_t i = 0;
-	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
-	{
-		std::string env_var = it->first + "=" + it->second;
-		envp[i] = strdup(env_var.c_str());
-		i++;
-	}
-	envp[i] = NULL;
-	return envp;
+	return _exit_status;
 }
 
-void Cgi::_dealocateArgEnv(char **argv, char **envp)
+void Cgi::_dealocateArgEnv(char **argv, std::vector<char*> envp)
 {
 	free(argv[0]);
-	for (size_t i = 0; envp[i] != NULL; i++)
-		free(envp[i]);
+	for (std::vector<char*>::iterator it = envp.begin();
+		it != envp.end(); ++it)
+	{
+		free(*it);
+	}
+}
+
+std::string Cgi::sanitizeQueryString(const std::string& query) {
+
+	std::string sanitized;
+
+	for (std::string::const_iterator it = query.begin(); it != query.end(); ++it) {
+		char c = *it;
+		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '=' || c == '&') {
+			sanitized += c;
+		}
+	}
+	return sanitized;
+}
+
+std::vector<char*> Cgi::convertMapToEnv(const std::map<std::string, std::string>& env) {
+
+	std::vector<char*> envp;
+
+	for (std::map<std::string, std::string>::const_iterator it = env.begin();
+			it != env.end(); ++it) {
+		std::string env_var = it->first + "=" + it->second;
+		envp.push_back(strdup(env_var.c_str()));
+	}
+	envp.push_back(NULL);
+	return envp;
 }
