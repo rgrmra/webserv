@@ -312,6 +312,13 @@ void response::pageInternalServerError(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
+void response::pageInternalServerError(Connection *connection) {
+
+	connection->setCode(code::NOT_IMPLEMENTED);
+	connection->setStatus(status::NOT_IMPLEMENTED);
+	buildHeaderAndBody(connection);
+}
+
 void response::pageGatewayTimeOut(Connection *connection) {
 
 	connection->setCode(code::GATEWAY_TIMEOUT);
