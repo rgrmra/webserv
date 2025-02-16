@@ -152,7 +152,7 @@ void parser::http(Http &http, string &buffer) {
 			buffer.erase(npos, 1);
 	}
 	
-	for (size_t i = 0; i < buffer.size(); i++) {
+	for (size_t i = buffer.size(); i > 0; i--) {
 
 		http.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
 		http.setAccessLog(find("access_log ", buffer, ";"));
@@ -178,7 +178,7 @@ void parser::server(Server &server, string &buffer) {
 
 	buffer.erase(0, 7);
 	
-	for (size_t i = 0; i < buffer.size(); i++) {
+	for (size_t i = buffer.size(); i > 0; i--) {
 
 		server.addListen(parser::find("listen ", buffer, ";"));
 		server.addName(parser::find("server_name ", buffer, ";"));
@@ -205,7 +205,7 @@ void parser::location(Location &location, string &buffer) {
 
 	location.setURI(find("location ", buffer, "{"));
 
-	for (size_t i = 0; i < buffer.size(); i++) {
+	for (size_t i = buffer.size(); i > 0; i--) {
 
 		location.addIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
@@ -228,7 +228,7 @@ void parser::location(Location &location, string &buffer) {
 }
 void parser::limit_except(Location &location, string &buffer) {
 
-	for (size_t i = 0; i < buffer.size(); i++) {
+	for (size_t i = buffer.size(); i > 0; i--) {
 
 		if (parser::compare("limit_except{", buffer))
 			buffer.erase(0, 13);

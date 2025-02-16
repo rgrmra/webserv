@@ -7,8 +7,12 @@
 #include <string>
 #include <vector>
 
+class Http;
+class AFile;
+
 class Connection {
 	private:
+		Http *_http;
 		int _fd;
 		std::string _ip;
 		std::string _host;
@@ -20,6 +24,7 @@ class Connection {
 		std::string _status;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
+		AFile *_file;
 		Server _server;
 		std::string _response;
 		std::string _query_string;
@@ -32,7 +37,7 @@ class Connection {
 		void parseRequest(void);
 
 	public:
-		Connection(int fd, std::string _ip);
+		Connection(int fd, std::string _ip, Http *http);
 		Connection(const Connection &src);
 		Connection &operator=(const Connection &rhs);
 		virtual ~Connection(void);
@@ -61,6 +66,7 @@ class Connection {
 		std::string getHeaders(void) const;
 		void setBody(std::string body);
 		std::string getBody(void) const;
+		void setFile(AFile *file);
 		void setServer(Server server);
 		Server getServer(void) const;
 		time_t getTime(void) const;
