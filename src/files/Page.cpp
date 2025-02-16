@@ -1,6 +1,5 @@
 #include "Page.hpp"
 #include "AFile.hpp"
-#include "parser.hpp"
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -8,7 +7,7 @@
 using namespace std;
 
 Page::Page(const std::string code, const std::string status)
-	: AFile() {
+	: AFile(".html") {
 
 	ostringstream oss;
 	oss << "<html>\n"
@@ -26,7 +25,7 @@ Page::Page(const std::string code, const std::string status)
 }
 
 Page::Page(const Page &src)
-	: AFile() {
+	: AFile(".html") {
 
 	*this = src;
 }

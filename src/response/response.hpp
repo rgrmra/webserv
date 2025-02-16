@@ -1,6 +1,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
+#include "Mime.hpp"
 #include <map>
 #include <string>
 
@@ -11,7 +12,9 @@ namespace response {
 
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
+	static const Mime MIME;
 
+	void pageOK(Connection *connection);
 	void pageBadRequest(Connection *connection);
 	void pageUnauthorized(Connection *connection);
 	void pageForbbiden(Connection *connection);
@@ -26,13 +29,12 @@ namespace response {
 	void pageHttpVersionNotSupported(Connection *connection);
 	//std::string setPageWithPath(Connection * connection);
 
-	void pageOK(Connection *connection);
 
-	void		setContentTypes(Connection * connection);
+	//void		setContentTypes(Connection * connection);
 	//void		setHeader(Connection * connection);
 	//void		setBody(Connection * connection);
-	void		buildResponseBody(Connection *connection);
-	void		setPathAndMethod(Connection *connection);
+	//void		buildResponseBody(Connection *connection);
+	//void		setPathAndMethod(Connection *connection);
 	Location	isPathValid(Connection * connection);
 
 

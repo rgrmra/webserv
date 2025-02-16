@@ -1,15 +1,18 @@
 #include "AFile.hpp"
+#include "response.hpp"
 #include <string>
 
 using namespace std;
 
-AFile::AFile(void)
-	: _size(0) {
+AFile::AFile(std::string path)
+	: _path(path),
+	  _size(0) {
 
 }
 
 AFile::AFile(const AFile &src)
-	: _size(0) {
+	: _path(src._path),
+	  _size(0) {
 
 	*this = src;
 }
@@ -32,6 +35,6 @@ size_t AFile::getSize(void) const {
 }
 
 string AFile::getMime(void) const {
-
-	return "text/plain";
+	
+	return response::MIME.getType(_path);
 }

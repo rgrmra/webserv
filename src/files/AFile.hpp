@@ -5,10 +5,11 @@
 
 class AFile {
 	protected:
+		std::string _path;
 		size_t _size;
 
 	public:
-		AFile(void);
+		AFile(std::string path);
 		AFile(const AFile &src);
 		AFile &operator=(const AFile &rhs);
 		virtual ~AFile(void);

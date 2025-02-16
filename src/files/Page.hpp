@@ -1,7 +1,6 @@
 #ifndef PAGE_HPP
 #define PAGE_HPP
 
-#include "code.hpp"
 #include "AFile.hpp"
 
 class Connection;

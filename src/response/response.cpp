@@ -7,10 +7,7 @@
 #include "parser.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <iostream>
-#include <sstream>
 #include <string>
-#include <fstream>
 #include <sys/stat.h>
 
 using namespace std;
@@ -39,38 +36,38 @@ bool response::isCGI(const std::string &path) {
     return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
-void	response::setContentTypes(Connection *connection){
-	if (connection->getCode() != "200"){
-		connection->addHeader("Content-Type", "text/html");
-		return;
-	}
-
-	map<string, string> content_types;
-
-	content_types[".html"] = "text/html";
-	content_types[".css"] = "text/css";
-	content_types[".js"] = "text/javascript";
-	content_types[".jpg"] = "image/jpeg";
-	content_types[".jpeg"] = "image/jpeg";
-	content_types[".png"] = "image/png";
-	content_types[".gif"] = "image/gif";
-	content_types[".bmp"] = "image/bmp";
-	content_types[".ico"] = "image/x-icon";
-	content_types[".svg"] = "image/svg+xml";
-	content_types[".mp3"] = "audio/mpeg";
-	
-	string path = connection->getPath();
-	size_t pos = path.find_last_of(".");
-
-	if (pos != string::npos){
-		string extension = path.substr(pos);
-		map<string, string>::iterator it = content_types.find(extension);
-		if (it != content_types.end())
-			connection->addHeader("Content-Type", it->second);
-		else
-			connection->addHeader("Content-Type", "text/plain");
-	}
-}
+//void	response::setContentTypes(Connection *connection){
+//	if (connection->getCode() != "200"){
+//		connection->addHeader("Content-Type", "text/html");
+//		return;
+//	}
+//
+//	map<string, string> content_types;
+//
+//	content_types[".html"] = "text/html";
+//	content_types[".css"] = "text/css";
+//	content_types[".js"] = "text/javascript";
+//	content_types[".jpg"] = "image/jpeg";
+//	content_types[".jpeg"] = "image/jpeg";
+//	content_types[".png"] = "image/png";
+//	content_types[".gif"] = "image/gif";
+//	content_types[".bmp"] = "image/bmp";
+//	content_types[".ico"] = "image/x-icon";
+//	content_types[".svg"] = "image/svg+xml";
+//	content_types[".mp3"] = "audio/mpeg";
+//	
+//	string path = connection->getPath();
+//	size_t pos = path.find_last_of(".");
+//
+//	if (pos != string::npos){
+//		string extension = path.substr(pos);
+//		map<string, string>::iterator it = content_types.find(extension);
+//		if (it != content_types.end())
+//			connection->addHeader("Content-Type", it->second);
+//		else
+//			connection->addHeader("Content-Type", "text/plain");
+//	}
+//}
 
 //void	response::setHeader(Connection *connection){
 //	setContentTypes(connection);

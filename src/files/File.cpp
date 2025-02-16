@@ -2,12 +2,13 @@
 #include "AFile.hpp"
 #include <fstream>
 #include <ios>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
 File::File(std::string file_path)
-	: AFile(),
-	  _path(file_path) {
+	: AFile(file_path) {
 
 	_file.open(_path.c_str(), ios::binary);
 	if (!_file.is_open())
@@ -19,7 +20,7 @@ File::File(std::string file_path)
 }
 
 File::File(const File &src)
-	: AFile() {
+	: AFile(src._path) {
 
 	*this = src;
 }
