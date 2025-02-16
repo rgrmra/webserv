@@ -37,7 +37,7 @@ class Connection {
 		void parseRequest(void);
 
 	public:
-		Connection(int fd, std::string _ip, Http *http);
+		Connection(int fd, std::string _ip);
 		Connection(const Connection &src);
 		Connection &operator=(const Connection &rhs);
 		virtual ~Connection(void);

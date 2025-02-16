@@ -13,9 +13,8 @@
 
 using namespace std;
 
-Connection::Connection(int fd, string ip, Http *http)
-	: _http(http),
-	  _fd(fd),
+Connection::Connection(int fd, string ip)
+	: _fd(fd),
 	  _ip(ip),
 	  _file(NULL),
 	  _time(time(NULL)),
@@ -24,6 +23,9 @@ Connection::Connection(int fd, string ip, Http *http)
 	  _send(false),
 	  _transfers(0) {
 
+	extern Http *http;
+
+	_http = http;
 }
 
 Connection::Connection(const Connection &src) {

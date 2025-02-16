@@ -201,7 +201,7 @@ void WebServ::acceptNewConnection(int client_fd) {
 	
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
-	_client_connections[fd] = new Connection(fd, host, _http);
+	_client_connections[fd] = new Connection(fd, host);
 	//_client_connections[fd]->setHost(host);
 	//_client_connections[fd]->setServer(_http->getServerByListen(host));
 }
