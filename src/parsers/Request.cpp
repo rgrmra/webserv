@@ -15,36 +15,12 @@ using namespace std;
 void request::parseRequest(Connection *connection, string line) {
 
 
-	if (!parseStartLine(connection, line)) {
-		return;
+	if (!connection->getStartLineParsed()) {
+		return parseStartLine(connection, line);
 	}
 
 	if (!connection->getHeadersParsed()) {
-
-		if (line == "\r") {
-			connection->setHeadersParsed(true);
-
-			if (connection->getHeaders().size() == 0)
-				return response::pageBadRequest(connection);
-
-			if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
-				return response::pageOK(connection);
-
-			return;
-		}
-
-		size_t separator = line.find(":");
-		if (separator == string::npos)
-			return response::pageBadRequest(connection);
-
-		string key = line.substr(0, separator);
-		string value = line.substr(separator + 1);
-
-		parser::trim(value, " \t\v\r");
-
-		connection->addHeader(key, value);
-
-		return;
+		return parseHeaders(connection, line);
 	}
 
 	if (connection->getHeadersParsed()) {
@@ -60,39 +36,62 @@ void request::parseRequest(Connection *connection, string line) {
 	}
 }
 
-// TODO: ADD this function
-bool request::parseStartLine(Connection *connection, string line) {
+void request::parseStartLine(Connection *connection, string line) {
 
 	string method, path, protocol;
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
-		return false;
+		return;
 
-	if (line.find_first_not_of(" \t\v") != 0) {
-		response::pageBadRequest(connection);
-		return false;
-	}
+	if (line.find_first_not_of(" \t\v") != 0)
+		return response::pageBadRequest(connection);
 
 	istringstream startline(line);
-	if (!(startline >> method >> path >> protocol)) {
-		response::pageBadRequest(connection);
-		return false;
-	}
+	if (!(startline >> method >> path >> protocol))
+		return response::pageBadRequest(connection);
+	
+	if (!directive::validateHttpMethod(method))
+		return response::pageNotAllowed(connection);
 
-	if (!directive::validateHttpMethod(method)) {
-		response::pageNotAllowed(connection);
-		return false;
-	}
+	if (path.size() > parser::KILOBYTE * 2)
+		return response::pageURITooLong(connection);
 
-	if (protocol != response::PROTOCOL) {
-		response::pageHttpVersionNotSupported(connection);
-		return false;
-	}
+	if (protocol != response::PROTOCOL)
+		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
 	connection->setPath(path);
 	connection->setProtocol(protocol);
 	connection->setStartLineParsed(true);
 
-	return true;
+	return;
+}
+
+
+void request::parseHeaders(Connection *connection, std::string line) {
+
+	if (line == "\r") {
+		connection->setHeadersParsed(true);
+
+		if (!connection->getHeaders().size())
+			return response::pageBadRequest(connection);
+
+		if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
+			return response::pageOK(connection);
+
+		return;
+	}
+
+	size_t separator = line.find(":");
+	if (separator == string::npos)
+		return response::pageBadRequest(connection);
+
+	string key = line.substr(0, separator);
+	string value = line.substr(separator + 1);
+
+	parser::trim(value, " \t\v\r");
+
+	connection->addHeader(key, value);
+
+	return;
 }
