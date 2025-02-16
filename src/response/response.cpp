@@ -284,6 +284,13 @@ void response::pagePayloadTooLarge(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
+void response::pageURITooLong(Connection *connection) {
+
+	connection->setCode(code::URI_TOO_LONG);
+	connection->setStatus(status::URI_TOO_LONG);
+	buildHeaderAndBody(connection);
+}
+
 void response::pageUnsupportedMediaType(Connection *connection) {
 
 	connection->setCode(code::UNSUPORTED_MEDIA_TYPE);
