@@ -12,6 +12,9 @@
 
 using namespace std;
 
+// TODO: ADD this function
+// bool isRequestWellFormed(Connection *connection, string line);
+
 void request::parseRequest(Connection *connection, string line) {
 
 	string method, path, protocol;

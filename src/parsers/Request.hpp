@@ -6,6 +6,7 @@
 namespace request {
 
 	void parseRequest(Connection *connection, std::string line);
+	// bool 
 
 }
 
