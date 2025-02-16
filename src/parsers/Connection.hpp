@@ -31,9 +31,9 @@ class Connection {
 		time_t _time;
 		bool _startline_parsed;
 		bool _headers_parsed;
+		bool _send;
 		bool _has_content_lenght;
 		bool _has_transfer_enconding;
-		bool _send;
 		size_t _transfers;
 
 		void parseRequest(void);

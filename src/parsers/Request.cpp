@@ -79,6 +79,11 @@ void request::parseHeaders(Connection *connection, std::string line) {
 		if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
 			return response::pageOK(connection);
 
+		// TODO: Check if string case matter for headers
+		if (connection->hasTransferEnconding())
+			if (connection->getHeaderByKey(header::TRANSFER_ENCONDING) != "chuncked")
+				return response::pageNotImplemented(connection);
+
 		return;
 	}
 

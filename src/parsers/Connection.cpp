@@ -22,6 +22,8 @@ Connection::Connection(int fd, string ip, Http *http)
 	  _startline_parsed(false),
 	  _headers_parsed(false),
 	  _send(false),
+	  _has_content_lenght(false),
+	  _has_transfer_enconding(false),
 	  _transfers(0) {
 
 }
@@ -56,6 +58,8 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
 	_transfers = rhs._transfers;
+	_has_content_lenght = rhs._has_content_lenght;
+	_has_transfer_enconding = rhs._has_transfer_enconding;
 
 	return *this;
 }
