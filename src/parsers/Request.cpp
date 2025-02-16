@@ -83,8 +83,9 @@ void request::parseHeaders(Connection *connection, std::string line) {
 	}
 
 	size_t separator = line.find(":");
-	if (separator == string::npos)
+	if (request::validateHeaders(connection, separator))
 		return response::pageBadRequest(connection);
+
 
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
@@ -94,4 +95,15 @@ void request::parseHeaders(Connection *connection, std::string line) {
 	connection->addHeader(key, value);
 
 	return;
+}
+
+bool request::validateHeaders(Connection *connection, size_t separator) {
+
+	if (separator == string::npos)
+		return true;
+
+	if (connection->hasContentLenght() && connection->hasTransferEnconding())
+		return true;
+	
+	return false;
 }

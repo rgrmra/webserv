@@ -211,6 +211,12 @@ void Connection::addHeader(string key, string value) {
 			_server = _http->getServerByListen(_ip);
 	}
 
+	if (key == header::CONTENT_LENGTH)
+		_has_content_lenght = true;
+
+	if (key == header::TRANSFER_ENCONDING)
+		_has_transfer_enconding = true;
+
 	_headers[key] = value;
 }
 
@@ -361,6 +367,16 @@ bool Connection::getHeadersParsed(void) const {
 	return _headers_parsed;
 }
 
+bool Connection::hasContentLenght(void) const {
+
+	return _has_content_lenght;
+}
+
+bool Connection::hasTransferEnconding(void) const {
+
+	return _has_transfer_enconding;
+}
+
 void Connection::setSend(bool send) {
 
 	_send = send;
@@ -405,6 +421,8 @@ void Connection::resetConnection(void) {
 	_startline_parsed = false;
 	_headers_parsed = false;
 	_send = false;
+	_has_content_lenght = false;
+	_has_transfer_enconding = false;
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {

@@ -312,7 +312,7 @@ void response::pageInternalServerError(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
-void response::pageInternalServerError(Connection *connection) {
+void response::pageNotImplemented(Connection *connection) {
 
 	connection->setCode(code::NOT_IMPLEMENTED);
 	connection->setStatus(status::NOT_IMPLEMENTED);

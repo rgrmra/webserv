@@ -8,6 +8,7 @@ namespace request {
 	void parseRequest(Connection *connection, std::string line);
 	void parseStartLine(Connection *connection, std::string line);
 	void parseHeaders(Connection *connection, std::string line);
+	bool validateHeaders(Connection *connection, size_t separator);
 }
 
 #endif /* REQUEST_HPP */

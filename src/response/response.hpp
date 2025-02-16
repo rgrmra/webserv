@@ -26,6 +26,7 @@ namespace response {
 	void pageUnsupportedMediaType(Connection *connection);
 	void pageUnprocessableContent(Connection *connection);
 	void pageInternalServerError(Connection *connection);
+	void pageNotImplemented(Connection *connection);
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
 	//std::string setPageWithPath(Connection * connection);
