@@ -15,6 +15,7 @@ add_library(webreq_lib ${WEBREQ_SOURCES})
 
 target_include_directories(webreq_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/files
         ${CMAKE_CURRENT_SOURCE_DIR}/src/parsers
         ${CMAKE_CURRENT_SOURCE_DIR}/src/response
         ${CMAKE_CURRENT_SOURCE_DIR}/src/services
