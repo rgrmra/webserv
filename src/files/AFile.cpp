@@ -1,4 +1,6 @@
 #include "AFile.hpp"
+#include "Mime.hpp"
+#include "WebServ.hpp"
 #include "response.hpp"
 #include <string>
 
@@ -35,6 +37,8 @@ size_t AFile::getSize(void) const {
 }
 
 string AFile::getMime(void) const {
-	
-	return response::MIME.getType(_path);
+
+	extern Mime *mimes;
+
+	return mimes->getType(_path);
 }

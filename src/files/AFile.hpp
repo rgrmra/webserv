@@ -14,6 +14,7 @@ class AFile {
 		AFile &operator=(const AFile &rhs);
 		virtual ~AFile(void);
 
+		virtual bool empty(void) const = 0;
 		virtual size_t getSize(void) const;
 		virtual std::string getBuffer(size_t bytes) = 0;
 		std::string getMime(void) const;

@@ -7,73 +7,64 @@
 #include "parser.hpp"
 #include "response.hpp"
 #include "status.hpp"
+#include <algorithm>
+#include <iostream>
 #include <string>
 #include <sys/stat.h>
 
 using namespace std;
 
 bool response::isDirectory(const std::string &path) {
-    struct stat info;
-    if (stat(path.c_str(), &info) != 0)
-        return false;
-    return (info.st_mode & S_IFDIR) != 0;
+
+	struct stat info;
+
+	if (stat(path.c_str(), &info) == 0)
+		return (info.st_mode & S_IFDIR) != 0;
+
+	return false;
 }
 
 bool response::isFile(const std::string &path) {
-    struct stat info;
-    if (stat(path.c_str(), &info) != 0){
-        return false;
-	}
-    return (info.st_mode & S_IFREG) != 0;
+
+	struct stat info;
+
+	if (stat(path.c_str(), &info) == 0)
+		return (info.st_mode & S_IFREG) != 0;
+
+	return false;
 }
 
 bool response::isCGI(const std::string &path) {
-    size_t pos = path.find_last_of(".");
-    if (pos == std::string::npos) {
-        return false;
-    }
-    std::string extension = path.substr(pos);
-    return extension == ".php" || extension == ".py" || extension == ".go";
+	size_t pos = path.find_last_of(".");
+	if (pos == std::string::npos) {
+		return false;
+	}
+	std::string extension = path.substr(pos);
+	return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
-//void	response::setContentTypes(Connection *connection){
-//	if (connection->getCode() != "200"){
-//		connection->addHeader("Content-Type", "text/html");
-//		return;
-//	}
-//
-//	map<string, string> content_types;
-//
-//	content_types[".html"] = "text/html";
-//	content_types[".css"] = "text/css";
-//	content_types[".js"] = "text/javascript";
-//	content_types[".jpg"] = "image/jpeg";
-//	content_types[".jpeg"] = "image/jpeg";
-//	content_types[".png"] = "image/png";
-//	content_types[".gif"] = "image/gif";
-//	content_types[".bmp"] = "image/bmp";
-//	content_types[".ico"] = "image/x-icon";
-//	content_types[".svg"] = "image/svg+xml";
-//	content_types[".mp3"] = "audio/mpeg";
-//	
-//	string path = connection->getPath();
-//	size_t pos = path.find_last_of(".");
-//
-//	if (pos != string::npos){
-//		string extension = path.substr(pos);
-//		map<string, string>::iterator it = content_types.find(extension);
-//		if (it != content_types.end())
-//			connection->addHeader("Content-Type", it->second);
-//		else
-//			connection->addHeader("Content-Type", "text/plain");
-//	}
-//}
+string response::getFileExtension(string path) {
 
-//void	response::setHeader(Connection *connection){
-//	setContentTypes(connection);
-//	connection->addHeader("Connection", "closed");
-//
-//}
+	list<string> splited_path = parser::split(path, '/');
+	if (splited_path.empty())
+		return "";
+
+	size_t pos;
+	list<string>::iterator it = splited_path.begin();
+	for (; it != splited_path.end(); it++) {
+
+		if (*it == "." || *it == "..")
+			continue;
+
+		pos = it->find_first_of(".");
+		if (pos == string::npos)
+			continue;
+
+		return it->substr(pos + 1);
+	}
+
+	return "";
+}
 
 Location response::isPathValid(Connection *connection) {
 	string path = connection->getPath();
@@ -99,43 +90,66 @@ Location response::isPathValid(Connection *connection) {
 	return Location();
 }
 
+Location isValidPath(Connection *connection) {
+
+	list<Location> locations;
+	locations.push_back(connection->getServer().getLocationByURI("/"));
+
+	string path = connection->getPath();
+
+	size_t pos = path.find_first_of("?");
+	if (pos != string::npos)
+		path.erase(pos);
+
+	list<string> splited_path = parser::split(path, '/');
+	if (splited_path.empty())
+		return locations.back();
+
+	string tmp;
+
+	list<string>::iterator it = splited_path.begin();
+	for (; it != splited_path.end(); it ++) {
+
+		cout << *it << endl;
+
+		if (*it == ".")
+			continue;
+
+		if (*it == "..") {
+			if (locations.size() > 1)
+				locations.pop_back();
+
+			continue;
+		}
+
+		if (it->find_first_of(".?") != string::npos) {
+
+			return locations.back();
+		}
+
+		tmp += "/" + *it;
+
+		Location location = connection->getServer().getLocationByURI(tmp);
+		if (!location.empty())
+			locations.push_back(location);
+	}
+
+	cout << "location: " << tmp << endl;
+
+	return locations.back();
+}
+
 static void buildHeaderAndBody(Connection *connection) {
 
 	connection->setFile(new Page(connection->getCode(), connection->getStatus()));
 
-	//string tmp;
-
-	//if (tmp.empty()) {
-
-	//	string tmp = connection->getCode() + " " + connection->getStatus();
-
-	//	ostringstream oss;
-	//	oss << "<html>\n"
-	//		"<head><title>" + tmp + "</title></head>\n"
-	//		"<body>\n"
-	//		"<center><h1>" + tmp + "</h1></center>\n"
-	//		"<hr><center>webserv</center>\n"
-	//		"</body>\n"
-	//		"</html>\n";
-	//	tmp = oss.str();
-	//}
 	string header_connection = connection->getHeaderByKey(header::CONNECTION);
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
 
-	//response::setContentTypes(connection);
-	//connection->addHeader(header::CONTENT_TYPE, "text/html");
-	//connection->addHeader(header::CONTENT_LENGTH, tmp.size());
 	connection->addHeader(header::CONNECTION, header_connection);
 
-	//if (connection->getBody().empty())
-	//{
-	//	connection->addHeader("Content-Length", tmp.size());
-	//	connection->setBody(tmp);
-	//}
-	//else
-	//	connection->addHeader("Content-Length", connection->getBody().size());
 	connection->setSend(true);
 }
 
@@ -155,92 +169,71 @@ bool response::checkIndex(const Location &location, Connection *connection) {
     return false;
 }
 
+string getPathFromURL(string url) {
 
+	size_t pos = url.find_first_of("://");
+	if (pos != string::npos)
+		url.erase(0, pos + 3);
 
-//bool response::isValidMethod(closedconst std::string &method) {
-//	return method == "GET" || method == "POST" || method == "DELETE";
-//}
+	pos = url.find_first_of("/");
+	if (pos != string::npos)
+		url.erase(0, pos);
+
+	pos = url.find_first_of("?");
+	if (pos != string::npos)
+		url.erase(pos);
+
+	return url;
+}
 
 void response::pageOK(Connection *connection) {
 
 	connection->setCode(code::OK);
 	connection->setStatus(status::OK);
 
-	//if (connection->getProtocol().empty()
-	//	|| connection->getCode().empty() || connection->getStatus().empty())
-	//	response::pageInternalServerError(connection);
-	//else
-	//{
-	//	if (not isValidMethod(connection->getMethod()))
-	//	{
-	//		response::pageMethodNotAllowed(connection);
-	//		return;
-	//	}
+	string url = connection->getHeaderByKey(header::REFERER);
+	if (url.size())
+		connection->setPath(getPathFromURL(url) + connection->getPath());
 
-		Location location = isPathValid(connection);
-		if (location.empty())
-			return response::pageNotFound(connection);
+	Location location = isValidPath(connection);
+	cout << location << endl;
+	if (location.empty())
+		return response::pageNotFound(connection);
 
-		string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
-		if (not queryString.empty())
-			connection->setQueryString(queryString);
+	string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
+	if (not queryString.empty())
+		connection->setQueryString(queryString);
 
-		//string root = location.getRoot().empty() ? connection->getServer().getRoot() : location.getRoot();
-		string path = location.getRoot() + connection->getPath();
-		path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
-		connection->setPath(path);
-		if (isDirectory(path) && not checkIndex(location, connection))
-			return response::pageForbbiden(connection);
+	string path = location.getRoot() + connection->getPath();
+	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
+	connection->setPath(path);
+	if (isDirectory(path) && not checkIndex(location, connection))
+		return response::pageForbbiden(connection);
 
-		if (isCGI(path))
-		{
-			// cout << "CGI Path:::::: " << path << endl;
-			// function to handle CGI
-		}
+	cout << path << " " << getFileExtension(connection->getPath()) << endl;
 
-		logger::info(connection->getHost() + " "
-				+ connection->getMethod() + " "
-				+ connection->getPath() + " "
-				+ connection->getProtocol() + " "
-				+ connection->getCode() + " - "
-				+ connection->getHeaderByKey(header::USER_AGENT));
+	if (isCGI(path))
+	{
+		// cout << "CGI Path:::::: " << path << endl;
+		// function to handle CGI
+	}
 
-		//buildHeaderAndBody(connection);
-		string header_connection = connection->getHeaderByKey(header::CONNECTION);
-		connection->setHeaders(response::EMPTY_HEADER);
-		connection->addHeader(header::CONNECTION, header_connection);
+	logger::info(connection->getHost() + " "
+			+ connection->getMethod() + " "
+			+ connection->getPath() + " "
+			+ connection->getProtocol() + " "
+			+ connection->getCode() + " - "
+			+ connection->getHeaderByKey(header::USER_AGENT));
 
-		connection->setFile(new File(connection->getPath()));
-		connection->buildResponse();
-		connection->setSend(true);
-		//response::buildResponseBody(connection);
-	//}
+	//buildHeaderAndBody(connection);
+	string header_connection = connection->getHeaderByKey(header::CONNECTION);
+	connection->setHeaders(response::EMPTY_HEADER);
+	connection->addHeader(header::CONNECTION, header_connection);
+
+	connection->setFile(new File(connection->getPath()));
+	connection->buildResponse();
+	connection->setSend(true);
 }
-
-//void response::buildResponseBody(Connection *connection) {
-//    ifstream file(connection->getPath().c_str(), ios::binary);
-//    if (not file.is_open()) {
-//		response::pageNotFound(connection);
-//        return;
-//    }
-//	file.seekg(0, ios::end);
-//	std::streamsize size = file.tellg();
-//	file.seekg(0, ios::beg);
-//
-//	vector<char> buffer(size);
-//	if (not file.read(buffer.data(), size))
-//	{
-//		response::pageInternalServerError(connection);
-//		return;
-//	}
-//
-//	std::string body;
-//	for (vector<char>::iterator it = buffer.begin(); it != buffer.end(); it++)
-//		body += *it;
-//    connection->setBody(body);
-//    //buildHeaderAndBody(connection);
-//	connection->setSend(true);
-//}
 
 void response::pageBadRequest(Connection *connection) {
 

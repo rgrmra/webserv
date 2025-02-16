@@ -16,6 +16,7 @@ class Page : public AFile {
 		Page &operator=(const Page &rhs);
 		~Page(void);
 
+		virtual bool empty(void) const;
 		std::string getBuffer(size_t bytes);
 
 };

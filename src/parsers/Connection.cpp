@@ -279,6 +279,9 @@ time_t Connection::getTime(void) const {
 
 void Connection::buildResponse(void) {
 
+	if (_file->empty())
+		return response::pageNotFound(this);
+
 	//response::setResponse(this);
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
@@ -324,6 +327,7 @@ string Connection::getResponse(int bytes) {
 	//} else if (_file && _response.empty() && _file->getSize()) {
 		_response += _file->getBuffer(bytes);
 	//}
+	_time = time(NULL);
 
 	return tmp;
 }

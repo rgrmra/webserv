@@ -43,6 +43,11 @@ File::~File(void) {
 		_file.close();
 }
 
+bool File::empty(void) const {
+
+	return !_file.is_open();
+}
+
 std::string File::getBuffer(size_t bytes) {
 
 	if (!_file.is_open())

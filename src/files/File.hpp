@@ -15,6 +15,7 @@ class File : public AFile {
 		File &operator=(const File &rhs);
 		~File(void);
 
+		virtual bool empty(void) const;
 		std::string getBuffer(size_t bytes);
 
 };

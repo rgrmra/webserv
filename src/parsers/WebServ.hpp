@@ -1,6 +1,7 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
+#include "Mime.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
@@ -31,7 +32,7 @@ class WebServ {
 		bool isTimedOut(int client_fd);
 
 	public:
-		static const int BUFFER_SIZE = parser::MEGABYTE;
+		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;
 		static const int MAX_EVENTS = 252;
 		static const long TIMEOUT = 30;
 		static const long KEEP_ALIVE = 3;

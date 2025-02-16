@@ -46,6 +46,11 @@ Page::~Page(void) {
 
 }
 
+bool Page::empty(void) const {
+
+	return false;
+}
+
 string Page::getBuffer(size_t bytes) {
 
 	string tmp = _buffer.substr(0, bytes);

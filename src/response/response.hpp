@@ -1,7 +1,6 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "Mime.hpp"
 #include <map>
 #include <string>
 
@@ -12,7 +11,8 @@ namespace response {
 
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
-	static const Mime MIME;
+
+	std::string getFileExtension(std::string path);
 
 	void pageOK(Connection *connection);
 	void pageBadRequest(Connection *connection);

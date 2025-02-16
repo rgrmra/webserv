@@ -12,6 +12,7 @@
 #include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include "Mime.hpp"
 
 using namespace std;
 
