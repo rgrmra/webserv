@@ -12,36 +12,10 @@
 
 using namespace std;
 
-// TODO: ADD this function
-// bool isRequestWellFormed(Connection *connection, string line);
-
 void request::parseRequest(Connection *connection, string line) {
 
-	string method, path, protocol;
 
-	if (!connection->getStartLineParsed()) {
-
-		if (line.find_first_not_of(" \t\v\r") == string::npos)
-			return;
-
-		if (line.find_first_not_of(" \t\v") != 0)
-			return response::pageBadRequest(connection);
-
-		istringstream startline(line);
-		if (!(startline >> method >> path >> protocol))
-			return response::pageBadRequest(connection);
-
-		if (!directive::validateHttpMethod(method))
-			return response::pageNotAllowed(connection);
-
-		if (protocol != response::PROTOCOL)
-			return response::pageHttpVersionNotSupported(connection);
-
-		connection->setMethod(method);
-		connection->setPath(path);
-		connection->setProtocol(protocol);
-		connection->setStartLineParsed(true);
-
+	if (!parseStartLine(connection, line)) {
 		return;
 	}
 
@@ -84,4 +58,41 @@ void request::parseRequest(Connection *connection, string line) {
 		} else if (body_size > content_length)
 			return response::pageBadRequest(connection);
 	}
+}
+
+// TODO: ADD this function
+bool request::parseStartLine(Connection *connection, string line) {
+
+	string method, path, protocol;
+
+	if (line.find_first_not_of(" \t\v\r") == string::npos)
+		return false;
+
+	if (line.find_first_not_of(" \t\v") != 0) {
+		response::pageBadRequest(connection);
+		return false;
+	}
+
+	istringstream startline(line);
+	if (!(startline >> method >> path >> protocol)) {
+		response::pageBadRequest(connection);
+		return false;
+	}
+
+	if (!directive::validateHttpMethod(method)) {
+		response::pageNotAllowed(connection);
+		return false;
+	}
+
+	if (protocol != response::PROTOCOL) {
+		response::pageHttpVersionNotSupported(connection);
+		return false;
+	}
+
+	connection->setMethod(method);
+	connection->setPath(path);
+	connection->setProtocol(protocol);
+	connection->setStartLineParsed(true);
+
+	return true;
 }

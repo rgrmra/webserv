@@ -6,8 +6,7 @@
 namespace request {
 
 	void parseRequest(Connection *connection, std::string line);
-	// bool 
-
+	bool parseStartLine(Connection *connection, std::string line);
 }
 
 #endif /* REQUEST_HPP */
