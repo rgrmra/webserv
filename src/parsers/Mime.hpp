@@ -13,7 +13,7 @@ class Mime {
 		void parseMimes(std::string &buffer);
 
 	public:
-		Mime(void);
+		Mime(std::string filename);
 		Mime(const Mime &src);
 		Mime &operator=(const Mime &rhs);
 		~Mime(void);
