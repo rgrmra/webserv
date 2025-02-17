@@ -57,7 +57,6 @@ class Connection {
 		void setProtocol(std::string protocol);
 		std::string getProtocol(void) const;
 		void setCode(std::string code);
-		void setCode(size_t code);
 		std::string getCode(void) const;
 		void setStatus(std::string status);
 		std::string getStatus(void) const;
@@ -74,7 +73,7 @@ class Connection {
 		time_t getTime(void) const;
 		void buildResponse(void);
 		std::string getResponse(int bytes);
-		std::string getResponse(void) const;
+		std::string getResponse(void);
 		size_t getResponseSize(void) const;
 		void setStartLineParsed(bool value);
 		bool getStartLineParsed(void) const;

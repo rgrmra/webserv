@@ -16,7 +16,6 @@ class WebServ {
 		int _epoll_fd;
 		std::map<std::string, int> _binded_sockets;
 		std::map<int, Connection *> _client_connections;
-		bool _run;
 
 		void removeBindedPorts(std::string port);
 		bool isBinded(std::string listen);
@@ -30,7 +29,8 @@ class WebServ {
 		int sendMessage(Connection *connection, std::string message);
 		void handleResponse(int client_fd);
 		int isBindedSocket(int fd);
-		bool isTimedOut(int client_fd);
+		bool isTimedOut(int client_fd, Connection *connection);
+		void checkTimeOut(void);
 
 	public:
 		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;

@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "File.hpp"
+#include "Page.hpp"
 #include "header.hpp"
 #include "Http.hpp"
 #include "logger.hpp"
@@ -182,11 +183,6 @@ void Connection::setCode(string code) {
 	_code = code;
 }
 
-void Connection::setCode(size_t code) {
-
-	_code = parser::toString(code);
-}
-
 string Connection::getCode(void) const {
 
 	return _code;
@@ -294,18 +290,14 @@ void Connection::buildResponse(void) {
 	if (_file->empty())
 		return response::pageNotFound(this);
 
-	//response::setResponse(this);
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
+	else
+		_transfers++;
 
-	_transfers++;
-
-	//if (_file && _file->getSize())
-		_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
-	//else
-	//	_headers[header::CONTENT_LENGTH] = parser::toString(_body.size());
-	_headers[header::SERVER] = "webserv/0.1.0";
+	_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
 	_headers[header::CONTENT_TYPE] = _file->getMime();
+	_headers[header::SERVER] = "webserv/0.1.0";
 
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
@@ -314,37 +306,30 @@ void Connection::buildResponse(void) {
 	for (; it != _headers.end(); it++)
 		oss << it->first + ": " + it->second + "\r\n";
 
-	oss << "\r\n";
-
-	//if (_body.size())
-	//	oss << _body;
-
-	_response = oss.str();
-	_send = true;
-	//cout << _response << endl;
+	_response = oss.str() + "\r\n";
 }
 
 string Connection::getResponse(int bytes) {
 
-	if (_response.empty()) {
+	_response += _file->getBuffer(bytes);
+
+	if (_response.empty())
 		return "";
-	}
 
 	string tmp = _response.substr(0, bytes);
 	_response.erase(0, bytes);
 
-	//if (_response.empty() && _body.size()) {
-	//	_response = _body.substr(0, bytes);
-	//	_body.erase(0, bytes);
-	//} else if (_file && _response.empty() && _file->getSize()) {
-		_response += _file->getBuffer(bytes);
-	//}
 	_time = time(NULL);
 
 	return tmp;
 }
 
-string Connection::getResponse(void) const {
+string Connection::getResponse(void) {
+
+	if (dynamic_cast<Page *>(_file))
+		_response += _file->getBuffer(_file->getSize());
+
+	_time = time(NULL);
 
 	return _response;
 }
@@ -457,7 +442,7 @@ ostream &operator<<(ostream &os, const Connection &src) {
 	os << "request headers: " << src.getHeaders() << endl;
 	os << "request body: " << src.getBody() << endl;
 	os << "http {\n" << src.getServer() << "\n}" << endl;
-	os << "response: " << src.getResponse() << endl;
+	//os << "response: " << src.getResponse() << endl;
 
 	return os;
 }
