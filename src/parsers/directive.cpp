@@ -194,13 +194,15 @@ void directive::addName(string name, vector<string> &_name) {
   }
 }
 
-bool validateURI(string uri) {
+bool directive::validateURI(string uri) {
   if (uri.find_first_of(" ") != string::npos)
     return false;
 
   size_t pos = uri.find_first_not_of(directive::ALLOWED_CHARS);
   if (pos != string::npos)
     return false;
+
+  return true;
 }
 
 void directive::setURI(string uri, string &_uri) {
