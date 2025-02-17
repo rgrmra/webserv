@@ -8,8 +8,9 @@ include(cmake/UpdateSubModules.cmake)
 include(CTest)
 
 file(GLOB_RECURSE WEBREQ_SOURCES
-        "src/*/*.cpp"
+        "src/*.cpp"
 )
+list(REMOVE_ITEM WEBREQ_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 add_library(webreq_lib ${WEBREQ_SOURCES})
 
