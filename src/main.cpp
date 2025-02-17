@@ -12,17 +12,16 @@ using namespace std;
 Http *http = NULL;
 Mime *mimes = NULL;
 
-static void sigexit(int signal) {
-
-	delete http;
-	delete mimes;
+static void handle_signal(int signal) {
 	
-	exit(signal);
+	(void) signal;
+
+	http->stop();
 }
 
 int main(int argc, char *argv[]) {
 
-	signal(SIGINT, sigexit);
+	signal(SIGINT, handle_signal);
 
 	int status = EXIT_SUCCESS;
 
@@ -46,5 +45,8 @@ int main(int argc, char *argv[]) {
 		status = EXIT_FAILURE;
 	}
 
-	sigexit(status);
+	delete http;
+	delete mimes;
+
+	return status;
 }

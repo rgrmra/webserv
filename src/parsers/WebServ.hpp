@@ -16,6 +16,7 @@ class WebServ {
 		int _epoll_fd;
 		std::map<std::string, int> _binded_sockets;
 		std::map<int, Connection *> _client_connections;
+		bool _run;
 
 		void removeBindedPorts(std::string port);
 		bool isBinded(std::string listen);
@@ -43,6 +44,7 @@ class WebServ {
 		virtual ~WebServ(void);
 
 		void run(void);
+		void stop(void);
 };
 
 #endif /* WEBSERV_HPP */
