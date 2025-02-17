@@ -39,7 +39,7 @@ class Connection {
 		void parseRequest(void);
 
 	public:
-		Connection(int fd, std::string _ip, Http *http);
+		Connection(int fd, std::string _ip);
 		Connection(const Connection &src);
 		Connection &operator=(const Connection &rhs);
 		virtual ~Connection(void);
@@ -88,6 +88,8 @@ class Connection {
 		void resetConnection(void);
 		void setQueryString(std::string query_string);
 		std::string getQueryString(void) const;
+
+		std::string operator[](std::string key);
 
 };
 

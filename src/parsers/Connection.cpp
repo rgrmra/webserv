@@ -13,9 +13,8 @@
 
 using namespace std;
 
-Connection::Connection(int fd, string ip, Http *http)
-	: _http(http),
-	  _fd(fd),
+Connection::Connection(int fd, string ip)
+	: _fd(fd),
 	  _ip(ip),
 	  _file(NULL),
 	  _time(time(NULL)),
@@ -26,6 +25,9 @@ Connection::Connection(int fd, string ip, Http *http)
 	  _has_transfer_enconding(false),
 	  _transfers(0) {
 
+	extern Http *http;
+
+	_http = http;
 }
 
 Connection::Connection(const Connection &src) {
@@ -427,6 +429,17 @@ void Connection::resetConnection(void) {
 	_send = false;
 	_has_content_lenght = false;
 	_has_transfer_enconding = false;
+}
+
+std::string Connection::operator[](std::string key) {
+
+	static string empty;
+
+	map<string, string>::iterator it = _headers.find(key);
+	if (it->first == key)
+		return it->second;
+
+	return empty ;
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {
