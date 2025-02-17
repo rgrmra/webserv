@@ -2,6 +2,7 @@
 #define HTTP_HPP
 
 #include "Server.hpp"
+#include "WebServ.hpp"
 #include <bitset>
 #include <map>
 #include <ostream>
@@ -11,6 +12,7 @@
 
 class Http {
 	private:
+		WebServ *_webserv;
 		std::string _access_log;
 		std::string _error_log;
 		std::string _root;
@@ -52,6 +54,7 @@ class Http {
 		std::vector<Server> getServers(void) const;
 		bool empty(void) const;
 		void start(void);
+		void stop(void);
 };
 
 std::ostream &operator<<(std::ostream &os, const Http &src);

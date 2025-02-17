@@ -18,7 +18,8 @@ using namespace std;
 
 WebServ::WebServ(Http *http)
 	: _http(http),
-	  _epoll_fd(-1) {
+	  _epoll_fd(-1),
+	  _run(true) {
 
 	vector<Server> servers = _http->getServers();
 	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
@@ -319,7 +320,7 @@ void WebServ::run(void) {
 
 	epoll_event events[MAX_EVENTS];
 
-	while (true) {
+	while (_run) {
 		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
 		if (num_events == -1)
 			throw runtime_error("epoll_wait failed");
@@ -337,4 +338,9 @@ void WebServ::run(void) {
 			if (isTimedOut(ite->first))
 				break;
 	}
+}
+
+void WebServ::stop(void) {
+
+	_run = false;
 }
