@@ -26,7 +26,7 @@ void request::parseRequest(Connection *connection, string line) {
 	if (connection->getHeadersParsed()) {
 
 		size_t body_size = connection->getBuffer().size();
-		size_t content_length = parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH));
+		size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
 		if (body_size == content_length) {
 			connection->setBody(connection->getBuffer());
@@ -48,7 +48,7 @@ void request::parseStartLine(Connection *connection, string line) {
 
 	istringstream startline(line);
 	if (!(startline >> method >> path >> protocol))
-		return response::pageBadRequest(connection);
+		return response::pageBadRequest(connection);	
 	
 	if (!directive::validateHttpMethod(method))
 		return response::pageNotAllowed(connection);
@@ -76,13 +76,13 @@ void request::parseHeaders(Connection *connection, std::string line) {
 			return response::pageBadRequest(connection);
 
 		if (!connection->hasContentLenght() && !connection->hasTransferEnconding() && (connection->getMethod() == "POST"))
-			return response::pageForbbiden(connection);
+			return response::pageBadRequest(connection);
 
 		if (connection->hasTransferEnconding())
-			if (connection->getHeaderByKey(header::TRANSFER_ENCONDING) != "chuncked")
+			if ((*connection)[header::TRANSFER_ENCONDING] != "chuncked")
 				return response::pageNotImplemented(connection);
 
-		if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
+		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) == 0)
 			return response::pageOK(connection);
 
 		return;

@@ -143,7 +143,7 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->setFile(new Page(connection->getCode(), connection->getStatus()));
 
-	string header_connection = connection->getHeaderByKey(header::CONNECTION);
+	string header_connection = (*connection)[header::CONNECTION];
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
@@ -226,7 +226,7 @@ void response::pageOK(Connection *connection) {
 			+ connection->getHeaderByKey(header::USER_AGENT));
 
 	//buildHeaderAndBody(connection);
-	string header_connection = connection->getHeaderByKey(header::CONNECTION);
+	string header_connection = (*connection)[header::CONNECTION];
 	connection->setHeaders(response::EMPTY_HEADER);
 	connection->addHeader(header::CONNECTION, header_connection);
 
