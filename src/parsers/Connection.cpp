@@ -183,11 +183,6 @@ void Connection::setCode(string code) {
 	_code = code;
 }
 
-void Connection::setCode(size_t code) {
-
-	_code = parser::toString(code);
-}
-
 string Connection::getCode(void) const {
 
 	return _code;

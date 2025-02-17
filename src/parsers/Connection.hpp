@@ -57,7 +57,6 @@ class Connection {
 		void setProtocol(std::string protocol);
 		std::string getProtocol(void) const;
 		void setCode(std::string code);
-		void setCode(size_t code);
 		std::string getCode(void) const;
 		void setStatus(std::string status);
 		std::string getStatus(void) const;
