@@ -32,7 +32,7 @@ void request::parseRequest(Connection *connection, string line) {
 			connection->setBody(connection->getBuffer());
 			connection->setSend(true);
 		} else if (body_size > content_length)
-			return response::pageBadRequest(connection);
+			return response::pagePayloadTooLarge(connection);
 	}
 }
 

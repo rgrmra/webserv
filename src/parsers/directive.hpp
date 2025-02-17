@@ -22,7 +22,7 @@ namespace directive {
 	void addListen(std::string listen, std::vector<std::string> &_listen);
 	bool validateName(std::string name);
 	void addName(std::string name, std::vector<std::string> &_name);
-	bool validateURI(string uri);
+	bool validateURI(std::string uri);
 	void setURI(std::string uri, std::string &_uri);
 	bool validateHttpMethod(std::string method);
 	void addMethod(std::string method, std::set<std::string> &_allow_methods);
