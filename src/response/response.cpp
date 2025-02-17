@@ -149,7 +149,7 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->setHeaders(response::EMPTY_HEADER);
 
 	connection->addHeader(header::CONNECTION, header_connection);
-
+	connection->buildResponse();
 	connection->setSend(true);
 }
 
