@@ -14,12 +14,13 @@ namespace status {
 	static const std::string NOT_ALLOWED = "Not Allowed";
 	static const std::string LENGTH_REQUIRED = "Length Required";
 	static const std::string PAYLOAD_TOO_LARGE = "Payload Too Large";
+	static const std::string URI_TOO_LONG = "URI Too Long";
 	static const std::string UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
 	static const std::string UNPROCESSABLE_CONTENT = "Unprocessable Content";
 	static const std::string INTERNAL_SERVER_ERROR = "Internal Server Error";
+	static const std::string NOT_IMPLEMENTED = "Not Implemented";
 	static const std::string GATEWAY_TIMEOUT = "Gateway Timeout";
 	static const std::string HTTP_VERSION_NOT_SUPPPORTED = "HTTP Version Not Supported";
-
 }
 
 #endif /* STATUS_HPP */

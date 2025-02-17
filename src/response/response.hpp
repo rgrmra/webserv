@@ -22,9 +22,11 @@ namespace response {
 	void pageNotAllowed(Connection *connection);
 	void pageLengthRequired(Connection *connection);
 	void pagePayloadTooLarge(Connection *connection);
+	void pageURITooLong(Connection *connection);
 	void pageUnsupportedMediaType(Connection *connection);
 	void pageUnprocessableContent(Connection *connection);
 	void pageInternalServerError(Connection *connection);
+	void pageNotImplemented(Connection *connection);
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
 	//std::string setPageWithPath(Connection * connection);
