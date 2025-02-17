@@ -14,7 +14,6 @@ using namespace std;
 
 void request::parseRequest(Connection *connection, string line) {
 
-
 	if (!connection->getStartLineParsed()) {
 		return parseStartLine(connection, line);
 	}
