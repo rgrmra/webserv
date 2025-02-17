@@ -264,7 +264,7 @@ void WebServ::handleResponse(int client_fd) {
 
 	if (connection->getResponseSize())
 		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-	else if (connection->getHeaderByKey(header::CONNECTION) == "keep-alive") {
+	else if ((*connection)[header::CONNECTION] == "keep-alive") {
 		connection->resetConnection();
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 	}

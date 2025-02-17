@@ -21,6 +21,8 @@ Connection::Connection(int fd, string ip)
 	  _startline_parsed(false),
 	  _headers_parsed(false),
 	  _send(false),
+	  _has_content_lenght(false),
+	  _has_transfer_enconding(false),
 	  _transfers(0) {
 
 	extern Http *http;
@@ -58,6 +60,8 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
 	_transfers = rhs._transfers;
+	_has_content_lenght = rhs._has_content_lenght;
+	_has_transfer_enconding = rhs._has_transfer_enconding;
 
 	return *this;
 }
@@ -213,6 +217,12 @@ void Connection::addHeader(string key, string value) {
 			_server = _http->getServerByListen(_ip);
 	}
 
+	if (key == header::CONTENT_LENGTH)
+		_has_content_lenght = true;
+
+	if (key == header::TRANSFER_ENCONDING)
+		_has_transfer_enconding = true;
+
 	_headers[key] = value;
 }
 
@@ -363,6 +373,16 @@ bool Connection::getHeadersParsed(void) const {
 	return _headers_parsed;
 }
 
+bool Connection::hasContentLenght(void) const {
+
+	return _has_content_lenght;
+}
+
+bool Connection::hasTransferEnconding(void) const {
+
+	return _has_transfer_enconding;
+}
+
 void Connection::setSend(bool send) {
 
 	_send = send;
@@ -407,6 +427,8 @@ void Connection::resetConnection(void) {
 	_startline_parsed = false;
 	_headers_parsed = false;
 	_send = false;
+	_has_content_lenght = false;
+	_has_transfer_enconding = false;
 }
 
 std::string Connection::operator[](std::string key) {

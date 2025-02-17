@@ -32,6 +32,8 @@ class Connection {
 		bool _startline_parsed;
 		bool _headers_parsed;
 		bool _send;
+		bool _has_content_lenght;
+		bool _has_transfer_enconding;
 		size_t _transfers;
 
 		void parseRequest(void);
@@ -78,6 +80,8 @@ class Connection {
 		bool getStartLineParsed(void) const;
 		void setHeadersParsed(bool value);
 		bool getHeadersParsed(void) const;
+		bool hasContentLenght(void) const;
+		bool hasTransferEnconding(void) const;
 		void setSend(bool send);
 		bool getSend(void) const;
 		size_t getTransfers(void) const;

@@ -194,13 +194,27 @@ void directive::addName(string name, vector<string> &_name) {
   }
 }
 
+bool directive::validateURI(string uri) {
+  if (uri.find_first_of(" ") != string::npos)
+    return false;
+
+  size_t pos = uri.find_first_not_of(directive::ALLOWED_CHARS);
+  if (pos != string::npos)
+    return false;
+
+  return true;
+}
+
 void directive::setURI(string uri, string &_uri) {
   if (uri.empty())
     return;
 
-  // TODO: implement uriValidation function
   if (uri.find_first_of(" ") != string::npos)
     throw runtime_error("invalid path: " + uri);
+
+  size_t pos = uri.find_first_not_of(directive::ALLOWED_CHARS);
+  if (pos != string::npos)
+    throw runtime_error("invalid character in URI: " + uri.at(pos));
 
   _uri = uri;
 }

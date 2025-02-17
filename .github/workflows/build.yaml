@@ -9,7 +9,8 @@ on:
     branches:
       - '**'
   pull_request:
-    branches: ["main", "develop"]
+    branches:
+      - '**'
 
 jobs:
   Build:

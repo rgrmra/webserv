@@ -143,7 +143,7 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->setFile(new Page(connection->getCode(), connection->getStatus()));
 
-	string header_connection = connection->getHeaderByKey(header::CONNECTION);
+	string header_connection = (*connection)[header::CONNECTION];
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
@@ -226,7 +226,7 @@ void response::pageOK(Connection *connection) {
 			+ connection->getHeaderByKey(header::USER_AGENT));
 
 	//buildHeaderAndBody(connection);
-	string header_connection = connection->getHeaderByKey(header::CONNECTION);
+	string header_connection = (*connection)[header::CONNECTION];
 	connection->setHeaders(response::EMPTY_HEADER);
 	connection->addHeader(header::CONNECTION, header_connection);
 
@@ -284,6 +284,13 @@ void response::pagePayloadTooLarge(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
+void response::pageURITooLong(Connection *connection) {
+
+	connection->setCode(code::URI_TOO_LONG);
+	connection->setStatus(status::URI_TOO_LONG);
+	buildHeaderAndBody(connection);
+}
+
 void response::pageUnsupportedMediaType(Connection *connection) {
 
 	connection->setCode(code::UNSUPORTED_MEDIA_TYPE);
@@ -302,6 +309,13 @@ void response::pageInternalServerError(Connection *connection) {
 
 	connection->setCode(code::INTERNAL_SERVER_ERROR);
 	connection->setStatus(status::INTERNAL_SERVER_ERROR);
+	buildHeaderAndBody(connection);
+}
+
+void response::pageNotImplemented(Connection *connection) {
+
+	connection->setCode(code::NOT_IMPLEMENTED);
+	connection->setStatus(status::NOT_IMPLEMENTED);
 	buildHeaderAndBody(connection);
 }
 
