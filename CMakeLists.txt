@@ -8,7 +8,7 @@ include(cmake/UpdateSubModules.cmake)
 include(CTest)
 
 file(GLOB_RECURSE WEBREQ_SOURCES
-        "src/*.cpp"
+        "src/*/*.cpp"
 )
 
 add_library(webreq_lib ${WEBREQ_SOURCES})
