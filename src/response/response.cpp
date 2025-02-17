@@ -7,7 +7,6 @@
 #include "parser.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <algorithm>
 #include <iostream>
 #include <string>
 #include <sys/stat.h>
@@ -34,6 +33,7 @@ bool response::isFile(const std::string &path) {
 	return false;
 }
 
+// TODO: refactor
 bool response::isCGI(const std::string &path) {
 	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos) {
@@ -191,7 +191,7 @@ void response::pageOK(Connection *connection) {
 	connection->setCode(code::OK);
 	connection->setStatus(status::OK);
 
-	string url = connection->getHeaderByKey(header::REFERER);
+	string url = (*connection)[header::REFERER];
 	if (url.size())
 		connection->setPath(getPathFromURL(url) + connection->getPath());
 

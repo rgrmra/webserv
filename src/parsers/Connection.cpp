@@ -409,6 +409,17 @@ void Connection::resetConnection(void) {
 	_send = false;
 }
 
+std::string Connection::operator[](std::string key) {
+
+	static string empty;
+
+	map<string, string>::iterator it = _headers.find(key);
+	if (it->first == key)
+		return it->second;
+
+	return empty ;
+}
+
 ostream &operator<<(ostream &os, const Connection &src) {
 
 	os << "Connection" << endl;

@@ -85,6 +85,8 @@ class Connection {
 		void setQueryString(std::string query_string);
 		std::string getQueryString(void) const;
 
+		std::string operator[](std::string key);
+
 };
 
 std::ostream &operator<<(std::ostream &os, const Connection &src);
