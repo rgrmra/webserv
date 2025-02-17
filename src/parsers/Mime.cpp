@@ -1,6 +1,7 @@
 #include "logger.hpp"
 #include "Mime.hpp"
 #include "parser.hpp"
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -10,10 +11,8 @@
 
 using namespace std;
 
-Mime::Mime(void)
+Mime::Mime(string filename)
 	: _default_mime("text/plain") {
-
-	string filename = "./src/parsers/mimes.json";
 
 	try {
 		ifstream file(filename.c_str());

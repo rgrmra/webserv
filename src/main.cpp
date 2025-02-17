@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
 		http = new Http(argv[1] ? argv[1] : "configurations/default.conf");
 
-		mimes = new Mime();
+		mimes = new Mime("src/parsers/mimes.json");
 
 		cout << *http << endl;
 
