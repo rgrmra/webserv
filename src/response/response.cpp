@@ -66,29 +66,29 @@ string response::getFileExtension(string path) {
 	return "";
 }
 
-Location response::isPathValid(Connection *connection) {
-	string path = connection->getPath();
-	if (path.find("..") != string::npos || path.find('/') == string::npos) {
-		return Location();
-	}
-
-	while (!path.empty()) {
-		Location temp = connection->getServer().getLocationByURI(path);
-		if (not temp.getURI().empty())
-		{
-			return temp;
-		}
-
-		size_t lastSlash = path.find_last_of('/');
-		if (lastSlash == 0)
-			path = "/";
-		else if (lastSlash != string::npos)
-			path = path.substr(0, lastSlash);
-		else
-			path.clear();
-	}
-	return Location();
-}
+//Location response::isPathValid(Connection *connection) {
+//	string path = connection->getPath();
+//	if (path.find("..") != string::npos || path.find('/') == string::npos) {
+//		return Location();
+//	}
+//
+//	while (!path.empty()) {
+//		Location temp = connection->getServer().getLocationByURI(path);
+//		if (not temp.getURI().empty())
+//		{
+//			return temp;
+//		}
+//
+//		size_t lastSlash = path.find_last_of('/');
+//		if (lastSlash == 0)
+//			path = "/";
+//		else if (lastSlash != string::npos)
+//			path = path.substr(0, lastSlash);
+//		else
+//			path.clear();
+//	}
+//	return Location();
+//}
 
 Location isValidPath(Connection *connection) {
 
@@ -141,14 +141,13 @@ Location isValidPath(Connection *connection) {
 
 static void buildHeaderAndBody(Connection *connection) {
 
-	connection->setFile(new Page(connection->getCode(), connection->getStatus()));
-
 	string header_connection = (*connection)[header::CONNECTION];
 
 	connection->setProtocol(response::PROTOCOL);
 	connection->setHeaders(response::EMPTY_HEADER);
 
 	connection->addHeader(header::CONNECTION, header_connection);
+
 	connection->buildResponse();
 	connection->setSend(true);
 }
@@ -169,7 +168,7 @@ bool response::checkIndex(const Location &location, Connection *connection) {
     return false;
 }
 
-string getPathFromURL(string url) {
+string getPathFromReferer(string url) {
 
 	size_t pos = url.find_first_of("://");
 	if (pos != string::npos)
@@ -188,12 +187,9 @@ string getPathFromURL(string url) {
 
 void response::pageOK(Connection *connection) {
 
-	connection->setCode(code::OK);
-	connection->setStatus(status::OK);
-
 	string url = (*connection)[header::REFERER];
 	if (url.size())
-		connection->setPath(getPathFromURL(url) + connection->getPath());
+		connection->setPath(getPathFromReferer(url) + connection->getPath());
 
 	Location location = isValidPath(connection);
 	cout << location << endl;
@@ -210,7 +206,7 @@ void response::pageOK(Connection *connection) {
 	if (isDirectory(path) && not checkIndex(location, connection))
 		return response::pageForbbiden(connection);
 
-	cout << path << " " << getFileExtension(connection->getPath()) << endl;
+	//cout << path << " " << getFileExtension(connection->getPath()) << endl;
 
 	if (isCGI(path))
 	{
@@ -218,27 +214,24 @@ void response::pageOK(Connection *connection) {
 		// function to handle CGI
 	}
 
-	logger::info(connection->getHost() + " "
-			+ connection->getMethod() + " "
-			+ connection->getPath() + " "
-			+ connection->getProtocol() + " "
-			+ connection->getCode() + " - "
-			+ connection->getHeaderByKey(header::USER_AGENT));
-
-	//buildHeaderAndBody(connection);
-	string header_connection = (*connection)[header::CONNECTION];
-	connection->setHeaders(response::EMPTY_HEADER);
-	connection->addHeader(header::CONNECTION, header_connection);
-
+	connection->setCode(code::OK);
+	connection->setStatus(status::OK);
 	connection->setFile(new File(connection->getPath()));
-	connection->buildResponse();
-	connection->setSend(true);
+	buildHeaderAndBody(connection);
+
+	logger::info(connection->getHost() + " "
+		+ connection->getMethod() + " "
+		+ connection->getPath() + " "
+		+ connection->getProtocol() + " "
+		+ connection->getCode() + " - "
+		+ connection->getHeaderByKey(header::USER_AGENT));
 }
 
 void response::pageBadRequest(Connection *connection) {
 
 	connection->setCode(code::BAD_REQUEST);
 	connection->setStatus(status::BAD_REQUEST);
+	connection->setFile(new Page(code::BAD_REQUEST, status::BAD_REQUEST));
 	buildHeaderAndBody(connection);
 }
 
@@ -246,6 +239,7 @@ void response::pageUnauthorized(Connection *connection) {
 
 	connection->setCode(code::UNAUTHORIZED);
 	connection->setStatus(status::UNAUTHORIZED);
+	connection->setFile(new Page(code::UNAUTHORIZED, status::UNAUTHORIZED));
 	buildHeaderAndBody(connection);
 }
 
@@ -253,6 +247,7 @@ void response::pageForbbiden(Connection *connection) {
 
 	connection->setCode(code::FORBBIDEN);
 	connection->setStatus(status::FORBBIDEN);
+	connection->setFile(new Page(code::FORBBIDEN, status::FORBBIDEN));
 	buildHeaderAndBody(connection);
 }
 
@@ -260,6 +255,7 @@ void response::pageNotFound(Connection *connection) {
 
 	connection->setCode(code::NOT_FOUND);
 	connection->setStatus(status::NOT_FOUND);
+	connection->setFile(new Page(code::NOT_FOUND, status::NOT_FOUND));
 	buildHeaderAndBody(connection);
 }
 
@@ -267,6 +263,7 @@ void response::pageNotAllowed(Connection *connection) {
 
 	connection->setCode(code::NOT_ALLOWED);
 	connection->setStatus(status::NOT_ALLOWED);
+	connection->setFile(new Page(code::NOT_ALLOWED, status::NOT_ALLOWED));
 	buildHeaderAndBody(connection);
 }
 
@@ -274,6 +271,7 @@ void response::pageLengthRequired(Connection *connection) {
 
 	connection->setCode(code::LENGTH_REQUIRED);
 	connection->setStatus(status::LENGTH_REQUIRED);
+	connection->setFile(new Page(code::LENGTH_REQUIRED, status::LENGTH_REQUIRED));
 	buildHeaderAndBody(connection);
 }
 
@@ -281,6 +279,7 @@ void response::pagePayloadTooLarge(Connection *connection) {
 
 	connection->setCode(code::PAYLOAD_TOO_LARGE);
 	connection->setStatus(status::PAYLOAD_TOO_LARGE);
+	connection->setFile(new Page(code::PAYLOAD_TOO_LARGE, status::PAYLOAD_TOO_LARGE));
 	buildHeaderAndBody(connection);
 }
 
@@ -288,13 +287,15 @@ void response::pageURITooLong(Connection *connection) {
 
 	connection->setCode(code::URI_TOO_LONG);
 	connection->setStatus(status::URI_TOO_LONG);
+	connection->setFile(new Page(code::URI_TOO_LONG, status::URI_TOO_LONG));
 	buildHeaderAndBody(connection);
 }
 
 void response::pageUnsupportedMediaType(Connection *connection) {
 
-	connection->setCode(code::UNSUPORTED_MEDIA_TYPE);
+	connection->setCode(code::UNSUPPORTED_MEDIA_TYPE);
 	connection->setStatus(status::UNSUPPORTED_MEDIA_TYPE);
+	connection->setFile(new Page(code::UNSUPPORTED_MEDIA_TYPE, status::UNSUPPORTED_MEDIA_TYPE));
 	buildHeaderAndBody(connection);
 }
 
@@ -302,6 +303,7 @@ void response::pageUnprocessableContent(Connection *connection) {
 
 	connection->setCode(code::UNPROCESSABLE_CONTENT);
 	connection->setStatus(status::UNPROCESSABLE_CONTENT);
+	connection->setFile(new Page(code::UNPROCESSABLE_CONTENT, status::UNPROCESSABLE_CONTENT));
 	buildHeaderAndBody(connection);
 }
 
@@ -309,6 +311,7 @@ void response::pageInternalServerError(Connection *connection) {
 
 	connection->setCode(code::INTERNAL_SERVER_ERROR);
 	connection->setStatus(status::INTERNAL_SERVER_ERROR);
+	connection->setFile(new Page(code::INTERNAL_SERVER_ERROR, status::INTERNAL_SERVER_ERROR));
 	buildHeaderAndBody(connection);
 }
 
@@ -316,6 +319,7 @@ void response::pageNotImplemented(Connection *connection) {
 
 	connection->setCode(code::NOT_IMPLEMENTED);
 	connection->setStatus(status::NOT_IMPLEMENTED);
+	connection->setFile(new Page(code::NOT_IMPLEMENTED, status::NOT_IMPLEMENTED));
 	buildHeaderAndBody(connection);
 }
 
@@ -323,15 +327,14 @@ void response::pageGatewayTimeOut(Connection *connection) {
 
 	connection->setCode(code::GATEWAY_TIMEOUT);
 	connection->setStatus(status::GATEWAY_TIMEOUT);
+	connection->setFile(new Page(code::GATEWAY_TIMEOUT, status::GATEWAY_TIMEOUT));
 	buildHeaderAndBody(connection);
-
-	logger::warning(connection->getIp() + " timed out");
 }
 
 void response::pageHttpVersionNotSupported(Connection *connection) {
 
 	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
-	connection->setStatus(status::HTTP_VERSION_NOT_SUPPPORTED);
-
+	connection->setStatus(status::HTTP_VERSION_NOT_SUPPORTED);
+	connection->setFile(new Page(code::HTTP_VERSION_NOT_SUPPORTED, status::HTTP_VERSION_NOT_SUPPORTED));
 	buildHeaderAndBody(connection);
 }

@@ -37,7 +37,7 @@ namespace response {
 	//void		setBody(Connection * connection);
 	//void		buildResponseBody(Connection *connection);
 	//void		setPathAndMethod(Connection *connection);
-	Location	isPathValid(Connection * connection);
+	//Location	isPathValid(Connection * connection);
 
 
 	bool		checkIndex(const Location &location, Connection * connection);

@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
 	} catch (std::exception &exception) {
 
-		logger::error(exception.what());
+		logger::fatal(exception.what());
 
 		status = EXIT_FAILURE;
 	}

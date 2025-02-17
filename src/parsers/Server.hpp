@@ -60,6 +60,7 @@ class Server {
 		std::string getReturnCode(void) const;
 		std::string getReturnURI(void) const;
 		bool empty(void) const;
+
 };
 
 std::ostream &operator<<(std::ostream &os, const Server &src);
