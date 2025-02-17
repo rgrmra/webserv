@@ -67,22 +67,23 @@ void request::parseStartLine(Connection *connection, string line) {
 	return;
 }
 
-
 void request::parseHeaders(Connection *connection, std::string line) {
 
 	if (line == "\r") {
 		connection->setHeadersParsed(true);
-
+		
 		if (!connection->getHeaders().size())
 			return response::pageBadRequest(connection);
 
-		if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
-			return response::pageOK(connection);
+		if (!connection->hasContentLenght() && !connection->hasTransferEnconding() && (connection->getMethod() == "POST"))
+			return response::pageForbbiden(connection);
 
-		// TODO: Check if string case matter for headers
 		if (connection->hasTransferEnconding())
 			if (connection->getHeaderByKey(header::TRANSFER_ENCONDING) != "chuncked")
 				return response::pageNotImplemented(connection);
+
+		if (parser::toSizeT(connection->getHeaderByKey(header::CONTENT_LENGTH)) == 0)
+			return response::pageOK(connection);
 
 		return;
 	}
@@ -90,7 +91,6 @@ void request::parseHeaders(Connection *connection, std::string line) {
 	size_t separator = line.find(":");
 	if (request::validateHeaders(connection, separator))
 		return response::pageBadRequest(connection);
-
 
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
