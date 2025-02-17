@@ -6,7 +6,7 @@
 #include "Mime.hpp"
 #include <gtest/gtest.h>
 
-Mime *mimes;
+Mime *mimes = NULL;
 Http *http = NULL;
 
 int main(int argc, char **argv) {
