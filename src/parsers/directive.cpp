@@ -349,7 +349,8 @@ void directive::mergeErrorPages(map<string, string> error_pages, map<string, str
 
 	map<string, string>::iterator it = error_pages.begin();
 	for (; it != error_pages.end(); it++)
-		_error_pages[it->first] = it->second;
+		if (_error_pages[it->first].empty())
+			_error_pages[it->first] = it->second;
 }
 
 bool directive::validateHttpCode(string code) {
