@@ -32,11 +32,13 @@ void process::request(Connection *connection) {
 	if (not queryString.empty())
 		connection->setQueryString(queryString);
 
+
 	string path = connection->getPath();
 	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
 
 	string uri = path;
 	path = location.getRoot() + connection->getPath();
+
 	connection->setPath(path);
 	if (process::isDirectory(path) && not process::checkIndex(location, connection))
 		return response::pageForbbiden(connection);
