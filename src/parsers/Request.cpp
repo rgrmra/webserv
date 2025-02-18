@@ -14,13 +14,11 @@ using namespace std;
 
 void request::parseRequest(Connection *connection, string line) {
 
-	if (!connection->getStartLineParsed()) {
+	if (!connection->getStartLineParsed())
 		return parseStartLine(connection, line);
-	}
 
-	if (!connection->getHeadersParsed()) {
+	if (!connection->getHeadersParsed())
 		return parseHeaders(connection, line);
-	}
 
 	if (connection->getHeadersParsed()) {
 
@@ -38,6 +36,9 @@ void request::parseRequest(Connection *connection, string line) {
 void request::parseStartLine(Connection *connection, string line) {
 
 	string method, path, protocol;
+
+	if (line.at(line.size() -1) != '\r')
+		return response::pageBadRequest(connection);
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
 		return;
@@ -67,6 +68,9 @@ void request::parseStartLine(Connection *connection, string line) {
 }
 
 void request::parseHeaders(Connection *connection, std::string line) {
+
+	if (line.at(line.size() -1) != '\r')
+		return response::pageBadRequest(connection);
 
 	if (line == "\r") {
 		connection->setHeadersParsed(true);
