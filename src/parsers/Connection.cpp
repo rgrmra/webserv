@@ -139,7 +139,7 @@ void Connection::append(vector<char> &text, int bytes) {
 
 	_buffer.append(text.begin(), text.begin() + bytes);
 
-	if (_buffer.find("\n") != string::npos)
+	if (_buffer.find("\r\n") != string::npos)
 		parseRequest();
 
 	_time = time(NULL);
