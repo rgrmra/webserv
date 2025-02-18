@@ -61,9 +61,6 @@ void AutoIndex::generateContent(void) {
 		std::cout << "Opened directory" << std::endl;
 		while ((ent = readdir(dir)) != NULL) {
 			std::string name = ent->d_name;
-			std::cout << "Name: " << name << std::endl;
-			// if (name == "." || name == "..")
-			// 	continue;
 			entries.push_back(name);
 		}
 		closedir(dir);
@@ -80,9 +77,7 @@ void AutoIndex::generateContent(void) {
 			+ *it 
 			+ "</a>\n";
 	}
-
 	response += "</div>\n</div>\n</div>\n</body>\n</html>\n";
-	std::cout << "Response: " << response << std::endl;
-
+	
 	_content = response;
 }
