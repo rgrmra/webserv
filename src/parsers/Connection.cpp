@@ -459,7 +459,7 @@ ostream &operator<<(ostream &os, const Connection &src) {
 	os << "status: " << src.getStatus() << endl;
 	os << "request headers: " << src.getHeaders() << endl;
 	os << "request body: " << src.getBody() << endl;
-	os << "http {\n" << src.getServer() << "\n}" << endl;
+	//os << "http {\n" << src.getServer() << "\n}" << endl;
 	//os << "response: " << src.getResponse() << endl;
 
 	return os;
