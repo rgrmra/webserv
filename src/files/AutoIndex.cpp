@@ -61,6 +61,8 @@ void AutoIndex::generateContent(void) {
 		std::cout << "Opened directory" << std::endl;
 		while ((ent = readdir(dir)) != NULL) {
 			std::string name = ent->d_name;
+			if (name == ".")
+				continue;
 			entries.push_back(name);
 		}
 		closedir(dir);

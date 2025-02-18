@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "File.hpp"
+#include "AutoIndex.hpp"
 #include "Location.hpp"
 #include "header.hpp"
 #include "parser.hpp"
@@ -15,8 +16,8 @@ using namespace std;
 void process::request(Connection *connection) {
 
 	string url = (*connection)[header::REFERER];
-	if (url.size())
-		connection->setPath(process::getPathFromReferer(url) + connection->getPath());
+	// if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
+	// 	connection->setPath(process::getPathFromReferer(url) + connection->getPath());
 
 	Location location = process::isValidPath(connection);
 	connection->setLocation(location);
@@ -31,8 +32,11 @@ void process::request(Connection *connection) {
 	if (not queryString.empty())
 		connection->setQueryString(queryString);
 
-	string path = location.getRoot() + connection->getPath();
+	string path = connection->getPath();
 	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
+
+	string uri = path;
+	path = location.getRoot() + connection->getPath();
 	connection->setPath(path);
 	if (process::isDirectory(path) && not process::checkIndex(location, connection))
 		return response::pageForbbiden(connection);
@@ -45,6 +49,8 @@ void process::request(Connection *connection) {
 		// function to handle CGI
 	}
 
+	if (process::isDirectory(connection->getPath()) && location.getAutoIndex())
+		return connection->setFile(new AutoIndex(path, uri));
 	connection->setFile(new File(connection->getPath()));
 }
 
@@ -163,7 +169,7 @@ bool process::checkIndex(const Location &location, Connection *connection) {
             return true;
         }
     }
-    return false;
+    return location.getAutoIndex();
 }
 
 string process::getPathFromReferer(string url) {
