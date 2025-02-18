@@ -1,5 +1,6 @@
 #include "File.hpp"
 #include "Page.hpp"
+#include "AutoIndex.hpp"
 #include "code.hpp"
 #include "Connection.hpp"
 #include "header.hpp"
@@ -191,9 +192,11 @@ void response::pageOK(Connection *connection) {
 	connection->setCode(code::OK);
 	connection->setStatus(status::OK);
 
+	cout << "URL: " << (*connection)[header::REFERER] << endl;
+	cout << "URI Path: " << connection->getPath() << endl;
 	string url = (*connection)[header::REFERER];
-	if (url.size())
-		connection->setPath(getPathFromURL(url) + connection->getPath());
+	// if (url.size()) // BUG: essa condição está duplicando o path
+	// 	connection->setPath(getPathFromURL(url) + connection->getPath());
 
 	Location location = isValidPath(connection);
 	cout << location << endl;
@@ -204,14 +207,20 @@ void response::pageOK(Connection *connection) {
 	if (not queryString.empty())
 		connection->setQueryString(queryString);
 
-	string path = location.getRoot() + connection->getPath();
+	string path = connection->getPath();
+	string uri;
+	
 	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
+	uri = path;
+	path = location.getRoot() + connection->getPath();
+	logger::info("Path: " + path);
 	connection->setPath(path);
-	if (isDirectory(path) && not checkIndex(location, connection))
+	if (isDirectory(path) && not checkIndex(location, connection) 
+		&& not location.getAutoIndex())
 		return response::pageForbbiden(connection);
 
 	cout << path << " " << getFileExtension(connection->getPath()) << endl;
-
+	cout << "URI: " << uri << endl;
 	if (isCGI(path))
 	{
 		// cout << "CGI Path:::::: " << path << endl;
@@ -230,7 +239,10 @@ void response::pageOK(Connection *connection) {
 	connection->setHeaders(response::EMPTY_HEADER);
 	connection->addHeader(header::CONNECTION, header_connection);
 
-	connection->setFile(new File(connection->getPath()));
+	if (isDirectory(connection->getPath()))
+		connection->setFile(new AutoIndex(connection->getPath(), uri));
+	else
+		connection->setFile(new File(connection->getPath()));
 	connection->buildResponse();
 	connection->setSend(true);
 }
