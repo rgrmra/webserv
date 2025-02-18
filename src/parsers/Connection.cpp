@@ -1,6 +1,8 @@
 #include "Connection.hpp"
 #include "File.hpp"
+#include "Location.hpp"
 #include "Page.hpp"
+#include "Server.hpp"
 #include "header.hpp"
 #include "Http.hpp"
 #include "logger.hpp"
@@ -199,6 +201,9 @@ string Connection::getStatus(void) const {
 }
 
 void Connection::addHeader(string key, string value) {
+	
+	if (value.empty())
+		return;
 
 	if (key == header::HOST) {
 
@@ -275,9 +280,19 @@ void Connection::setServer(Server server) {
 	_server = server;
 }
 
-Server Connection::getServer(void) const {
+Server &Connection::getServer(void){
 
 	return _server;
+}
+
+void Connection::setLocation(Location location) {
+
+	_location = location;
+}
+
+Location &Connection::getLocation(void) {
+
+	return _location;
 }
 
 time_t Connection::getTime(void) const {
@@ -287,7 +302,7 @@ time_t Connection::getTime(void) const {
 
 void Connection::buildResponse(void) {
 
-	if (_file->empty())
+	if (_file && _file->empty())
 		return response::pageNotFound(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
@@ -295,8 +310,10 @@ void Connection::buildResponse(void) {
 	else
 		_transfers++;
 
-	_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
-	_headers[header::CONTENT_TYPE] = _file->getMime();
+	if (_file) {
+		_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
+		_headers[header::CONTENT_TYPE] = _file->getMime();
+	}
 	_headers[header::SERVER] = "webserv/0.1.0";
 
 	ostringstream oss;
@@ -311,7 +328,8 @@ void Connection::buildResponse(void) {
 
 string Connection::getResponse(int bytes) {
 
-	_response += _file->getBuffer(bytes);
+	if (_file)
+		_response += _file->getBuffer(bytes);
 
 	if (_response.empty())
 		return "";
