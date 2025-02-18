@@ -1,11 +1,14 @@
 #ifndef CODE_HPP
 #define CODE_HPP
 
+#include <map>
 #include <string>
+#include <utility>
 
 namespace code {
 
 	static const std::string OK = "200";
+	static const std::string MOVED_PERMANENTLY = "301";
 	static const std::string BAD_REQUEST = "400";
 	static const std::string UNAUTHORIZED = "401";
 	static const std::string FORBBIDEN = "403";

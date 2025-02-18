@@ -210,11 +210,11 @@ void directive::setURI(string uri, string &_uri) {
     return;
 
   if (uri.find_first_of(" ") != string::npos)
-    throw runtime_error("invalid path: " + uri);
+    throw runtime_error("invalid path: " + string(uri));
 
   size_t pos = uri.find_first_not_of(directive::ALLOWED_CHARS);
   if (pos != string::npos)
-    throw runtime_error("invalid character in URI: " + uri.at(pos));
+    throw runtime_error("invalid character in URI: " + string(uri.at(pos), 1));
 
   _uri = uri;
 }

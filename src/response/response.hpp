@@ -12,9 +12,8 @@ namespace response {
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
 
-	std::string getFileExtension(std::string path);
-
 	void pageOK(Connection *connection);
+	void pageMovedPermanently(Connection *connection);
 	void pageBadRequest(Connection *connection);
 	void pageUnauthorized(Connection *connection);
 	void pageForbbiden(Connection *connection);
@@ -29,22 +28,7 @@ namespace response {
 	void pageNotImplemented(Connection *connection);
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
-	//std::string setPageWithPath(Connection * connection);
 
-
-	//void		setContentTypes(Connection * connection);
-	//void		setHeader(Connection * connection);
-	//void		setBody(Connection * connection);
-	//void		buildResponseBody(Connection *connection);
-	//void		setPathAndMethod(Connection *connection);
-	//Location	isPathValid(Connection * connection);
-
-
-	bool		checkIndex(const Location &location, Connection * connection);
-	bool		isDirectory(const std::string &path);
-	bool		isFile(const std::string &path);
-	//bool		isValidMethod(const std::string &method);
-	bool		isCGI(const std::string &path);
 }
 
 #endif /* RESPONSE_HPP */

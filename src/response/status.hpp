@@ -1,12 +1,12 @@
 #ifndef STATUS_HPP
 #define STATUS_HPP
 
-#include "code.hpp"
 #include <string>
 
 namespace status {
 
 	static const std::string OK = "OK";
+	static const std::string MOVED_PERMANENTLY = "Moved Permanently";
 	static const std::string BAD_REQUEST = "Bad Request";
 	static const std::string UNAUTHORIZED = "Unauthorized";
 	static const std::string FORBBIDEN = "Forbbiden";
