@@ -11,6 +11,7 @@
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include "Mime.hpp"
 
@@ -18,8 +19,7 @@ using namespace std;
 
 WebServ::WebServ(Http *http)
 	: _http(http),
-	  _epoll_fd(-1),
-	  _run(true) {
+	  _epoll_fd(-1) {
 
 	vector<Server> servers = _http->getServers();
 	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
@@ -53,24 +53,27 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 
 WebServ::~WebServ(void) {
 
-	if (_epoll_fd != -1)
-		close(_epoll_fd);
-
 	while (_client_connections.begin() != _client_connections.end()) {
 		map<int, Connection *>::iterator ic = _client_connections.begin();
 
+		if (ic->second->getSend()) {
+			closeConnection(ic->first);
+			continue;
+		}
 		response::pageInternalServerError(ic->second);
 
 		if (sendMessage(ic->second, ic->second->getResponse()) == -1)
 			continue;
-			
+
 		closeConnection(ic->first);
 	}
 
 	map<string, int>::iterator it = _binded_sockets.begin();
-	for (; it != _binded_sockets.end(); it++) {
+	for (; it != _binded_sockets.end(); it++)
 		close(it->second);
-	}
+
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 }
 
 void WebServ::removeBindedPorts(string port) {
@@ -163,7 +166,7 @@ void WebServ::controlEpoll(int client_fd, int flag, int option) {
 	event.data.fd = client_fd;
 
 	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1)
-		logger::fatal("epoll_ctl failed");
+		logger::error("epoll_ctl failed");
 }
 
 string WebServ::getIpByFileDescriptor(int client_fd) {
@@ -283,13 +286,7 @@ int WebServ::isBindedSocket(int fd) {
 	return false;
 }
 
-bool WebServ::isTimedOut(int client_fd) {
-
-	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	Connection *connection = it->second;
-
-	if (it == _client_connections.end())
-		return false;
+bool WebServ::isTimedOut(int client_fd, Connection *connection) {
 
 	if (connection->getTransfers() && time(NULL) - connection->getTime() >= KEEP_ALIVE) {
 		closeConnection(client_fd);
@@ -306,6 +303,17 @@ bool WebServ::isTimedOut(int client_fd) {
 	return true;
 }
 
+void WebServ::checkTimeOut(void) {
+
+	if (_client_connections.empty())
+		return;
+
+	map<int, Connection *>::iterator it = _client_connections.begin();
+	for (; it != _client_connections.end(); it++)
+		if (isTimedOut(it->first, it->second))
+			return;
+}
+
 void WebServ::run(void) {
 
 	_epoll_fd = epoll_create(1);
@@ -320,10 +328,10 @@ void WebServ::run(void) {
 
 	epoll_event events[MAX_EVENTS];
 
-	while (_run) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
+	while (true) {
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 30);
 		if (num_events == -1)
-			throw runtime_error("epoll_wait failed");
+			return logger::fatal("server stoped");
 
 		for (int i = 0; i < num_events; i++) {
 			if (isBindedSocket(events[i].data.fd))
@@ -333,14 +341,12 @@ void WebServ::run(void) {
 			else if (events[i].events & (EPOLLOUT| EPOLLET))
 				handleResponse(events[i].data.fd);
 		}
-		map<int, Connection *>::iterator ite = _client_connections.begin();
-		for (; ite != _client_connections.end(); ite++)
-			if (isTimedOut(ite->first))
-				break;
+		checkTimeOut();
 	}
 }
 
 void WebServ::stop(void) {
 
-	_run = false;
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 }

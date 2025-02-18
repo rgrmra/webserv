@@ -25,7 +25,7 @@ Page::Page(const std::string code, const std::string status)
 }
 
 Page::Page(const Page &src)
-	: AFile(".html") {
+	: AFile(src._path) {
 
 	*this = src;
 }

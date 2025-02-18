@@ -1,14 +1,15 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "Location.hpp"
 #include "Server.hpp"
 #include <ctime>
 #include <map>
 #include <string>
 #include <vector>
 
-class Http;
 class AFile;
+class Http;
 
 class Connection {
 	private:
@@ -26,6 +27,7 @@ class Connection {
 		std::string _body;
 		AFile *_file;
 		Server _server;
+		Location _location;
 		std::string _response;
 		std::string _query_string;
 		time_t _time;
@@ -57,7 +59,6 @@ class Connection {
 		void setProtocol(std::string protocol);
 		std::string getProtocol(void) const;
 		void setCode(std::string code);
-		void setCode(size_t code);
 		std::string getCode(void) const;
 		void setStatus(std::string status);
 		std::string getStatus(void) const;
@@ -70,11 +71,13 @@ class Connection {
 		std::string getBody(void) const;
 		void setFile(AFile *file);
 		void setServer(Server server);
-		Server getServer(void) const;
+		Server &getServer(void);
+		void setLocation(Location location);
+		Location &getLocation(void);
 		time_t getTime(void) const;
 		void buildResponse(void);
 		std::string getResponse(int bytes);
-		std::string getResponse(void) const;
+		std::string getResponse(void);
 		size_t getResponseSize(void) const;
 		void setStartLineParsed(bool value);
 		bool getStartLineParsed(void) const;
