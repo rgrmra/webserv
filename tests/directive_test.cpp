@@ -166,17 +166,16 @@ TEST(DirectiveTest, ValidateHttpHost) {
 TEST(DirectiveTest, ValidateHttpPort) {
   // Test with valid ports
   EXPECT_TRUE(directive::validateHttpPort(string("8080"))); // Valid port
-  EXPECT_TRUE(directive::validateHttpPort(string("80")));   // Valid port
-  EXPECT_TRUE(
-      directive::validateHttpPort(string("65535"))); // Maximum valid port
+  EXPECT_TRUE(directive::validateHttpPort(string("1024")));   // Minimum valid port
+  EXPECT_TRUE(directive::validateHttpPort(string("49151"))); // Maximum valid port
 
   // Test with invalid ports
   EXPECT_FALSE(directive::validateHttpPort(string("")));        // Empty string
-  EXPECT_FALSE(directive::validateHttpPort(string("65536")));   // Port > 65535
-  EXPECT_FALSE(directive::validateHttpPort(string("123456")));  // Port > 65535
-  EXPECT_FALSE(directive::validateHttpPort(string("-123456"))); // Port < 0
+  EXPECT_FALSE(directive::validateHttpPort(string("65536")));   // Port > 49151
+  EXPECT_FALSE(directive::validateHttpPort(string("123456")));  // Port > 49151
+  EXPECT_FALSE(directive::validateHttpPort(string("-123456"))); // Port < 1024
 
-  EXPECT_FALSE(directive::validateHttpPort(string(""))); // Port < 0
+  EXPECT_FALSE(directive::validateHttpPort(string(""))); // Port < 1024
 
   // Test with non-numeric characters
   EXPECT_FALSE(directive::validateHttpPort(
@@ -204,8 +203,8 @@ TEST(DirectiveTest, AddListen) {
   EXPECT_EQ(listenList.back(), "0.0.0.0:8080");
 
   // Test with valid listen string (host only)
-  EXPECT_NO_THROW(directive::addListen(string("192.168.1.1"), listenList));
-  EXPECT_EQ(listenList.back(), "192.168.1.1:80");
+  EXPECT_NO_THROW(directive::addListen(string("192.168.1.2"), listenList));
+  EXPECT_EQ(listenList.back(), "192.168.1.2:8080");
 
   // Test with empty listen string
   EXPECT_NO_THROW(
