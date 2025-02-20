@@ -3,6 +3,7 @@
 #include "AutoIndex.hpp"
 #include "Location.hpp"
 #include "header.hpp"
+#include "../CGI/Cgi.hpp"
 #include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
@@ -16,7 +17,7 @@ using namespace std;
 void process::request(Connection *connection) {
 
 	string url = (*connection)[header::REFERER];
-	// if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
+	// if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html)
 	// 	connection->setPath(process::getPathFromReferer(url) + connection->getPath());
 
 	Location location = process::isValidPath(connection);
@@ -28,13 +29,8 @@ void process::request(Connection *connection) {
 		// TODO: check return code to call the correct response page
 		return response::pageMovedPermanently(connection);
 
-	string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
-	if (not queryString.empty())
-		connection->setQueryString(queryString);
-
-
+	string queryString = connection->getQueryString();
 	string path = connection->getPath();
-	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
 
 	string uri = path;
 	path = location.getRoot() + connection->getPath();
@@ -47,8 +43,11 @@ void process::request(Connection *connection) {
 
 	if (process::isCGI(path))
 	{
-		// cout << "CGI Path:::::: " << path << endl;
-		// function to handle CGI
+		Cgi cgi(*connection);
+
+		cout << "CGI Output:::::: " << cgi.getCgiOutput() << endl;
+		cout << "CGI Exit Status:::::: " << cgi.getExitStatus() << endl;
+
 	}
 
 	if (process::isDirectory(connection->getPath()) && location.getAutoIndex())
