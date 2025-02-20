@@ -4,7 +4,8 @@ if(BUILD_TESTING)
             directive_test.cpp
             location_test.cpp
             request_test.cpp
-			connection_test.cpp
+            connection_test.cpp
+            afile_test.cpp
     )
 
     target_link_libraries(webreq
