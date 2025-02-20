@@ -9,10 +9,9 @@
 
 using namespace std;
 
-WebServ *webserv;
-
 Http::Http(string filename)
-	: _autoindex(parser::AUTOINDEX_NOT_SET),
+	: _webserv(NULL),
+	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
 
 	if (parser::basename(filename) != ".conf")
@@ -81,7 +80,8 @@ Http &Http::operator=(const Http &rhs) {
 
 Http::~Http(void) {
 
-	delete webserv;
+	if (_webserv)
+		delete _webserv;
 
 }
 
@@ -245,9 +245,14 @@ bool Http::empty(void) const {
 
 void Http::start(void) {
 
-	webserv = new WebServ(this);
+	_webserv = new WebServ(this);
 
-	webserv->run();
+	_webserv->run();
+}
+
+void Http::stop(void) {
+
+	_webserv->stop();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {

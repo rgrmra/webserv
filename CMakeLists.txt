@@ -6,17 +6,17 @@ project(try_googletest
 
 include(cmake/UpdateSubModules.cmake)
 include(CTest)
-include_directories(${CMAKE_SOURCE_DIR}/build/lib)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE WEBREQ_SOURCES
         "src/*.cpp"
 )
+list(REMOVE_ITEM WEBREQ_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 add_library(webreq_lib ${WEBREQ_SOURCES})
 
 target_include_directories(webreq_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/files
         ${CMAKE_CURRENT_SOURCE_DIR}/src/parsers
         ${CMAKE_CURRENT_SOURCE_DIR}/src/response
         ${CMAKE_CURRENT_SOURCE_DIR}/src/services

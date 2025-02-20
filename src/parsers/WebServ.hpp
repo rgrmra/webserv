@@ -1,6 +1,7 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
+#include "Mime.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
@@ -28,12 +29,14 @@ class WebServ {
 		int sendMessage(Connection *connection, std::string message);
 		void handleResponse(int client_fd);
 		int isBindedSocket(int fd);
-		bool isTimedOut(int client_fd);
+		bool isTimedOut(int client_fd, Connection *connection);
+		void checkTimeOut(void);
 
 	public:
-		static const int BUFFER_SIZE = parser::MEGABYTE;
+		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;
 		static const int MAX_EVENTS = 252;
 		static const long TIMEOUT = 30;
+		static const long KEEP_ALIVE = 3;
 		
 		WebServ(Http *http);
 		WebServ(const WebServ &src);
@@ -41,6 +44,7 @@ class WebServ {
 		virtual ~WebServ(void);
 
 		void run(void);
+		void stop(void);
 };
 
 #endif /* WEBSERV_HPP */

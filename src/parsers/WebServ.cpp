@@ -1,15 +1,19 @@
 #include "Connection.hpp"
+#include "header.hpp"
 #include "Http.hpp"
 #include "logger.hpp"
 #include "response.hpp"
 #include "WebServ.hpp"
 #include <cerrno>
+#include <cstdio>
 #include <iostream>
 #include <netdb.h>
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <unistd.h>
+#include "Mime.hpp"
 
 using namespace std;
 
@@ -49,22 +53,27 @@ WebServ &WebServ::operator=(const WebServ &rhs) {
 
 WebServ::~WebServ(void) {
 
-	if (_epoll_fd != -1)
-		close(_epoll_fd);
-
 	while (_client_connections.begin() != _client_connections.end()) {
 		map<int, Connection *>::iterator ic = _client_connections.begin();
 
-		if (sendMessage(ic->second, response::pageInternalServerError(ic->second)) == -1)
+		if (ic->second->getSend()) {
+			closeConnection(ic->first);
+			continue;
+		}
+		response::pageInternalServerError(ic->second);
+
+		if (sendMessage(ic->second, ic->second->getResponse()) == -1)
 			continue;
 
 		closeConnection(ic->first);
 	}
 
 	map<string, int>::iterator it = _binded_sockets.begin();
-	for (; it != _binded_sockets.end(); it++) {
+	for (; it != _binded_sockets.end(); it++)
 		close(it->second);
-	}
+
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 }
 
 void WebServ::removeBindedPorts(string port) {
@@ -114,7 +123,7 @@ struct addrinfo *WebServ::getAddrInfo(string host) {
 
 	list<string> tmp = parser::split(host, ':');
 	if (getaddrinfo(tmp.front().c_str(), tmp.back().c_str(), &hints, &res))
-		throw runtime_error("getaddrinfo");
+		throw runtime_error("getaddrinfo failed");
 
 	return res;
 }
@@ -125,14 +134,14 @@ int WebServ::createSocket(string host) {
 
 	int fd = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 	if (fd < 0)
-		throw runtime_error("socket");
+		throw runtime_error("socket failed");
 
 	struct linger opt = (struct linger){};
 	opt.l_onoff = 1;
 	opt.l_linger = 10;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
 		(close(fd), freeaddrinfo(res));
-		throw runtime_error("setsockopt");
+		throw runtime_error("setsockopt failed");
 	}
 
 	if (bind(fd, res->ai_addr, res->ai_addrlen) != 0) {
@@ -144,7 +153,7 @@ int WebServ::createSocket(string host) {
 
 	if (listen(fd, WebServ::MAX_EVENTS) == -1) {
 		close(fd);
-		throw runtime_error("listen");
+		throw runtime_error("listen failed");
 	}
 
 	return fd;
@@ -157,7 +166,7 @@ void WebServ::controlEpoll(int client_fd, int flag, int option) {
 	event.data.fd = client_fd;
 
 	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1)
-		logger::fatal("epoll_ctl");
+		logger::error("epoll_ctl failed");
 }
 
 string WebServ::getIpByFileDescriptor(int client_fd) {
@@ -166,7 +175,7 @@ string WebServ::getIpByFileDescriptor(int client_fd) {
 	socklen_t addr_len = sizeof(local_addr);
 
 	if (getsockname(client_fd, (sockaddr *) &local_addr, &addr_len) == -1)
-		throw runtime_error("getsockname");
+		throw runtime_error("getsockname failed");
 
 	int ip = htonl(local_addr.sin_addr.s_addr);
 	unsigned short port = htons(local_addr.sin_port);
@@ -186,7 +195,7 @@ void WebServ::acceptNewConnection(int client_fd) {
 	int fd = accept(client_fd, NULL, NULL);
 	if (fd == -1) {
 		if (not (errno == EAGAIN || errno == EWOULDBLOCK))
-			logger::fatal("accept");
+			logger::fatal("accept failed");
 		return;
 	}
 
@@ -197,6 +206,8 @@ void WebServ::acceptNewConnection(int client_fd) {
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
 	_client_connections[fd] = new Connection(fd, host);
+	//_client_connections[fd]->setHost(host);
+	//_client_connections[fd]->setServer(_http->getServerByListen(host));
 }
 
 void WebServ::closeConnection(int client_fd) {
@@ -223,20 +234,16 @@ void WebServ::handleRequest(int client_fd) {
 	if (bytes_read == -1) {
 		logger::fatal("recv");
 		return closeConnection(client_fd);
-	} else if (bytes_read == 0) {
+	} else if (bytes_read == 0 || buffer.at(0) == EOF) {
 		logger::warning(connection->getIp() + " disconected");
 		return closeConnection(client_fd);
 	}
 
-	if (bytes_read > 0)
-		connection->append(buffer, bytes_read);
+	connection->append(buffer, bytes_read);
 
 	if (connection->getSend() == false)
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 
-	logger::info("received: ");
-	cout << connection->getBuffer() << endl;
-	
 	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
@@ -255,18 +262,16 @@ void WebServ::handleResponse(int client_fd) {
 
 	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
 	Connection *connection = it->second;
-
+	
 	if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
 		return;
 
 	if (connection->getResponseSize())
 		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-	else if (connection->getHeaderByKey("Keep-alive") == "true") {
+	else if ((*connection)[header::CONNECTION] == "keep-alive") {
 		connection->resetConnection();
 		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 	}
-
-	cout << *_client_connections.find(client_fd)->second << endl;
 
 	closeConnection(client_fd);
 }
@@ -281,28 +286,39 @@ int WebServ::isBindedSocket(int fd) {
 	return false;
 }
 
-bool WebServ::isTimedOut(int client_fd) {
+bool WebServ::isTimedOut(int client_fd, Connection *connection) {
 
-	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	if (it == _client_connections.end())
-		return false;
-
-	if (time(NULL) - it->second->getTime() <= WebServ::TIMEOUT)
-		return false;
-
-	if (sendMessage(it->second, response::pageGatewayTimeOut(it->second)) == -1)
+	if (connection->getTransfers() && time(NULL) - connection->getTime() >= KEEP_ALIVE) {
+		closeConnection(client_fd);
 		return true;
+	}
 
-	closeConnection(client_fd);
+	if (time(NULL) - connection->getTime() <= WebServ::TIMEOUT)
+		return false;
+
+	response::pageGatewayTimeOut(connection);
+
+	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	return true;
+}
+
+void WebServ::checkTimeOut(void) {
+
+	if (_client_connections.empty())
+		return;
+
+	map<int, Connection *>::iterator it = _client_connections.begin();
+	for (; it != _client_connections.end(); it++)
+		if (isTimedOut(it->first, it->second))
+			return;
 }
 
 void WebServ::run(void) {
 
 	_epoll_fd = epoll_create(1);
 	if (_epoll_fd < 0)
-		throw runtime_error("epoll");
+		throw runtime_error("epoll failed");
 
 	map<string, int>::iterator it = _binded_sockets.begin();
 	for (; it != _binded_sockets.end(); it++) {
@@ -313,9 +329,9 @@ void WebServ::run(void) {
 	epoll_event events[MAX_EVENTS];
 
 	while (true) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 0);
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 30);
 		if (num_events == -1)
-			throw runtime_error("epoll_wait");
+			return logger::fatal("server stoped");
 
 		for (int i = 0; i < num_events; i++) {
 			if (isBindedSocket(events[i].data.fd))
@@ -325,9 +341,12 @@ void WebServ::run(void) {
 			else if (events[i].events & (EPOLLOUT| EPOLLET))
 				handleResponse(events[i].data.fd);
 		}
-		map<int, Connection *>::iterator ite = _client_connections.begin();
-		for (; ite != _client_connections.end(); ite++)
-			if (isTimedOut(ite->first))
-				break;
+		checkTimeOut();
 	}
+}
+
+void WebServ::stop(void) {
+
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 }

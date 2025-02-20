@@ -1,95 +1,117 @@
 #include "Request.hpp"
+#include "Connection.hpp"
+#include "directive.hpp"
+#include "header.hpp"
+#include "parser.hpp"
+#include "response.hpp"
+#include <cstdio>
+#include <iostream>
+#include <pthread.h>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
-Request::Request()
-{
-}
+void request::parseRequest(Connection *connection, string line) {
 
-Request::Request(const string &raw_request)
-{
-	parseRequest(raw_request);
-}
+	if (!connection->getStartLineParsed())
+		return parseStartLine(connection, line);
 
-Request::~Request()
-{
-}
+	if (!connection->getHeadersParsed())
+		return parseHeaders(connection, line);
 
-void	Request::printRequest() const
-{
-	cout << "Method: " << _method << endl;
-	cout << "URI: " << _uri << endl;
-	cout << "Version: " << _version << endl;
-	cout << "Headers:" << endl;
-	map<string, string>::const_iterator it = _headers.begin();
-	for (; it != _headers.end(); it++)
-	{
-		cout << it->first << ": " << it->second << endl;
+	if (connection->getHeadersParsed()) {
+
+		size_t body_size = connection->getBuffer().size();
+		size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
+
+		if (body_size == content_length) {
+			connection->setBody(connection->getBuffer());
+			connection->setSend(true);
+		} else if (body_size > content_length)
+			return response::pagePayloadTooLarge(connection);
 	}
-	cout << "Body: " << _body << endl;
 }
 
-const string	&Request::getMethod() const
-{
-	return _method;
+void request::parseStartLine(Connection *connection, string line) {
+
+	string method, path, protocol;
+
+	if (line.at(line.size() -1) != '\r')
+		return response::pageBadRequest(connection);
+
+	if (line.find_first_not_of(" \t\v\r") == string::npos)
+		return;
+
+	if (line.find_first_not_of(" \t\v") != 0)
+		return response::pageBadRequest(connection);
+
+	istringstream startline(line);
+	if (!(startline >> method >> path >> protocol))
+		return response::pageBadRequest(connection);	
+	
+	if (!directive::validateHttpMethod(method))
+		return response::pageNotAllowed(connection);
+
+	if (path.size() > parser::KILOBYTE * 2)
+		return response::pageURITooLong(connection);
+
+	if (protocol != response::PROTOCOL)
+		return response::pageHttpVersionNotSupported(connection);
+
+	connection->setMethod(method);
+	connection->setPath(path);
+	connection->setProtocol(protocol);
+	connection->setStartLineParsed(true);
+
+	return;
 }
 
-const string	&Request::getUri() const
-{
-	return _uri;
-}
+void request::parseHeaders(Connection *connection, std::string line) {
 
-const string	&Request::getVersion() const
-{
-	return _version;
-}
+	if (line.at(line.size() -1) != '\r')
+		return response::pageBadRequest(connection);
 
-const map<string, string>	&Request::getHeaders() const
-{
-	return _headers;
-}
+	if (line == "\r") {
+		connection->setHeadersParsed(true);
+		
+		if (!connection->getHeaders().size())
+			return response::pageBadRequest(connection);
 
-const string	&Request::getHeader(const string &key) const
-{
-	map<string, string>::const_iterator it = _headers.find(key);
-	if (it == _headers.end())
-		return "";
-	return it->second;
-}
+		if (!connection->hasContentLenght() && !connection->hasTransferEnconding() && (connection->getMethod() == "POST"))
+			return response::pageBadRequest(connection);
 
-const string	&Request::getBody() const
-{
-	return _body;
-}
+		if (connection->hasTransferEnconding())
+			if ((*connection)[header::TRANSFER_ENCONDING] != "chuncked")
+				return response::pageNotImplemented(connection);
 
-const string	Request::getQueryString() const
-{
-	string::size_type pos = _uri.find("?");
-	if (pos == string::npos)
-		return "";
-	return _uri.substr(pos + 1);
-}
+		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) == 0)
+			return response::pageOK(connection);
 
-void	Request::parseRequest(const string &raw_request)
-{
-	istringstream iss(raw_request);
-	string line;
-
-	getline(iss, line);
-	istringstream first_line(line);
-	first_line >> _method >> _uri >> _version;
-
-	while (getline(iss, line) && !line.empty())
-	{
-		string::size_type pos = line.find(": ");
-		string key = line.substr(0, pos);
-		string value = line.substr(pos + 2);
-		_headers[key] = value;
+		return;
 	}
 
-	_body = "";
-	while (getline(iss, line))
-	{
-		_body += line + "\n";
-	}
+	size_t separator = line.find(":");
+	if (request::validateHeaders(connection, separator))
+		return response::pageBadRequest(connection);
+
+	string key = line.substr(0, separator);
+	string value = line.substr(separator + 1);
+
+	parser::trim(value, " \t\v\r");
+
+	connection->addHeader(key, value);
+
+	return;
+}
+
+bool request::validateHeaders(Connection *connection, size_t separator) {
+
+	if (separator == string::npos)
+		return true;
+
+	if (connection->hasContentLenght() && connection->hasTransferEnconding())
+		return true;
+	
+	return false;
 }

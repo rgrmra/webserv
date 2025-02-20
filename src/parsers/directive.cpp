@@ -1,9 +1,11 @@
 #include "directive.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
+#include "Server.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
-#include "Server.hpp"
+#include <iostream>
+#include <iterator>
 #include <limits>
 #include <list>
 #include <map>
@@ -59,6 +61,9 @@ bool directive::validateHttpListen(string listen) {
 
 bool directive::validateHttpHost(string host) {
 
+	if (host.empty())
+		return false;
+
 	if (host.find_first_not_of(".0123456789") != string::npos)
 		return false;
 
@@ -86,10 +91,15 @@ bool directive::validateHttpHost(string host) {
 
 bool directive::validateHttpPort(string port) {
 
+	if (port.empty())
+		return false;
+
 	if (port.find_first_not_of("0123456789") != string::npos)
 		return false;
 
-	if (parser::toSizeT(port) > 65535)
+	size_t port_value = parser::toSizeT(port);
+
+	if (port_value < 1024 || port_value > 49151)
 		return false;
 
 	return true;
@@ -100,8 +110,8 @@ void directive::addListen(string listen, vector<string> &_listen) {
 	if (listen.empty())
 		return;
 
-	string host = "0.0.0.0";
-	string port = "80";
+	string host = parser::DEFAULT_HOST;
+	string port = parser::DEFAULT_PORT;
 
 	if (not directive::validateHttpListen(listen))
 		throw runtime_error("invalid listen: " + listen);
@@ -122,7 +132,8 @@ void directive::addListen(string listen, vector<string> &_listen) {
 
 	listen = host + ":" + port;
 
-	for (vector<string>::iterator it = _listen.begin(); it != _listen.end(); it++) {
+	for (vector<string>::iterator it = _listen.begin(); it != _listen.end();
+			 it++) {
 		if (*it == listen)
 			throw runtime_error("duplicated listen: " + listen);
 	}
@@ -135,9 +146,23 @@ bool directive::validateName(string name) {
 	if (name.empty())
 		return false;
 
-	for (size_t i = 0; i < name.size(); i++)
-		if (not isalnum(name.at(i)) && name.at(i) != '-' && name.at(i) != '.')
+	if (name.at(0) == '-' || name.at(name.size() - 1) == '-')
+		return false;
+
+	if (name.at(0) == '.' || name.at(name.size() - 1) == '.')
+		return false;
+
+	for (string::iterator it = name.begin(); it != name.end(); it++) {
+
+		if (!isalnum(*it) && *it != '-' && *it != '.')
 			return false;
+
+		if (*it == '-' && *(it + 1) == '-')
+			return false;
+
+		if (*it == '.' && *(it + 1) == '.')
+			return false;
+	}
 
 	return true;
 }
@@ -149,27 +174,39 @@ void directive::addName(string name, vector<string> &_name) {
 
 	list<string> names = parser::split(name, ' ');
 
-	list<string>::iterator it = names.begin();
-	while (it != names.end()) {
-
-		if (not directive::validateName(*it))
+	for (list<string>::iterator it = names.begin(); it != names.end(); it++) {
+		if (!directive::validateName(*it))
 			throw runtime_error("invalid server name: " + *it);
 
 		_name.push_back(parser::toLower(*it));
-
-		it++;
 	}
 }
 
+bool directive::validateURI(string uri) {
+
+	if (uri.find_first_of(" ") != string::npos)
+		return false;
+
+	size_t pos = uri.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS);
+	if (pos != string::npos)
+		return false;
+
+	return true;
+}
+
 void directive::setURI(string uri, string &_uri) {
-	
+
 	if (uri.empty())
 		return;
 
 	if (uri.find_first_of(" ") != string::npos)
 		throw runtime_error("invalid path: " + uri);
 
-	_uri= uri;
+	size_t pos = uri.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS);
+	if (pos != string::npos)
+		throw runtime_error(string("invalid character in URI: ") + uri.at(pos));
+
+	_uri = uri;
 }
 
 bool directive::validateHttpMethod(string method) {
@@ -185,7 +222,6 @@ bool directive::validateHttpMethod(string method) {
 }
 
 void directive::addMethod(string method, set<string> &_allow_methods) {
-
 	if (method.empty())
 		return;
 
@@ -199,7 +235,6 @@ void directive::addMethod(string method, set<string> &_allow_methods) {
 			throw runtime_error("invalid method: " + *it);
 
 		_allow_methods.insert(*it);
-
 	}
 }
 
@@ -213,7 +248,6 @@ void directive::setDenyMethods(string deny_methods, bool &_deny_methods) {
 	else
 		throw runtime_error("invalid deny: " + deny_methods);
 }
-
 
 void directive::setRoot(string root, string &_root) {
 
@@ -278,11 +312,8 @@ void directive::addIndex(string index, set<string> &_index) {
 	_index.clear();
 
 	list<string>::iterator it = indexes.begin();
-	while (it != indexes.end()) {
+	for (; it != indexes.end(); it++)
 		_index.insert(*it);
-
-		it++;
-	}
 }
 
 void directive::setFastCgi(string fastcgi, string &_fastcgi) {
@@ -316,10 +347,10 @@ void directive::addErrorPage(string error_page, map<string, string> &_error_page
 
 void directive::mergeErrorPages(map<string, string> error_pages, map<string, string> &_error_pages) {
 
-	map<string, string>::iterator error_pagesIt = error_pages.begin();
-	for (; error_pagesIt != error_pages.end(); error_pagesIt++)
-		if (_error_pages[error_pagesIt->first].empty())
-			_error_pages[error_pagesIt->first] = error_pagesIt->second;
+	map<string, string>::iterator it = error_pages.begin();
+	for (; it != error_pages.end(); it++)
+		if (_error_pages[it->first].empty())
+			_error_pages[it->first] = it->second;
 }
 
 bool directive::validateHttpCode(string code) {
@@ -354,7 +385,7 @@ void directive::setReturn(string value, string &_code, string &_uri) {
 }
 
 void directive::addServer(Server server, vector<Server> &_servers) {
-	
+
 	vector<Server>::iterator serverIt = _servers.begin();
 	for (; serverIt != _servers.end(); serverIt++) {
 
@@ -369,10 +400,14 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 			for (; newListenIt != newListen.end(); newListenIt++) {
 
 				list<string> tmp2 = parser::split(*newListenIt, ':');
-				//if ((tmp.front() == "0.0.0.0" || tmp.front() == tmp2.front()) && tmp.back() == tmp2.back()) {
-				if (tmp2.front() != "0.0.0.0" && tmp.front() == tmp2.front() && tmp.back() == tmp2.back()) {
+				if (tmp2.front() != parser::DEFAULT_HOST
+					&& tmp.front() == tmp2.front()
+					&& tmp.back() == tmp2.back()) {
 
-					logger::warning("conflicting server name \"" + (server.getNames().size()?  server.getNames()[0] : "") + "\" on " + *newListenIt + ", ignored");
+					logger::warning("conflicting server name \""
+						+ (server.getNames().size() ? server.getNames().at(0) : "")
+						+ "\" on " + *newListenIt + ", ignored");
+
 					newListen.erase(newListenIt);
 					server.setListen(newListen);
 
@@ -406,18 +441,17 @@ void directive::setHttpDefaultValues(Http &http) {
 		http.setRoot(parser::DEFAULT_ROOT);
 
 	vector<Server> servers = http.getServers();
-	vector<Server>::iterator serversIt = servers.begin();
-	for (; serversIt != servers.end(); serversIt++)
-		directive::setServerDefaultValues(http, *serversIt);
+	vector<Server>::iterator it = servers.begin();
+	for (; it != servers.end(); it++)
+		directive::setServerDefaultValues(http, *it);
 
 	http.setServers(servers);
 }
 
 void directive::setServerDefaultValues(Http &http, Server &server) {
-
 	if (server.getMaxBodySize() == 0)
 		server.setMaxBodySize(parser::toString(http.getMaxBodySize()));
-	
+
 	if (server.getRoot().empty())
 		server.setRoot(http.getRoot());
 
@@ -432,15 +466,14 @@ void directive::setServerDefaultValues(Http &http, Server &server) {
 	server.setErrorPages(error_pages);
 
 	map<string, Location> locations = server.getLocations();
-	map<string, Location>::iterator locationsIt = locations.begin();
-	for (; locationsIt != locations.end(); locationsIt++)
-		directive::setLocationDefaultValues(server, locationsIt->second);
+	map<string, Location>::iterator it = locations.begin();
+	for (; it != locations.end(); it++)
+		directive::setLocationDefaultValues(server, it->second);
 
 	server.setLocations(locations);
 }
 
 void directive::setLocationDefaultValues(Server &server, Location &location) {
-
 	if (location.getRoot().empty())
 		location.setRoot(server.getRoot());
 
@@ -455,7 +488,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 
 	if (location.getMaxBodySize() == 0)
 		location.setMaxBodySize(parser::toString(server.getMaxBodySize()));
-	
+
 	map<string, string> error_pages = location.getErrorPages();
 	directive::mergeErrorPages(server.getErrorPages(), error_pages);
 	location.setErrorPages(error_pages);

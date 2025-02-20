@@ -1,6 +1,15 @@
 #include "Connection.hpp"
+#include "File.hpp"
+#include "Location.hpp"
+#include "Page.hpp"
+#include "Server.hpp"
+#include "header.hpp"
+#include "Http.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
+#include "Request.hpp"
 #include "response.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -10,9 +19,18 @@ using namespace std;
 Connection::Connection(int fd, string ip)
 	: _fd(fd),
 	  _ip(ip),
+	  _file(NULL),
 	  _time(time(NULL)),
-	  _send(false) {
+	  _startline_parsed(false),
+	  _headers_parsed(false),
+	  _send(false),
+	  _has_content_lenght(false),
+	  _has_transfer_enconding(false),
+	  _transfers(0) {
 
+	extern Http *http;
+
+	_http = http;
 }
 
 Connection::Connection(const Connection &src) {
@@ -25,6 +43,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 	if (this == &rhs)
 		return *this;
 
+	_http = rhs._http;
 	_fd = rhs._fd;
 	_ip = rhs._ip;
 	_host = rhs._host;
@@ -36,37 +55,60 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_status = rhs._status;
 	_headers = rhs._headers;
 	_body = rhs._body;
+	_file = rhs._file;
 	_server = rhs._server;
 	_response = rhs._response;
 	_time = rhs._time;
+	_startline_parsed = rhs._startline_parsed;
+	_headers_parsed = rhs._headers_parsed;
 	_send = rhs._send;
+	_transfers = rhs._transfers;
+	_has_content_lenght = rhs._has_content_lenght;
+	_has_transfer_enconding = rhs._has_transfer_enconding;
 
 	return *this;
 }
 
 Connection::~Connection(void) {
 
+	if (_file)
+		delete _file;
 }
 
 void Connection::parseRequest(void) {
 
-	_request.parseRequest(_buffer);
-	_request.printRequest(); //debug purposes
+	istringstream iss(_buffer);
+	string line;
 
-	_protocol = response::PROTOCOL;
-	_code = "200";
-	_status = "Ok";
+	while (getline(iss, line) && !line.empty()) {
 
-	_headers["Content-Type"] = "text/plain";
-	_headers["Content-Length"] = "3";
-	if (_buffer.find("Keep-alive: true") != string::npos)
-		_headers["Keep-alive"] = "true";
-	else
-		_headers["Connection"] = "closed";
+		if (_send)
+			break;
 
-	_body = "Ok\n";
+		if (!_headers_parsed) {
+			request::parseRequest(this, line);
 
-	_send = true;
+			size_t pos = _buffer.find("\r\n");
+			if (pos != string::npos)
+				_buffer = _buffer.substr(pos + 2);
+		} else {
+			request::parseRequest(this, _buffer);
+		}
+	}
+
+	if (_headers_parsed && _headers.empty())
+		return response::pageBadRequest(this);
+
+	if (!_send)
+		return;
+
+	if (_code.empty() && _host.empty())
+		return response::pageBadRequest(this);
+
+	if (_code.empty()) {
+		return response::pageOK(this);
+	}
+
 	buildResponse();
 }
 
@@ -97,7 +139,7 @@ void Connection::append(vector<char> &text, int bytes) {
 
 	_buffer.append(text.begin(), text.begin() + bytes);
 
-	if (_buffer.find("\r\n\r\n") != string::npos)
+	if (_buffer.find("\r\n") != string::npos)
 		parseRequest();
 
 	_time = time(NULL);
@@ -143,11 +185,6 @@ void Connection::setCode(string code) {
 	_code = code;
 }
 
-void Connection::setCode(size_t code) {
-
-	_code = parser::toString(code);
-}
-
 string Connection::getCode(void) const {
 
 	return _code;
@@ -164,6 +201,28 @@ string Connection::getStatus(void) const {
 }
 
 void Connection::addHeader(string key, string value) {
+	
+	if (value.empty())
+		return;
+
+	if (key == header::HOST) {
+
+		_host = value;
+
+		list<string> tmp = parser::split(value, ':');
+
+		_server = _http->getServerByName(tmp.front());
+		if (_server.empty())
+			_server = _http->getServerByListen(value);
+		if (_server.empty())
+			_server = _http->getServerByListen(_ip);
+	}
+
+	if (key == header::CONTENT_LENGTH)
+		_has_content_lenght = true;
+
+	if (key == header::TRANSFER_ENCONDING)
+		_has_transfer_enconding = true;
 
 	_headers[key] = value;
 }
@@ -181,10 +240,10 @@ void Connection::setHeaders(map<string, string> headers) {
 string Connection::getHeaderByKey(string key) const {
 
 	map<string, string>::const_iterator it = _headers.find(key);
-	if (it == _headers.end())
-		return "";
+	if (it->first == key)
+		return it->second;
 
-	return it->second;
+	return "";
 }
 
 string Connection::getHeaders(void) const {
@@ -208,9 +267,32 @@ string Connection::getBody(void) const {
 	return _body;
 }
 
-Server Connection::getServer(void) const {
+void Connection::setFile(AFile *file) {
+
+	if (_file)
+		delete _file;
+
+	_file = file;
+}
+
+void Connection::setServer(Server server) {
+
+	_server = server;
+}
+
+Server &Connection::getServer(void){
 
 	return _server;
+}
+
+void Connection::setLocation(Location location) {
+
+	_location = location;
+}
+
+Location &Connection::getLocation(void) {
+
+	return _location;
 }
 
 time_t Connection::getTime(void) const {
@@ -220,8 +302,19 @@ time_t Connection::getTime(void) const {
 
 void Connection::buildResponse(void) {
 
-	if (_protocol.empty() || _code.empty() || _status.empty())
-		response::pageInternalServerError(this);
+	if (_file && _file->empty())
+		return response::pageNotFound(this);
+
+	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
+		_headers[header::CONNECTION] = "close";
+	else
+		_transfers++;
+
+	if (_file) {
+		_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
+		_headers[header::CONTENT_TYPE] = _file->getMime();
+	}
+	_headers[header::SERVER] = "webserv/0.1.0";
 
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
@@ -230,12 +323,13 @@ void Connection::buildResponse(void) {
 	for (; it != _headers.end(); it++)
 		oss << it->first + ": " + it->second + "\r\n";
 
-	oss << "\r\n" << _body;
-
-	_response = oss.str();
+	_response = oss.str() + "\r\n";
 }
 
 string Connection::getResponse(int bytes) {
+
+	if (_file)
+		_response += _file->getBuffer(bytes);
 
 	if (_response.empty())
 		return "";
@@ -243,10 +337,17 @@ string Connection::getResponse(int bytes) {
 	string tmp = _response.substr(0, bytes);
 	_response.erase(0, bytes);
 
+	_time = time(NULL);
+
 	return tmp;
 }
 
-string Connection::getResponse(void) const {
+string Connection::getResponse(void) {
+
+	if (dynamic_cast<Page *>(_file))
+		_response += _file->getBuffer(_file->getSize());
+
+	_time = time(NULL);
 
 	return _response;
 }
@@ -254,6 +355,35 @@ string Connection::getResponse(void) const {
 size_t Connection::getResponseSize(void) const {
 
 	return _response.size();
+}
+void Connection::setStartLineParsed(bool value) {
+
+	_startline_parsed = value;
+}
+
+bool Connection::getStartLineParsed(void) const {
+
+	return _startline_parsed;
+}
+
+void Connection::setHeadersParsed(bool value) {
+
+	_headers_parsed = value;
+}
+
+bool Connection::getHeadersParsed(void) const {
+
+	return _headers_parsed;
+}
+
+bool Connection::hasContentLenght(void) const {
+
+	return _has_content_lenght;
+}
+
+bool Connection::hasTransferEnconding(void) const {
+
+	return _has_transfer_enconding;
 }
 
 void Connection::setSend(bool send) {
@@ -264,6 +394,18 @@ void Connection::setSend(bool send) {
 bool Connection::getSend(void) const {
 
 	return _send;
+}
+
+void Connection::setQueryString(string query_string) {
+	_query_string = query_string;
+}
+
+std::string Connection::getQueryString(void) const {
+	return _query_string;
+}
+
+size_t Connection::getTransfers(void) const {
+  return _transfers;
 }
 
 void Connection::resetConnection(void) {
@@ -277,10 +419,30 @@ void Connection::resetConnection(void) {
 	_status.clear();
 	_headers.clear();
 	_body.clear();
-	_response.clear();
 
+	delete _file;
+	_file = NULL;
+
+	_response.clear();
+	_query_string.clear();
 	_time = time(NULL);
+
+	_startline_parsed = false;
+	_headers_parsed = false;
 	_send = false;
+	_has_content_lenght = false;
+	_has_transfer_enconding = false;
+}
+
+std::string Connection::operator[](std::string key) {
+
+	static string empty;
+
+	map<string, string>::iterator it = _headers.find(key);
+	if (it->first == key)
+		return it->second;
+
+	return empty ;
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {
@@ -297,8 +459,8 @@ ostream &operator<<(ostream &os, const Connection &src) {
 	os << "status: " << src.getStatus() << endl;
 	os << "request headers: " << src.getHeaders() << endl;
 	os << "request body: " << src.getBody() << endl;
-	os << "http {\n" << src.getServer() << "\n}" << endl;
-	os << "response: " << src.getResponse() << endl;
+	//os << "http {\n" << src.getServer() << "\n}" << endl;
+	//os << "response: " << src.getResponse() << endl;
 
 	return os;
 }

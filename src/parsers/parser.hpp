@@ -27,8 +27,12 @@ namespace parser {
 	static const std::string DEFAULT_MAX_BODY_SIZE = "10M";
 	static const std::string DEFAULT_INDEXES = "index.htm index.html";
 	static const std::string DEFAULT_HOST = "0.0.0.0";
-	static const std::string DEFAULT_PORT = "80";
-	static const std::string DEFAULT_ALLOW_METHODS = "GET POST PUT PATCH DELETE";
+	static const std::string DEFAULT_PORT = "8080";
+	static const std::string DEFAULT_ALLOW_METHODS = "GET POST DELETE";
+
+	static const std::string DEFAULT_ALLOWED_CHARACTERS = ""
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+		"0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	static const std::string DEFAULT_404_ERROR = ("404 " + DEFAULT_ROOT + "/default/404.html");
 	static const std::string DEFAULT_50x_ERROR = ("500 502 503 504 " + DEFAULT_ROOT + "/default/50x.html");
@@ -48,6 +52,7 @@ namespace parser {
 	void server(Server &server, std::string &configuration_file);
 	void location(Location &location, std::string &configuration_file);
 	void limit_except(Location &location, std::string &configuration_file);
+
 }
 
 #endif /* PARSER_HPP */
