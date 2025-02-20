@@ -74,8 +74,7 @@ void AutoIndex::generateContent(void) {
 
 	typedef std::vector<std::string>::iterator vector_iterator;
 	for (vector_iterator it = entries.begin(); it != entries.end(); ++it) {
-		response += "<a href=\"" 
-			+ partPath + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
+		response += "<a href=\"./" + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
 			+ *it 
 			+ "</a>\n";
 	}
