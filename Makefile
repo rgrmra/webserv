@@ -6,7 +6,7 @@
 #    By: vini <vini@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2025/02/19 21:16:58 by vini             ###   ########.fr        #
+#    Updated: 2025/02/19 21:20:54 by vini             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,8 +68,7 @@ endef
 export TERM=xterm-256color
 
 define print_color
-    @echo "$(1)$(2)$(RESET)"
+	@echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: all clean fclean re sub test test_clean
-# test
+.PHONY: test_clean test sub all clean fclean re
