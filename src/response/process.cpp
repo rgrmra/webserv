@@ -20,13 +20,12 @@ void process::request(Connection *connection) {
 
     Location location = process::isValidPath(connection);
     connection->setLocation(location);
-	cout << "getPath::::" << connection->getPath() << endl;
-    cout << location << endl;
     if (location.empty())
         return response::pageNotFound(connection);
     if (location.getReturnCode().size())
-        // TODO: check return code to call the correct response page
+	{
         return response::pageMovedPermanently(connection);
+	}
 
     string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
     if (not queryString.empty())
@@ -38,27 +37,26 @@ void process::request(Connection *connection) {
 	string uri = path;
 	path = location.getRoot() + connection->getPath();
 
-	cout << "PATH:::: " << path << endl;
+	
     if (process::isDirectory(path) && path[path.size() - 1] != '/') {
+
+        connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
         return response::pageMovedPermanently(connection);
     }
 
 
-    connection->setPath(path);
-    if (process::isDirectory(path) && not process::checkIndex(location, connection))
+    // connection->setPath(path);
+    if (process::isDirectory(path) && not process::checkIndex(location, path))
         return response::pageForbbiden(connection);
-
-    cout << path << " " << process::getFileExtension(connection->getPath()) << endl;
 
     if (process::isCGI(path))
     {
         // cout << "CGI Path:::::: " << path << endl;
         // function to handle CGI
     }
-
-    if (process::isDirectory(connection->getPath()) && location.getAutoIndex())
+    if (process::isDirectory(path) && location.getAutoIndex())
         return connection->setFile(new AutoIndex(path, uri));
-    connection->setFile(new File(connection->getPath()));
+    connection->setFile(new File(path));
 }
 
 bool process::isDirectory(const std::string &path) {
@@ -157,22 +155,18 @@ Location process::isValidPath(Connection *connection) {
 		if (!location.empty())
 			locations.push_back(location);
 	}
-
-	cout << "location: " << tmp << endl;
-
 	return locations.back();
 }
 
-bool process::checkIndex(const Location &location, Connection *connection) {
+bool process::checkIndex(const Location &location, std::string &path) {
 	const std::set<std::string> &indexes = location.getIndexes();
-	const string &path = connection->getPath();
 	const string &bar = path.find_last_of('/') == path.size() - 1 ? "" : "/";
 
 	typedef std::set<std::string>::const_iterator set_iterator;
 	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
         std::string indexPath = path + bar + *it;
         if (isFile(indexPath)) {
-            connection->setPath(indexPath);
+            path = indexPath;
             return true;
         }
     }
