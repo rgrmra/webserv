@@ -7,36 +7,31 @@
 class URL {
 	private:
 		std::string _scheme;
-		std::string _user;
-		std::string _password;
 		std::string _host;
 		std::string _port;
 		std::string _path;
-		std::string _param;
+		std::string _last;
 		std::string _query;
 
 	public:
+		URL(void);
 		URL(std::string url);
 		URL(const URL &src);
 		URL &operator=(const URL &rhs);
 		~URL(void);
 
-		std::string getScheme(void) const;
 		void setScheme(std::string scheme);
-		std::string getUser(void) const;
-		void setUser(std::string User);
-		std::string getPassword(void) const;
-		void setPassword(std::string password);
-		std::string getHost(void) const;
+		std::string getScheme(void) const;
 		void setHost(std::string host);
-		std::string getPort(void) const;
+		std::string getHost(void) const;
 		void setPort(std::string port);
-		std::string getPath(void) const;
+		std::string getPort(void) const;
 		void setPath(std::string path);
-		std::string getParam(void) const;
-		void setParam(std::string param);
-		std::string getQuery(void) const;
+		std::string getPath(void) const;
 		void setQuery(std::string query);
+		std::string getQuery(void) const;
+		std::string getLocation(void);
+		void clear(void);
 
 };
 

@@ -2,6 +2,7 @@
 #include "File.hpp"
 #include "AutoIndex.hpp"
 #include "Location.hpp"
+#include "URL.hpp"
 #include "header.hpp"
 #include "parser.hpp"
 #include "process.hpp"
@@ -14,11 +15,17 @@
 using namespace std;
 
 void process::request(Connection *connection) {
-
+	
 	string url = (*connection)[header::REFERER];
-	// if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
-	// 	connection->setPath(process::getPathFromReferer(url) + connection->getPath());
-
+	if (url.size()) {
+		url += getFileFromPath(connection->getPath());
+		connection->setPath(getPathFromReferer(url));
+	}
+	else
+		url = "http:://" + connection->getHost() + connection->getPath();
+	connection->addHeader(header::LOCATION, url);
+	//URL *url = new URL("http://" + connection->getHost());
+	
 	Location location = process::isValidPath(connection);
 	connection->setLocation(location);
 	cout << location << endl;
@@ -189,4 +196,13 @@ string process::getPathFromReferer(string url) {
 		url.erase(pos);
 
 	return url;
+}
+
+string process::getFileFromPath(string path) {
+
+	list<string> tmp = parser::split(path, '/');
+	if (tmp.empty())
+		return "/";
+
+	return "/" + tmp.back().append((path.at(path.size() - 1) == '/') ? "/" : "");
 }

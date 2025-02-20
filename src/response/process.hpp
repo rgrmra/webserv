@@ -17,6 +17,7 @@ namespace process {
 	std::string getFileExtension(std::string path);
 	Location isValidPath(Connection *connection);
 	std::string getPathFromReferer(std::string url);
+	std::string getFileFromPath(std::string path);
 
 };
 

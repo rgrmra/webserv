@@ -1,7 +1,12 @@
 #include "URL.hpp"
+#include <csetjmp>
 #include <iostream>
 
 using namespace std;
+
+URL::URL(void) {
+
+}
 
 URL::URL(string uri) {
 
@@ -12,19 +17,6 @@ URL::URL(string uri) {
 	if (scheme_end != string::npos) {
 		_scheme = uri.substr(pos, scheme_end);
 		uri.erase(0, scheme_end + 3);
-	}
-
-	// Parse user and password (if present)
-	size_t user_info_end = uri.find('@', pos);
-	if (user_info_end != string::npos) {
-		size_t colon_pos = uri.find(':', pos);
-		if (colon_pos != string::npos && colon_pos < user_info_end) {
-			_user = uri.substr(pos, colon_pos - pos);
-			_password = uri.substr(colon_pos + 1, user_info_end - colon_pos - 1);
-		} else {
-			_user = uri.substr(pos, user_info_end - pos);
-		}
-		pos = user_info_end + 1;  // Skip '@'
 	}
 
 	// Parse host
@@ -44,9 +36,6 @@ URL::URL(string uri) {
 
 	// Parse path
 	size_t path_end = uri.find('?', pos);
-	if (path_end == string::npos) {
-		path_end = uri.find('#', pos);
-	}
 	if (path_end != string::npos) {
 		_path = uri.substr(pos, path_end - pos);
 		pos = path_end;
@@ -55,14 +44,9 @@ URL::URL(string uri) {
 		pos = uri.length();
 	}
 
-	// Parse query (if present)
-	size_t query_end = uri.find('#', pos);
-	if (query_end == string::npos) {
-		query_end = uri.length();
-	}
 	size_t query_start = uri.find('?', pos);
-	if (query_start != string::npos && query_start < query_end) {
-		_query = uri.substr(query_start + 1, query_end - query_start - 1);
+	if (query_start != string::npos) {
+		_query = uri.substr(query_start + 1);
 	}
 }
 
@@ -77,12 +61,9 @@ URL &URL::operator=(const URL &rhs) {
 		return *this;
 
 	_scheme = rhs._scheme;
-	_user = rhs._user;
-	_password = rhs._password;
 	_host = rhs._host;
 	_port = rhs._port;
 	_path = rhs._path;
-	_param = rhs._param;
 	_query = rhs._query;
 
 	return *this;
@@ -92,19 +73,19 @@ URL::~URL(void) {
 
 }
 
+void URL::setScheme(string scheme) {
+
+	_scheme = scheme;
+}
+
 string URL::getScheme(void) const {
 
 	return _scheme;
 }
 
-string URL::getUser(void) const {
+void URL::setHost(string host) {
 
-	return _user;
-}
-
-string URL::getPassword(void) const {
-
-	return _host;
+	_host = host;
 }
 
 string URL::getHost(void) const {
@@ -112,9 +93,19 @@ string URL::getHost(void) const {
 	return _host;
 }
 
+void URL::setPort(string port) {
+
+	_port = port;
+}
+
 string URL::getPort(void) const {
 
 	return _port;
+}
+
+void URL::setPath(string path) {
+
+	_path = path;
 }
 
 string URL::getPath(void) const {
@@ -122,9 +113,9 @@ string URL::getPath(void) const {
 	return _path;
 }
 
-string URL::getParam(void) const {
-	
-	return _param;
+void URL::setQuery(string query) {
+
+	_query = query;
 }
 
 string URL::getQuery(void) const {
@@ -132,11 +123,24 @@ string URL::getQuery(void) const {
 	return _query;
 }
 
+std::string URL::getLocation(void) {
+
+	return (_scheme.size() ? _scheme : "http") + "://"
+		+ _host + (_port.size() ? ":" + _port : "") + _path;
+}
+
+void URL::clear(void) {
+
+	_scheme.clear();
+	_host.clear();
+	_port.clear();
+	_path.clear();
+	_query.clear();
+}
+
 ostream &operator<<(ostream &os, const URL &src) {
 
-	return os << (src.getScheme().size() ? src.getScheme() + "://" : "")
-		+ src.getUser() + (src.getPassword().size() ? ":" + src.getPassword() : "")
-		+ (src.getUser().size() ? "@" : "")
-		+ src.getPort() + (src.getPort().size() ? ":" + src.getPort() : "") + src.getPath()
-		+ (src.getQuery().size() ? "?" + src.getQuery() : "");
+	return os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
+		+ src.getHost() + (src.getPort().size() ? ":" + src.getPort() : "")
+		+ src.getPath() + (src.getQuery().size() ? "?" + src.getQuery() : "");
 }
