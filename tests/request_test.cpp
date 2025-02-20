@@ -4,8 +4,6 @@
 #include "Connection.hpp"
 #include "response.hpp"
 
-Mime *mimes;
-
 using namespace std;
 
 TEST(RequestTest, ParseRequest_ValidRequest) {
