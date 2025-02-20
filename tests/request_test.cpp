@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
-#include "Mime.hpp"
+#include "Common.hpp"
 #include "Request.hpp"
 #include "Connection.hpp"
 #include "response.hpp"
 
-extern Mime *mimes;
+Mime *mimes;
 
 using namespace std;
 
