@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rde-mour <rde-mour@student.42sp.org.br>    +#+  +:+       +#+         #
+#    By: vini <vini@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2025/01/04 17:10:40 by rde-mour         ###   ########.org.br    #
+#    Updated: 2025/02/19 21:16:58 by vini             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,4 +71,5 @@ define print_color
     @echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: 			all clean fclean re test test_clean sub
+.PHONY: all clean fclean re sub test test_clean
+# test
