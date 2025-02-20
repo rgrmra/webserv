@@ -1,4 +1,3 @@
-// filepath: /home/vini/42/web_rgr/tests/afile_test.cpp
 #include <gtest/gtest.h>
 #include <fstream>
 #include <cstdio>
