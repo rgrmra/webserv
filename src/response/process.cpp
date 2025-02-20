@@ -14,46 +14,49 @@
 using namespace std;
 
 void process::request(Connection *connection) {
+    string url = (*connection)[header::REFERER];
+    // if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
+    //  connection->setPath(process::getPathFromReferer(url) + connection->getPath());
 
-	string url = (*connection)[header::REFERER];
-	// if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
-	// 	connection->setPath(process::getPathFromReferer(url) + connection->getPath());
+    Location location = process::isValidPath(connection);
+    connection->setLocation(location);
+    if (location.empty())
+        return response::pageNotFound(connection);
+    if (location.getReturnCode().size())
+	{
+        return response::pageMovedPermanently(connection);
+	}
 
-	Location location = process::isValidPath(connection);
-	connection->setLocation(location);
-	cout << location << endl;
-	if (location.empty())
-		return response::pageNotFound(connection);
-	else if (location.getReturnCode().size())
-		// TODO: check return code to call the correct response page
-		return response::pageMovedPermanently(connection);
+    string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
+    if (not queryString.empty())
+        connection->setQueryString(queryString);
 
-	string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
-	if (not queryString.empty())
-		connection->setQueryString(queryString);
-
-
-	string path = connection->getPath();
-	path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
+    string path = connection->getPath();
+    path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
 
 	string uri = path;
 	path = location.getRoot() + connection->getPath();
 
-	connection->setPath(path);
-	if (process::isDirectory(path) && not process::checkIndex(location, connection))
-		return response::pageForbbiden(connection);
+	
+    if (process::isDirectory(path) && path[path.size() - 1] != '/') {
 
-	cout << path << " " << process::getFileExtension(connection->getPath()) << endl;
+        connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
+        return response::pageMovedPermanently(connection);
+    }
 
-	if (process::isCGI(path))
-	{
-		// cout << "CGI Path:::::: " << path << endl;
-		// function to handle CGI
-	}
 
-	if (process::isDirectory(connection->getPath()) && location.getAutoIndex())
-		return connection->setFile(new AutoIndex(path, uri));
-	connection->setFile(new File(connection->getPath()));
+    // connection->setPath(path);
+    if (process::isDirectory(path) && not process::checkIndex(location, path))
+        return response::pageForbbiden(connection);
+
+    if (process::isCGI(path))
+    {
+        // cout << "CGI Path:::::: " << path << endl;
+        // function to handle CGI
+    }
+    if (process::isDirectory(path) && location.getAutoIndex())
+        return connection->setFile(new AutoIndex(path, uri));
+    connection->setFile(new File(path));
 }
 
 bool process::isDirectory(const std::string &path) {
@@ -152,22 +155,18 @@ Location process::isValidPath(Connection *connection) {
 		if (!location.empty())
 			locations.push_back(location);
 	}
-
-	cout << "location: " << tmp << endl;
-
 	return locations.back();
 }
 
-bool process::checkIndex(const Location &location, Connection *connection) {
+bool process::checkIndex(const Location &location, std::string &path) {
 	const std::set<std::string> &indexes = location.getIndexes();
-	const string &path = connection->getPath();
 	const string &bar = path.find_last_of('/') == path.size() - 1 ? "" : "/";
 
 	typedef std::set<std::string>::const_iterator set_iterator;
 	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
         std::string indexPath = path + bar + *it;
         if (isFile(indexPath)) {
-            connection->setPath(indexPath);
+            path = indexPath;
             return true;
         }
     }
