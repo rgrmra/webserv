@@ -5,6 +5,7 @@ if(BUILD_TESTING)
 			location_test.cpp
 			request_test.cpp
 			connection_test.cpp
+      afile_test.cpp
 			mime_test.cpp
 	)
 
