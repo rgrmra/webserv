@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Http* http = NULL;
+Http *http = NULL;
 
 class ConnectionDestructorTest : public ::testing::Test
 {
