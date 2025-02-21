@@ -2,6 +2,7 @@
 #include "File.hpp"
 #include "AutoIndex.hpp"
 #include "Location.hpp"
+#include "URL.hpp"
 #include "header.hpp"
 #include "../CGI/Cgi.hpp"
 #include "parser.hpp"
@@ -197,4 +198,13 @@ string process::getPathFromReferer(string url) {
 		url.erase(pos);
 
 	return url;
+}
+
+string process::getFileFromPath(string path) {
+
+	list<string> tmp = parser::split(path, '/');
+	if (tmp.empty())
+		return "/";
+
+	return "/" + tmp.back().append((path.at(path.size() - 1) == '/') ? "/" : "");
 }
