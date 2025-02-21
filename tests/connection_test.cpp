@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "Common.hpp"
 #include "Connection.hpp"
 #include "header.hpp"
 #include "Server.hpp"
@@ -6,6 +7,8 @@
 #include <map>
 
 using namespace std;
+
+Http *http = NULL;
 
 class ConnectionDestructorTest : public ::testing::Test
 {

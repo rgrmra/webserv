@@ -329,7 +329,7 @@ void Connection::buildResponse(void) {
 		_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
-
+	logger::info(_host + " " + _method + " " + _path + " " + _protocol + " " + _code + " - " + getHeaderByKey(header::USER_AGENT));
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 

@@ -54,7 +54,8 @@ void response::pageMovedPermanently(Connection *connection) {
 	connection->setCode(code::MOVED_PERMANENTLY);
 	connection->setStatus(status::MOVED_PERMANENTLY);
 	// TODO: check if getReturnURI is a valid path or a text
-	//connection->addHeader(header::LOCATION, location.getReturnURI());
+	connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
+	connection->setFile(new Page(code::MOVED_PERMANENTLY, status::MOVED_PERMANENTLY));
 	//connection->setFile(new Text(connection->getLocation().getReturnURI()));
 	buildHeaderAndBody(connection);
 }
