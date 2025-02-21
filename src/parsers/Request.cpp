@@ -72,7 +72,7 @@ void request::splitPathQuery(Connection *connection) {
 
 	size_t pos = connection->getUri().find("?");
 	if (pos == string::npos)
-		return;
+		return connection->setPath(connection->getUri());
 
 	connection->setPath(connection->getUri().substr(0, pos));
 	connection->setQueryString(connection->getUri().substr(pos + 1));
