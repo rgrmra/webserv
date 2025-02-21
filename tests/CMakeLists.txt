@@ -8,6 +8,7 @@ if(BUILD_TESTING)
 			afile_test.cpp
 			mime_test.cpp
 			header_test.cpp
+			status_test.cpp
 	)
 
 	target_link_libraries(webreq
