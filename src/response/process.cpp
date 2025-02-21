@@ -3,6 +3,7 @@
 #include "AutoIndex.hpp"
 #include "Location.hpp"
 #include "header.hpp"
+#include "../CGI/Cgi.hpp"
 #include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
@@ -44,6 +45,14 @@ void process::request(Connection *connection) {
         return response::pageMovedPermanently(connection);
     }
 
+	if (process::isCGI(path))
+	{
+		Cgi cgi(*connection);
+
+		cout << "CGI Output:::::: " << cgi.getCgiOutput() << endl;
+		cout << "CGI Exit Status:::::: " << cgi.getExitStatus() << endl;
+
+	}
 
     // connection->setPath(path);
     if (process::isDirectory(path) && not process::checkIndex(location, path))

@@ -35,7 +35,7 @@ void request::parseRequest(Connection *connection, string line) {
 
 void request::parseStartLine(Connection *connection, string line) {
 
-	string method, path, protocol;
+	string method, uri, protocol;
 
 	if (line.at(line.size() -1) != '\r')
 		return response::pageBadRequest(connection);
@@ -47,22 +47,35 @@ void request::parseStartLine(Connection *connection, string line) {
 		return response::pageBadRequest(connection);
 
 	istringstream startline(line);
-	if (!(startline >> method >> path >> protocol))
-		return response::pageBadRequest(connection);	
-	
+	if (!(startline >> method >> uri >> protocol))
+		return response::pageBadRequest(connection);
+
 	if (!directive::validateHttpMethod(method))
 		return response::pageNotAllowed(connection);
 
-	if (path.size() > parser::KILOBYTE * 2)
+	if (uri.size() > parser::KILOBYTE * 2)
 		return response::pageURITooLong(connection);
 
 	if (protocol != response::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
-	connection->setPath(path);
+	connection->setUri(uri);
 	connection->setProtocol(protocol);
+	splitPathQuery(connection);
 	connection->setStartLineParsed(true);
+
+	return;
+}
+
+void request::splitPathQuery(Connection *connection) {
+
+	size_t pos = connection->getUri().find("?");
+	if (pos == string::npos)
+		return connection->setPath(connection->getUri());
+
+	connection->setPath(connection->getUri().substr(0, pos));
+	connection->setQueryString(connection->getUri().substr(pos + 1));
 
 	return;
 }
@@ -74,7 +87,7 @@ void request::parseHeaders(Connection *connection, std::string line) {
 
 	if (line == "\r") {
 		connection->setHeadersParsed(true);
-		
+
 		if (!connection->getHeaders().size())
 			return response::pageBadRequest(connection);
 
@@ -112,6 +125,6 @@ bool request::validateHeaders(Connection *connection, size_t separator) {
 
 	if (connection->hasContentLenght() && connection->hasTransferEnconding())
 		return true;
-	
+
 	return false;
 }

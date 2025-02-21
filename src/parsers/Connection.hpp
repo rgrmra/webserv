@@ -19,7 +19,9 @@ class Connection {
 		std::string _host;
 		std::string _buffer;
 		std::string _method;
+		std::string _uri;
 		std::string _path;
+		std::string _query_string;
 		std::string _protocol;
 		std::string _code;
 		std::string _status;
@@ -29,7 +31,6 @@ class Connection {
 		Server _server;
 		Location _location;
 		std::string _response;
-		std::string _query_string;
 		time_t _time;
 		bool _startline_parsed;
 		bool _headers_parsed;
@@ -54,8 +55,12 @@ class Connection {
 		std::string getBuffer(void) const;
 		void setMethod(std::string &method);
 		std::string getMethod(void) const;
+		void setUri(std::string uri);
+		std::string getUri(void) const;
 		void setPath(std::string path);
 		std::string getPath(void) const;
+		void setQueryString(std::string query_string);
+		std::string getQueryString(void) const;
 		void setProtocol(std::string protocol);
 		std::string getProtocol(void) const;
 		void setCode(std::string code);
@@ -89,8 +94,6 @@ class Connection {
 		bool getSend(void) const;
 		size_t getTransfers(void) const;
 		void resetConnection(void);
-		void setQueryString(std::string query_string);
-		std::string getQueryString(void) const;
 
 		std::string operator[](std::string key);
 
