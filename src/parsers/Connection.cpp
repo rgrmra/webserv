@@ -160,6 +160,16 @@ string Connection::getMethod(void) const {
 	return _method;
 }
 
+void Connection::setUri(string uri) {
+
+	_uri = uri;
+}
+
+string Connection::getUri(void) const {
+
+	return _uri;
+}
+
 void Connection::setPath(string path) {
 
 	_path = path;
@@ -168,6 +178,10 @@ void Connection::setPath(string path) {
 string Connection::getPath(void) const {
 
 	return _path;
+}
+
+std::string Connection::getQueryString(void) const {
+	return _query_string;
 }
 
 void Connection::setProtocol(string protocol) {
@@ -201,7 +215,7 @@ string Connection::getStatus(void) const {
 }
 
 void Connection::addHeader(string key, string value) {
-	
+
 	if (value.empty())
 		return;
 
@@ -315,7 +329,7 @@ void Connection::buildResponse(void) {
 		_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
-
+	logger::info(_host + " " + _method + " " + _path + " " + _protocol + " " + _code + " - " + getHeaderByKey(header::USER_AGENT));
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
@@ -398,10 +412,6 @@ bool Connection::getSend(void) const {
 
 void Connection::setQueryString(string query_string) {
 	_query_string = query_string;
-}
-
-std::string Connection::getQueryString(void) const {
-	return _query_string;
 }
 
 size_t Connection::getTransfers(void) const {

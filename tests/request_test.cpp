@@ -1,10 +1,8 @@
 #include "gtest/gtest.h"
-#include "Mime.hpp"
+#include "Common.hpp"
 #include "Request.hpp"
 #include "Connection.hpp"
 #include "response.hpp"
-
-extern Mime *mimes;
 
 using namespace std;
 
@@ -15,6 +13,18 @@ TEST(RequestTest, ParseRequest_ValidRequest) {
 	request::parseRequest(&connection, line);
 	EXPECT_EQ(connection.getMethod(), "GET");
 	EXPECT_EQ(connection.getPath(), "/index.html");
+	EXPECT_EQ(connection.getProtocol(), "HTTP/1.1");
+}
+
+TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
+	mimes = new Mime("../../src/parsers/mimes.json");
+	Connection connection(5, "127.0.0.1");
+	string line = "GET /index.html?name=changes HTTP/1.1\r";
+	request::parseRequest(&connection, line);
+	EXPECT_EQ(connection.getMethod(), "GET");
+	EXPECT_EQ(connection.getPath(), "/index.html");
+	EXPECT_EQ(connection.getUri(), "/index.html?name=changes");
+	EXPECT_EQ(connection.getQueryString(), "name=changes");
 	EXPECT_EQ(connection.getProtocol(), "HTTP/1.1");
 }
 

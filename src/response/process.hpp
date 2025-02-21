@@ -13,7 +13,7 @@ namespace process {
 	bool isFile(const std::string &path);
 	bool isDirectory(const std::string &path);
 	bool isCGI(const std::string &path);
-	bool checkIndex(const Location &location, Connection *connection);
+	bool checkIndex(const Location &location, std::string &path);
 	std::string getFileExtension(std::string path);
 	Location isValidPath(Connection *connection);
 	std::string getPathFromReferer(std::string url);
