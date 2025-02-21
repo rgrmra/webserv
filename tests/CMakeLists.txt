@@ -10,6 +10,7 @@ if(BUILD_TESTING)
 			header_test.cpp
 			status_test.cpp
 			code_test.cpp
+			text_test.cpp
 	)
 
 	target_link_libraries(webreq
