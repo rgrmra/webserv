@@ -10,7 +10,6 @@ class URL {
 		std::string _host;
 		std::string _port;
 		std::string _path;
-		std::string _last;
 		std::string _query;
 
 	public:
