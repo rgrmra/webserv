@@ -6,6 +6,8 @@
 
 class Mime {
 	private:
+		static Mime *_instance;
+
 		const std::string _default_mime;
 		std::map<std::string, std::string> _mimes;
 
@@ -13,11 +15,12 @@ class Mime {
 		void parseMimes(std::string &buffer);
 
 	public:
-		Mime(std::string filename);
-		Mime(const Mime &src);
-		Mime &operator=(const Mime &rhs);
+		Mime(void);
 		~Mime(void);
 
+		static Mime *getInstance(void);
+
+		void configure(std::string filename);
 		std::string getType(std::string extension) const;
 };
 
