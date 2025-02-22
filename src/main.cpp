@@ -9,14 +9,11 @@
 
 using namespace std;
 
-Http *http = NULL;
-Mime *mimes = NULL;
-
 static void handle_signal(int signal) {
 	
 	(void) signal;
 
-	http->stop();
+	Http::getInstance()->stop();
 }
 
 int main(int argc, char *argv[]) {
@@ -25,14 +22,18 @@ int main(int argc, char *argv[]) {
 
 	int status = EXIT_SUCCESS;
 
+	Http *http = Http::getInstance();
+
 	try {
 
 		if (argc > 2)
 			throw std::runtime_error("too many configuration files");
 
-		http = new Http(argv[1] ? argv[1] : "configurations/default.conf");
+		string file = (argv[1] ? argv[1] : "./configuration/default.conf");
 
-		mimes = new Mime("src/parsers/mimes.json");
+		http->configure(file);
+
+		Mime::getInstance()->configure("./src/parsers/mimes.json");
 
 		cout << *http << endl;
 
@@ -46,7 +47,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	delete http;
-	delete mimes;
 
 	return status;
 }
