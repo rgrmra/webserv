@@ -610,30 +610,32 @@ TEST(DirectiveTest, addServer) {
 #include <iostream>
 
 TEST(DirectiveTest, setHttpDefaultValues) {
-    Http http("../../configurations/default.conf");
+	Http *http = Http::getInstance();
+	http->configure("../../configurations/default.conf");
     
     // Test setting default values
-    EXPECT_NO_THROW(directive::setHttpDefaultValues(http));
+    EXPECT_NO_THROW(directive::setHttpDefaultValues(*Http::getInstance()));
     
     // Verify default values were set
-    EXPECT_FALSE(http.getIndexes().empty());
-    EXPECT_EQ(http.getAccessLog(), "/var/log/access.log");
-    EXPECT_EQ(http.getAutoIndexBitSet().to_ulong(), parser::AUTOINDEX_OFF);
-    EXPECT_EQ(http.getErrorLog(), "test");
-    EXPECT_EQ(http.getRoot(), "/var/www/html");
+    EXPECT_FALSE(http->getIndexes().empty());
+    EXPECT_EQ(http->getAccessLog(), "/var/log/access.log");
+    EXPECT_EQ(http->getAutoIndexBitSet().to_ulong(), parser::AUTOINDEX_OFF);
+    EXPECT_EQ(http->getErrorLog(), "test");
+    EXPECT_EQ(http->getRoot(), "/var/www/html");
 }
 
 // Test suite for setServerDefaultValues
 TEST(DirectiveTest, setServerDefaultValues) {
-  Http http("../../configurations/default.conf");
+  Http *http = Http::getInstance();
+  http->configure("../../configurations/default.conf");
   Server server;
 
   // Setup http with some values
-  http.setMaxBodySize("1024");
-  http.setRoot("/var/www");
+  http->setMaxBodySize("1024");
+  http->setRoot("/var/www");
 
   // Test setting server default values
-  EXPECT_NO_THROW(directive::setServerDefaultValues(http, server));
+  EXPECT_NO_THROW(directive::setServerDefaultValues(*http, server));
 
   // Verify values were inherited from http
   EXPECT_EQ(server.getMaxBodySize(), 1024);

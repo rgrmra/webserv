@@ -23,7 +23,8 @@ protected:
 		ofs.close();
 		try
 		{
-			mime = new Mime(tmpFile);
+			mime = Mime::getInstance();
+			mime->configure(tmpFile);
 		}
 		catch (const std::exception &e)
 		{
@@ -97,7 +98,7 @@ TEST(MimeConstructorTest, InvalidFileThrowsRuntimeError)
 {
 	try
 	{
-		Mime m("nonexistent.json");
+		Mime::getInstance()->configure("nonexistent.json");
 		FAIL() << "Expected std::runtime_error due to invalid file path";
 	}
 	catch (const std::runtime_error &e)

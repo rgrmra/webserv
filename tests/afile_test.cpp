@@ -5,8 +5,6 @@
 #include "Mime.hpp"
 #include "Common.hpp"
 
-Mime* mimes = NULL;
-
 class TestFile : public AFile {
 public:
 	TestFile(const std::string &path) : AFile(path) {}
@@ -29,7 +27,8 @@ protected:
 		tmpMimeFile = "test_mime.json";
 		create_mime_file(tmpMimeFile);
 		try {
-			mimes = new Mime(tmpMimeFile);
+			mimes = Mime::getInstance();
+			mimes->configure(tmpMimeFile);
 		} catch (std::exception &e) {
 			FAIL() << "Failed to create Mime object: " << e.what();
 		}
