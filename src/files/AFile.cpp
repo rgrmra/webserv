@@ -38,7 +38,5 @@ size_t AFile::getSize(void) const {
 
 string AFile::getMime(void) const {
 
-	extern Mime *mimes;
-
-	return mimes->getType(_path);
+	return Mime::getInstance()->getType(_path);
 }
