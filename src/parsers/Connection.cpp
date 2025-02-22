@@ -28,9 +28,7 @@ Connection::Connection(int fd, string ip)
 	  _has_transfer_enconding(false),
 	  _transfers(0) {
 
-	extern Http *http;
-
-	_http = http;
+	_http = Http::getInstance();
 }
 
 Connection::Connection(const Connection &src) {
