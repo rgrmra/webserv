@@ -17,11 +17,12 @@
 
 using namespace std;
 
-WebServ::WebServ(Http *http)
-	: _http(http),
-	  _epoll_fd(-1) {
+WebServ *WebServ::_instance = NULL;
 
-	vector<Server> servers = _http->getServers();
+WebServ::WebServ(void)
+	: _epoll_fd(-1) {
+
+	vector<Server> servers = Http::getInstance()->getServers();
 	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
 
 		vector<string> listens = it->getListen();
@@ -34,21 +35,6 @@ WebServ::WebServ(Http *http)
 			_binded_sockets[*itl] = createSocket(*itl);
 		}
 	}
-}
-
-WebServ::WebServ(const WebServ &src) {
-
-	*this = src;
-}
-
-WebServ &WebServ::operator=(const WebServ &rhs) {
-
-	if (this == &rhs)
-		return *this;
-
-	_http = rhs._http;
-
-	return *this;
 }
 
 WebServ::~WebServ(void) {
@@ -74,6 +60,14 @@ WebServ::~WebServ(void) {
 
 	if (_epoll_fd != -1)
 		close(_epoll_fd);
+}
+
+WebServ *WebServ::getInstance(void) {
+
+	if (_instance == NULL)
+		_instance = new WebServ();
+
+	return _instance;
 }
 
 void WebServ::removeBindedPorts(string port) {

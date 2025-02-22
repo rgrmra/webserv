@@ -12,10 +12,13 @@ class Http;
 
 class WebServ {
 	private:
-		Http *_http;
+		static WebServ *_instance;
+
 		int _epoll_fd;
 		std::map<std::string, int> _binded_sockets;
 		std::map<int, Connection *> _client_connections;
+
+		WebServ(void);
 
 		void removeBindedPorts(std::string port);
 		bool isBinded(std::string listen);
@@ -38,9 +41,8 @@ class WebServ {
 		static const long TIMEOUT = 30;
 		static const long KEEP_ALIVE = 3;
 		
-		WebServ(Http *http);
-		WebServ(const WebServ &src);
-		WebServ &operator=(const WebServ &rhs);
+		static WebServ *getInstance(void);
+
 		virtual ~WebServ(void);
 
 		void run(void);
