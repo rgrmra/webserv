@@ -1,4 +1,5 @@
 #include "Http.hpp"
+#include "Mime.hpp"
 #include "WebServ.hpp"
 #include "directive.hpp"
 #include "logger.hpp"
@@ -9,10 +10,27 @@
 
 using namespace std;
 
-Http::Http(string filename)
-	: _webserv(NULL),
-	  _autoindex(parser::AUTOINDEX_NOT_SET),
+Http *Http::_instance = NULL;
+
+Http::Http(void)
+	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _max_body_size(0) {
+
+}
+
+Http::~Http(void) {
+
+}
+
+Http *Http::getInstance(void) {
+
+	if (_instance == NULL)
+		_instance = new Http();
+
+	return _instance;
+}
+
+void Http::configure(std::string filename) {
 
 	if (parser::basename(filename) != ".conf")
 		throw runtime_error("invalid .conf file format: " + filename);
@@ -54,35 +72,6 @@ Http::Http(string filename)
 	logger::info("configuration file parsed: " + filename);
 
 	directive::setHttpDefaultValues(*this);
-}
-
-Http::Http(const Http &src) {
-
-	*this = src;
-}
-
-Http &Http::operator=(const Http &rhs) {
-	
-	if (this == &rhs)
-		return *this;
-
-	_access_log = rhs._access_log;
-	_error_log = rhs._error_log;
-	_root = rhs._root;
-	_autoindex = rhs._autoindex;
-	_max_body_size = rhs._max_body_size;
-	_indexes = rhs._indexes;
-	_error_pages = rhs._error_pages;
-	_servers = rhs._servers;
-
-	return *this;
-}
-
-Http::~Http(void) {
-
-	if (_webserv)
-		delete _webserv;
-
 }
 
 void Http::setAccessLog(string access_log) {
@@ -245,14 +234,14 @@ bool Http::empty(void) const {
 
 void Http::start(void) {
 
-	_webserv = new WebServ(this);
-
-	_webserv->run();
+	WebServ::getInstance()->run();
 }
 
 void Http::stop(void) {
 
-	_webserv->stop();
+	WebServ::getInstance()->stop();
+	delete WebServ::getInstance();
+	delete Mime::getInstance();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {
