@@ -20,6 +20,9 @@ Http::Http(void)
 
 Http::~Http(void) {
 
+	delete WebServ::getInstance();
+	delete Mime::getInstance();
+
 }
 
 Http *Http::getInstance(void) {
@@ -240,8 +243,6 @@ void Http::start(void) {
 void Http::stop(void) {
 
 	WebServ::getInstance()->stop();
-	delete WebServ::getInstance();
-	delete Mime::getInstance();
 }
 
 ostream &operator<<(ostream &os, const Http &src) {
