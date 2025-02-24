@@ -155,6 +155,9 @@ int WebServ::createSocket(string host) {
 
 void WebServ::controlEpoll(int client_fd, int flag, int option) {
 
+	if (_epoll_fd == -1)
+		return;
+
 	struct epoll_event event = {};
 	event.events = flag;
 	event.data.fd = client_fd;
@@ -322,7 +325,7 @@ void WebServ::run(void) {
 
 	epoll_event events[MAX_EVENTS];
 
-	while (true) {
+	while (_epoll_fd != -1) {
 		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 30);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
@@ -341,6 +344,10 @@ void WebServ::run(void) {
 
 void WebServ::stop(void) {
 
-	if (_epoll_fd != -1)
-		close(_epoll_fd);
+	if (_epoll_fd == -1)
+		return ;
+
+	close(_epoll_fd);
+
+	_epoll_fd = -1;
 }
