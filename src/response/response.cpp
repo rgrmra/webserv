@@ -39,14 +39,14 @@ void response::pageOK(Connection *connection) {
 	if (connection->getCode() != code::OK)
 		return;
 
-	buildHeaderAndBody(connection);
-
 	logger::info(connection->getHost() + " "
-		+ connection->getMethod() + " "
-		+ connection->getPath() + " "
-		+ connection->getProtocol() + " "
-		+ connection->getCode() + " - "
-		+ connection->getHeaderByKey(header::USER_AGENT));
+			+ connection->getMethod() + " "
+			+ connection->getPath() + " "
+			+ connection->getProtocol() + " "
+			+ connection->getCode() + " - "
+			+ connection->getHeaderByKey(header::USER_AGENT));
+
+	buildHeaderAndBody(connection);
 }
 
 void response::pageMovedPermanently(Connection *connection) {
