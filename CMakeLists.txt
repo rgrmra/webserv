@@ -16,13 +16,14 @@ add_library(webreq_lib ${WEBREQ_SOURCES})
 
 target_include_directories(webreq_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/files
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/parsers
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/connection
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/file
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser
         ${CMAKE_CURRENT_SOURCE_DIR}/src/response
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/services
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/services/logger
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/color
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/service
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/service/logger
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/util
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/util/color
 )
 
 add_subdirectory(tests)
