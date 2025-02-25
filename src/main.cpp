@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
 		http->configure(file);
 
-		Mime::getInstance()->configure("./src/parsers/mimes.json");
+		Mime::getInstance()->configure("./src/parser/mimes.json");
 
 		cout << *http << endl;
 
