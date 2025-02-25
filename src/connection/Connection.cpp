@@ -28,9 +28,7 @@ Connection::Connection(int fd, string ip)
 	  _has_transfer_enconding(false),
 	  _transfers(0) {
 
-	extern Http *http;
-
-	_http = http;
+	_http = Http::getInstance();
 }
 
 Connection::Connection(const Connection &src) {
@@ -80,7 +78,7 @@ void Connection::parseRequest(void) {
 	istringstream iss(_buffer);
 	string line;
 
-	while (getline(iss, line) && !line.empty()) {
+	while (getline(iss, line) && !line.empty() && _code.empty()) {
 
 		if (_send)
 			break;
@@ -91,25 +89,18 @@ void Connection::parseRequest(void) {
 			size_t pos = _buffer.find("\r\n");
 			if (pos != string::npos)
 				_buffer = _buffer.substr(pos + 2);
-		} else {
+		} else
 			request::parseRequest(this, _buffer);
-		}
 	}
-
-	if (_headers_parsed && _headers.empty())
-		return response::pageBadRequest(this);
 
 	if (!_send)
 		return;
-
-	if (_code.empty() && _host.empty())
+	else if (_headers_parsed && _headers.empty())
 		return response::pageBadRequest(this);
-
-	if (_code.empty()) {
+	else if (_code.empty() && _host.empty())
+		return response::pageBadRequest(this);
+	else if (_code.empty())
 		return response::pageOK(this);
-	}
-
-	buildResponse();
 }
 
 int Connection::getFd(void) const {
@@ -329,7 +320,6 @@ void Connection::buildResponse(void) {
 		_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
-	logger::info(_host + " " + _method + " " + _path + " " + _protocol + " " + _code + " - " + getHeaderByKey(header::USER_AGENT));
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 

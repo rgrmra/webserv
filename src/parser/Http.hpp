@@ -12,7 +12,8 @@
 
 class Http {
 	private:
-		WebServ *_webserv;
+		static Http *_instance;
+
 		std::string _access_log;
 		std::string _error_log;
 		std::string _root;
@@ -23,11 +24,12 @@ class Http {
 		std::vector<Server> _servers;
 
 	public:
-		Http(std::string configuration_file);
-		Http(const Http &src);
-		Http &operator=(const Http &rhs);
+		Http(void);
 		~Http(void);
 
+		static Http *getInstance(void);
+
+		void configure(std::string configuration_file);
 		void setAccessLog(std::string access_log);
 		std::string getAccessLog(void) const;
 		void setErrorLog(std::string error_log);

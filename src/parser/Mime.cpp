@@ -11,10 +11,30 @@
 
 using namespace std;
 
-Mime::Mime(string filename)
+Mime *Mime::_instance = NULL;
+
+Mime::Mime(void)
 	: _default_mime("text/plain") {
 
+}
+
+Mime::~Mime(void) {
+
+}
+
+Mime *Mime::getInstance(void) {
+
+	if (_instance == NULL)
+		_instance = new Mime();
+
+	return _instance;
+}
+
+void Mime::configure(std::string filename) {
+
 	try {
+		_mimes.clear();
+
 		ifstream file(filename.c_str());
 		if (not file.is_open())
 			throw runtime_error("failed to open json file: " + filename);
@@ -51,26 +71,6 @@ Mime::Mime(string filename)
 	}
 
 	logger::info("mimes json file parsed: " + filename);
-}
-
-Mime::Mime(const Mime &src)
-	: _default_mime(src._default_mime) {
-
-	*this = src;
-}
-
-Mime &Mime::operator=(const Mime &rhs) {
-
-	if (this == &rhs)
-		return *this;
-
-	_mimes = rhs._mimes;
-
-	return *this;
-}
-
-Mime::~Mime(void) {
-
 }
 
 void Mime::addMime(string &key, string &values) {

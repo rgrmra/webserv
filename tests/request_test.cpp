@@ -6,8 +6,11 @@
 
 using namespace std;
 
+Mime *mimes = NULL;
+
 TEST(RequestTest, ParseRequest_ValidRequest) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -17,7 +20,8 @@ TEST(RequestTest, ParseRequest_ValidRequest) {
 }
 
 TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html?name=changes HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -29,7 +33,8 @@ TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
 }
 
 TEST(RequestTest, ParseRequest_InvalidSpacing) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "        GET    /index.html     HTTP/1.1   \r";
 	request::parseRequest(&connection, line);
@@ -40,7 +45,8 @@ TEST(RequestTest, ParseRequest_InvalidSpacing) {
 }
 
 TEST(RequestTest, ParseRequest_InvalidSpacingDuplicate) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "        GET    /index.html     HTTP/1.1   \r";
 	request::parseRequest(&connection, line);
@@ -51,7 +57,8 @@ TEST(RequestTest, ParseRequest_InvalidSpacingDuplicate) {
 }
 
 TEST(RequestTest, ParseRequest_MissingPath) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -62,7 +69,8 @@ TEST(RequestTest, ParseRequest_MissingPath) {
 }
 
 TEST(RequestTest, ParseRequest_InvalidMethod) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "PATCH /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -70,7 +78,8 @@ TEST(RequestTest, ParseRequest_InvalidMethod) {
 }
 
 TEST(RequestTest, ParseRequest_InvalidMethodDuplicate) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "PATCH /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -78,7 +87,8 @@ TEST(RequestTest, ParseRequest_InvalidMethodDuplicate) {
 }
 
 TEST(RequestTest, ParseRequest_InvalidProtocol) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.2\r";
 	request::parseRequest(&connection, line);
@@ -86,7 +96,8 @@ TEST(RequestTest, ParseRequest_InvalidProtocol) {
 }
 
 TEST(RequestTest, ParseRequest_HeadersParsed) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -96,7 +107,8 @@ TEST(RequestTest, ParseRequest_HeadersParsed) {
 }
 
 TEST(RequestTest, ParseRequest_HeadersNotParsed) {
-	mimes = new Mime("../../src/parsers/mimes.json");
+	mimes = Mime::getInstance();
+	mimes->configure("../../src/parser/mimes.json");
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);

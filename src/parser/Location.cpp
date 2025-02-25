@@ -172,10 +172,11 @@ map<string, string> Location::getErrorPages(void) const {
 
 string Location::getErrorPageByCode(string code) const {
 
-	if (_error_pages.find(code)->first.empty())
+	map<string, string>::const_iterator it = _error_pages.find(code);
+	if (it == _error_pages.end())
 		return "";
 
-	return _error_pages.find(code)->second;
+	return it->second;
 }
 
 void Location::setReturn(string value) {

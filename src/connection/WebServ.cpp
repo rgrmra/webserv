@@ -17,11 +17,12 @@
 
 using namespace std;
 
-WebServ::WebServ(Http *http)
-	: _http(http),
-	  _epoll_fd(-1) {
+WebServ *WebServ::_instance = NULL;
 
-	vector<Server> servers = _http->getServers();
+WebServ::WebServ(void)
+	: _epoll_fd(-1) {
+
+	vector<Server> servers = Http::getInstance()->getServers();
 	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
 
 		vector<string> listens = it->getListen();
@@ -34,21 +35,6 @@ WebServ::WebServ(Http *http)
 			_binded_sockets[*itl] = createSocket(*itl);
 		}
 	}
-}
-
-WebServ::WebServ(const WebServ &src) {
-
-	*this = src;
-}
-
-WebServ &WebServ::operator=(const WebServ &rhs) {
-
-	if (this == &rhs)
-		return *this;
-
-	_http = rhs._http;
-
-	return *this;
 }
 
 WebServ::~WebServ(void) {
@@ -74,6 +60,14 @@ WebServ::~WebServ(void) {
 
 	if (_epoll_fd != -1)
 		close(_epoll_fd);
+}
+
+WebServ *WebServ::getInstance(void) {
+
+	if (_instance == NULL)
+		_instance = new WebServ();
+
+	return _instance;
 }
 
 void WebServ::removeBindedPorts(string port) {
@@ -161,6 +155,9 @@ int WebServ::createSocket(string host) {
 
 void WebServ::controlEpoll(int client_fd, int flag, int option) {
 
+	if (_epoll_fd == -1)
+		return;
+
 	struct epoll_event event = {};
 	event.events = flag;
 	event.data.fd = client_fd;
@@ -206,8 +203,6 @@ void WebServ::acceptNewConnection(int client_fd) {
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
 	_client_connections[fd] = new Connection(fd, host);
-	//_client_connections[fd]->setHost(host);
-	//_client_connections[fd]->setServer(_http->getServerByListen(host));
 }
 
 void WebServ::closeConnection(int client_fd) {
@@ -328,7 +323,7 @@ void WebServ::run(void) {
 
 	epoll_event events[MAX_EVENTS];
 
-	while (true) {
+	while (_epoll_fd != -1) {
 		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 30);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
@@ -347,6 +342,10 @@ void WebServ::run(void) {
 
 void WebServ::stop(void) {
 
-	if (_epoll_fd != -1)
-		close(_epoll_fd);
+	if (_epoll_fd == -1)
+		return ;
+
+	close(_epoll_fd);
+
+	_epoll_fd = -1;
 }
