@@ -1,6 +1,7 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
+#include "AFile.hpp"
 #include "Connection.hpp"
 #include <string>
 #include <map>
@@ -23,7 +24,7 @@
 #define CGI_NOT_FOUND 404
 #define CGI_FORBIDDEN 403
 
-class Cgi
+class Cgi : public AFile
 {
 
 public:
@@ -44,6 +45,9 @@ private:
 	void			_launchCgi();
 	void			_validateScript();
 	void			_dealocateArgEnv(char **argv, std::vector<char*> envp);
+		bool empty(void) const;
+		size_t getSize(void) const;
+		std::string getBuffer(size_t bytes);
 
 };
 

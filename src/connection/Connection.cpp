@@ -1,4 +1,5 @@
 #include "Connection.hpp"
+#include "Cgi.hpp"
 #include "File.hpp"
 #include "Location.hpp"
 #include "Page.hpp"
@@ -307,6 +308,8 @@ time_t Connection::getTime(void) const {
 
 void Connection::buildResponse(void) {
 
+	if (dynamic_cast<Cgi *>(_file) && _file->empty())
+		return;
 	if (_file && _file->empty())
 		return response::pageNotFound(this);
 

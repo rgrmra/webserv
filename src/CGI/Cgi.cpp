@@ -1,8 +1,11 @@
 #include "Cgi.hpp"
+#include "AFile.hpp"
+#include <stdexcept>
+#include <sys/socket.h>
 
-Cgi::Cgi(Connection &conn) : _conn(conn), _exit_status(0)
+Cgi::Cgi(Connection &conn) : AFile("./var/www/html" + conn.getPath()), _conn(conn), _exit_status(0)
 {
-	_env["SCRIPT_NAME"] = _conn.getPath();
+	_env["SCRIPT_NAME"] = "./var/www/html" + _conn.getPath();
 	_validateScript();
 	_env["REQUEST_METHOD"] = _conn.getMethod();
 	_env["QUERY_STRING"] = sanitizeQueryString(_conn.getQueryString());
@@ -22,15 +25,22 @@ Cgi::~Cgi()
 
 void Cgi::_launchCgi()
 {
-	int input[2];
+	//int input[2];
 	int output[2];
 	pid_t pid;
 
-	if (pipe(input) == -1 || pipe(output) == -1) {
-		std::cerr << "Error: pipe failed" << std::endl;
-		_exit_status = CGI_INTERNAL_ERROR;
-		throw std::runtime_error("Pipe failed");
-	}
+	//if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, input) == -1)
+	//	throw std::runtime_error("socketpair");
+
+	if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, output) == -1)
+		throw std::runtime_error("socketpair");
+
+	//pipe(output);
+	//if (pipe(input) == -1 || pipe(output) == -1) {
+	//	std::cerr << "Error: pipe failed" << std::endl;
+	//	_exit_status = CGI_INTERNAL_ERROR;
+	//	throw std::runtime_error("Pipe failed");
+	//}
 
 	pid = fork();
 	if (pid == -1) {
@@ -40,33 +50,38 @@ void Cgi::_launchCgi()
 	}
 
 	if (pid == 0) {
-		close(input[1]);
+		//close(input[1]);
 		close(output[0]);
-		dup2(input[0], STDIN_FILENO);
+		//dup2(input[0], STDIN_FILENO);
 		dup2(output[1], STDOUT_FILENO);
+		close(output[1]);
 		std::vector<char*> envp = convertMapToEnv(_env);
 		char *argv[] = {strdup(_env["SCRIPT_NAME"].c_str()), NULL};
 		execve(argv[0], argv, envp.data());
 		_dealocateArgEnv(argv, envp);
-		close(input[0]);
-		close(output[1]);
+		//close(input[0]);
 		exit(1);
 	}
 	else {
-		close(input[0]);
+		//close(input[0]);
 		close(output[1]);
 
-		write(input[1], _conn.getBody().data(), _conn.getBody().size());
-		close(input[1]);
+		//write(input[1], _conn.getBody().data(), _conn.getBody().size());
+		//close(input[1]);
+
 
 		signal(SIGALRM, timeout_handler);
 		alarm(5);
+		sleep(10);
 
 		char buffer[4096];
 		ssize_t bytes_read;
 		while (true) {
 			bytes_read = read(output[0], buffer, sizeof(buffer));
+			std::cout << bytes_read << std::endl;
 			if (bytes_read > 0) {
+				buffer[bytes_read] = '\0';
+				std::cout << buffer << std::endl;
 				_cgi_output.append(buffer, bytes_read);
 			} else if (bytes_read == -1 && errno == EINTR) {
 				break; // Timeout triggered
@@ -79,22 +94,23 @@ void Cgi::_launchCgi()
 
 		int status;
 		if (waitpid(pid, &status, WNOHANG) == 0) {
-			kill(pid, SIGKILL);
-			waitpid(pid, &status, 0);
-			_exit_status = CGI_TIMEOUT;
-			throw std::runtime_error("CGI timed out");
+			//kill(pid, SIGKILL);
+			//waitpid(pid, &status, 0);
+			//_exit_status = CGI_TIMEOUT;
+			//throw std::runtime_error("CGI timed out");
 		}
-		_exit_status = WEXITSTATUS(status);
-		if (_exit_status != 0) {
-			_exit_status = CGI_BAD_GATEWAY;
-			throw std::runtime_error("CGI failed");
-		}
+		//_exit_status = WEXITSTATUS(status);
+		//if (_exit_status != 0) {
+		//	_exit_status = CGI_BAD_GATEWAY;
+		//	throw std::runtime_error("CGI failed");
+		//}
 		_exit_status = CGI_SUCCESS;
 	}
 }
 
 void Cgi::_validateScript()
 {
+	std::cout << _env["SCRIPT_NAME"] << std::endl;
 	if (access(_env["SCRIPT_NAME"].c_str(), F_OK) == -1) {
 		_exit_status = CGI_NOT_FOUND;
 		throw std::runtime_error("Script not found");
@@ -154,4 +170,22 @@ std::vector<char*> Cgi::convertMapToEnv(const std::map<std::string, std::string>
 	}
 	envp.push_back(NULL);
 	return envp;
+}
+
+bool Cgi::empty(void) const {
+
+	return _exit_status != 200 ? true : false;
+}
+
+size_t Cgi::getSize(void) const {
+
+	return _cgi_output.size();
+}
+
+std::string Cgi::getBuffer(size_t bytes) {
+
+	std::string tmp = _cgi_output.substr(0, bytes);
+	_cgi_output.erase(0, bytes);
+	
+	return tmp;
 }

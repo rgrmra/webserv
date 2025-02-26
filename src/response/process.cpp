@@ -48,10 +48,14 @@ void process::request(Connection *connection) {
 
 	if (process::isCGI(path))
 	{
-		Cgi cgi(*connection);
+		Cgi *cgi = new Cgi(*connection);
 
-		cout << "CGI Output:::::: " << cgi.getCgiOutput() << endl;
-		cout << "CGI Exit Status:::::: " << cgi.getExitStatus() << endl;
+		connection->setFile(cgi);
+
+		cout << "CGI Output:::::: " << cgi->getCgiOutput() << endl;
+		cout << "CGI Exit Status:::::: " << cgi->getExitStatus() << endl;
+
+		return;
 
 	}
 
