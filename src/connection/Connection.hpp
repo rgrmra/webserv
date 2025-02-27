@@ -1,6 +1,7 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "AStream.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
 #include <ctime>
@@ -11,7 +12,7 @@
 class AFile;
 class Http;
 
-class Connection {
+class Connection : public AStream {
 	private:
 		Http *_http;
 		int _fd;
