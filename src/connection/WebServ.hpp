@@ -1,6 +1,7 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
+#include "Archive.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
@@ -43,6 +44,8 @@ class WebServ {
 		static WebServ *getInstance(void);
 
 		virtual ~WebServ(void);
+
+		void addFdToEpoll(int file_fd, Archive *cgi);
 
 		void run(void);
 		void stop(void);

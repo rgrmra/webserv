@@ -9,6 +9,7 @@
 #include "WebServ.hpp"
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <sstream>
@@ -16,6 +17,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -161,8 +163,11 @@ void WebServ::controlEpoll(int client_fd, int flag, int option) {
 	event.events = flag;
 	event.data.fd = client_fd;
 
-	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1)
+	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1) {
 		logger::error("epoll_ctl failed");
+		cout << strerror(errno) << endl;
+	}
+	std::cout << client_fd << std::endl;
 }
 
 string WebServ::getIpByFileDescriptor(int client_fd) {
@@ -199,10 +204,12 @@ void WebServ::acceptNewConnection(int client_fd) {
 
 	logger::debug(host + " connection accepted");
 	
-	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
+	//controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
+	_client_connections[fd] = new Connection(fd, host);
+	//Archive *archive = new Archive(fd, host);
+	//_client_connections[fd] = new Archive(fd, host);
+	//_client_connections[archive->getFd()] = archive;
 
-	//_client_connections[fd] = new Connection(fd, host);
-	_client_connections[fd] = new Archive(fd, host);
 }
 
 void WebServ::closeConnection(int client_fd) {
@@ -349,6 +356,7 @@ void WebServ::run(void) {
 
 			map<int, IStream *>::iterator it = _client_connections.find(fd);
 			//if (isBindedSocket(fd))
+			cout << events[i].data.fd;
 			if (it == _client_connections.end())
 				acceptNewConnection(fd);
 			else if (events[i].events & (EPOLLIN | EPOLLET))
@@ -356,7 +364,7 @@ void WebServ::run(void) {
 			else if (events[i].events & (EPOLLOUT| EPOLLET))
 				outputHandler(it);
 		}
-		checkTimeOut();
+		//checkTimeOut();
 	}
 }
 
@@ -368,4 +376,13 @@ void WebServ::stop(void) {
 	close(_epoll_fd);
 
 	_epoll_fd = -1;
+}
+
+void WebServ::addFdToEpoll(int file_fd, Archive *cgi) {
+
+
+	_client_connections[file_fd] = cgi;
+	controlEpoll(file_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
+
+
 }
