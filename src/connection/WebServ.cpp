@@ -1,4 +1,7 @@
+#include "AStream.hpp"
+#include "Archive.hpp"
 #include "Connection.hpp"
+#include "IStream.hpp"
 #include "header.hpp"
 #include "Http.hpp"
 #include "logger.hpp"
@@ -13,7 +16,6 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "Mime.hpp"
 
 using namespace std;
 
@@ -40,16 +42,16 @@ WebServ::WebServ(void)
 WebServ::~WebServ(void) {
 
 	while (_client_connections.begin() != _client_connections.end()) {
-		map<int, Connection *>::iterator ic = _client_connections.begin();
+		map<int, IStream *>::iterator ic = _client_connections.begin();
 
-		if (ic->second->getSend()) {
-			closeConnection(ic->first);
-			continue;
-		}
-		response::pageInternalServerError(ic->second);
+		//if (ic->second->getSend()) {
+		//	closeConnection(ic->first);
+		//	continue;
+		//}
+		//response::pageInternalServerError(ic->second);
 
-		if (sendMessage(ic->second, ic->second->getResponse()) == -1)
-			continue;
+		//if (sendMessage(ic->second, ic->second->getResponse()) == -1)
+		//	continue;
 
 		closeConnection(ic->first);
 	}
@@ -57,9 +59,6 @@ WebServ::~WebServ(void) {
 	map<string, int>::iterator it = _binded_sockets.begin();
 	for (; it != _binded_sockets.end(); it++)
 		close(it->second);
-
-	if (_epoll_fd != -1)
-		close(_epoll_fd);
 }
 
 WebServ *WebServ::getInstance(void) {
@@ -202,47 +201,51 @@ void WebServ::acceptNewConnection(int client_fd) {
 	
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
-	_client_connections[fd] = new Connection(fd, host);
+	//_client_connections[fd] = new Connection(fd, host);
+	_client_connections[fd] = new Archive(fd, host);
 }
 
 void WebServ::closeConnection(int client_fd) {
 
-	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	map<int, IStream *>::iterator it = _client_connections.find(client_fd);
 
 	if (it == _client_connections.end())
 		return;
 
-	logger::debug(it->second->getIp() + " connection closed");
+	logger::debug(it->second->getId() + " connection closed");
 
 	close(it->first);
 	delete it->second;
 	_client_connections.erase(it);
 }
 
-void WebServ::handleRequest(int client_fd) {
+void WebServ::inputHandler(map<int, IStream *>::iterator it) {
 
-	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	Connection *connection = it->second;
+	//map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	//Connection *connection = it->second;
+	
+	int fd = it->first;
+	IStream *stream = it->second;
 
 	vector<char> buffer(BUFFER_SIZE);
-	int bytes_read = recv(client_fd, buffer.data(), BUFFER_SIZE, MSG_NOSIGNAL);
+	int bytes_read = recv(fd, buffer.data(), WebServ::BUFFER_SIZE, MSG_NOSIGNAL);
 	if (bytes_read == -1) {
 		logger::fatal("recv");
-		return closeConnection(client_fd);
+		return closeConnection(fd);
 	} else if (bytes_read == 0 || buffer.at(0) == EOF) {
-		logger::warning(connection->getIp() + " disconected");
-		return closeConnection(client_fd);
+		logger::warning(stream->getId() + " disconected");
+		return closeConnection(fd);
 	}
 
-	connection->append(buffer, bytes_read);
+	stream->setData(buffer, bytes_read);
 
-	if (connection->getSend() == false)
-		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	//if (connection->getSend() == false)
+	//	return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 
-	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+	controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
-int WebServ::sendMessage(Connection *connection, std::string message) {
+int WebServ::sendMessage(IStream *connection, std::string message) {
 
 	int status = send(connection->getFd(), message.c_str(), message.size(), MSG_NOSIGNAL);
 	if (status == -1) {
@@ -253,47 +256,60 @@ int WebServ::sendMessage(Connection *connection, std::string message) {
 	return status;
 }
 
-void WebServ::handleResponse(int client_fd) {
+void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 
-	map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	Connection *connection = it->second;
+	//map<int, Connection *>::iterator it = _client_connections.find(client_fd);
+	//Connection *connection = it->second;
 	
-	if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
-		return;
+	int fd = it->first;
+	IStream *stream = it->second;
 
-	if (connection->getResponseSize())
-		return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-	else if ((*connection)[header::CONNECTION] == "keep-alive") {
-		connection->resetConnection();
-		return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	string  tmp = stream->getData(WebServ::BUFFER_SIZE);
+	int status = send(fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL);
+	if (status == -1) {
+		logger::fatal("client is no longer available to receive messages");
+		return closeConnection(stream->getFd());
 	}
+	
+	//if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
+	//	return;
 
-	closeConnection(client_fd);
+	//if (connection->getResponseSize())
+	//	return controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+	//else if ((*connection)[header::CONNECTION] == "keep-alive") {
+	//	connection->resetConnection();
+	//	return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	//}
+
+	closeConnection(fd);
 }
 
-int WebServ::isBindedSocket(int fd) {
+//int WebServ::isBindedSocket(int fd) {
+//
+//	map<string, int>::iterator it = _binded_sockets.begin();
+//	for (; it != _binded_sockets.end(); it++)
+//		if (fd == it->second)
+//			return true;
+//
+//	return false;
+//}
 
-	map<string, int>::iterator it = _binded_sockets.begin();
-	for (; it != _binded_sockets.end(); it++)
-		if (fd == it->second)
-			return true;
+bool WebServ::isTimedOut(int client_fd, IStream *connection) {
 
-	return false;
-}
+	//if (connection->getTransfers() && time(NULL) - connection->getTime() >= KEEP_ALIVE_TIMEOUT) {
+	//	closeConnection(client_fd);
+	//	return true;
+	//}
 
-bool WebServ::isTimedOut(int client_fd, Connection *connection) {
-
-	if (connection->getTransfers() && time(NULL) - connection->getTime() >= KEEP_ALIVE) {
-		closeConnection(client_fd);
-		return true;
-	}
-
-	if (time(NULL) - connection->getTime() <= WebServ::TIMEOUT)
+	if (!connection->isTimedOut())
 		return false;
 
-	response::pageGatewayTimeOut(connection);
+	//response::pageGatewayTimeOut(connection);
 
-	controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+	//controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+	
+	// NOTE: temporary
+	closeConnection(client_fd);
 
 	return true;
 }
@@ -303,7 +319,7 @@ void WebServ::checkTimeOut(void) {
 	if (_client_connections.empty())
 		return;
 
-	map<int, Connection *>::iterator it = _client_connections.begin();
+	map<int, IStream *>::iterator it = _client_connections.begin();
 	for (; it != _client_connections.end(); it++)
 		if (isTimedOut(it->first, it->second))
 			return;
@@ -329,12 +345,16 @@ void WebServ::run(void) {
 			return logger::fatal("server stoped");
 
 		for (int i = 0; i < num_events; i++) {
-			if (isBindedSocket(events[i].data.fd))
-				acceptNewConnection(events[i].data.fd);
+			int fd = events[i].data.fd;
+
+			map<int, IStream *>::iterator it = _client_connections.find(fd);
+			//if (isBindedSocket(fd))
+			if (it == _client_connections.end())
+				acceptNewConnection(fd);
 			else if (events[i].events & (EPOLLIN | EPOLLET))
-				handleRequest(events[i].data.fd);
+				inputHandler(it);
 			else if (events[i].events & (EPOLLOUT| EPOLLET))
-				handleResponse(events[i].data.fd);
+				outputHandler(it);
 		}
 		checkTimeOut();
 	}
