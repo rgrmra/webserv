@@ -7,14 +7,13 @@
 
 class AStream : public IStream {
 	
-	private:
+	protected:
 		int _fd;
 		std::string _id;
 		std::string _input;
 		std::string _output;
 		std::time_t _time;
 
-	protected:
 		AStream(int fd, std::string id);
 		AStream(const AStream &src);
 		AStream &opeartor(const AStream &rhs);
