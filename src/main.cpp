@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <sys/wait.h>
 
 using namespace std;
 

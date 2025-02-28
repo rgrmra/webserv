@@ -24,7 +24,6 @@ class WebServ {
 		bool isBinded(std::string listen);
 		struct addrinfo *getAddrInfo(std::string host);
 		int createSocket(std::string listen);
-		void controlEpoll(int client_fd, int flag, int option);
 		std::string getIpByFileDescriptor(int client_fd);
 		void acceptNewConnection(int client_fd);
 		void closeConnection(int client_fd);
@@ -38,14 +37,16 @@ class WebServ {
 	public:
 		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;
 		static const int MAX_EVENTS = 252;
-		static const long TIMEOUT = 30;
+		static const long TIMEOUT = 10;
 		static const long KEEP_ALIVE_TIMEOUT = 3;
 		
 		static WebServ *getInstance(void);
 
 		virtual ~WebServ(void);
 
-		void addFdToEpoll(int file_fd, Archive *cgi);
+		void addStream(int fd, IStream *stream);
+		void delStream(int fd);
+		void controlEpoll(int client_fd, int flag, int option);
 
 		void run(void);
 		void stop(void);

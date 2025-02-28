@@ -1,3 +1,4 @@
+#include "Archive.hpp"
 #include "Connection.hpp"
 #include "File.hpp"
 #include "AutoIndex.hpp"
@@ -48,12 +49,15 @@ void process::request(Connection *connection) {
 
 	if (process::isCGI(path))
 	{
-		Cgi *cgi = new Cgi(*connection);
+		connection->setPath("/home/rgrmra/webserv/index.py");
+		//Cgi *cgi = new Cgi(*connection);
+		Archive *archive = new Archive(connection);
 
-		connection->setFile(cgi);
+		//connection->setFile(cgi);
+		connection->setFile(archive);
 
-		cout << "CGI Output:::::: " << cgi->getCgiOutput() << endl;
-		cout << "CGI Exit Status:::::: " << cgi->getExitStatus() << endl;
+		//cout << "CGI Output:::::: " << cgi->getCgiOutput() << endl;
+		//cout << "CGI Exit Status:::::: " << cgi->getExitStatus() << endl;
 
 		return;
 
@@ -68,9 +72,9 @@ void process::request(Connection *connection) {
         // cout << "CGI Path:::::: " << path << endl;
         // function to handle CGI
     }
-    if (process::isDirectory(path) && location.getAutoIndex())
-        return connection->setFile(new AutoIndex(path, uri));
-    connection->setFile(new File(path));
+    //if (process::isDirectory(path) && location.getAutoIndex())
+    //    return connection->setFile(new AutoIndex(path, uri));
+    //connection->setFile(new File(path));
 }
 
 bool process::isDirectory(const std::string &path) {

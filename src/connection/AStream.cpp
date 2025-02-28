@@ -1,4 +1,5 @@
 #include "AStream.hpp"
+#include "Mime.hpp"
 #include "WebServ.hpp"
 #include <iostream>
 
@@ -12,10 +13,10 @@ using namespace std;
 AStream::AStream(int fd, std::string id)
 	: _fd(fd),
 	  _id(id),
-	  _time(time(NULL)) {
+	  _time(time(NULL)),
+	  _size(0),
+	  _step(IStream::NONE) {
 
-	// TODO: remove mock
-	_output = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK";
 }
 
 AStream::AStream(const AStream &src) {
@@ -61,16 +62,38 @@ void AStream::setData(std::vector<char> &buffer, size_t bytes) {
 
 std::string AStream::getData(size_t bytes) {
 
-	if (!bytes || _output.empty())
+	if (!bytes || _input.empty())
 		return "";
 
-	string tmp = _output.substr(0, bytes);
-	_output.erase(0, bytes);
+	string tmp = _input.substr(0, bytes);
+	_input.erase(0, bytes);
+
+	_time = time(NULL);
 
 	return tmp;
 }
 
-bool AStream::isTimedOut(void) {
+size_t AStream::getSize(void) const {
+
+	return _size;
+}
+
+string AStream::getMime(void) const {
+
+	return Mime::getInstance()->getType(_id);
+}
+
+void AStream::setStep(int value) {
+
+	_step = value;
+}
+
+int AStream::getStep(void) const {
+
+	return _step;
+}
+
+bool AStream::isTimedOut(void) const {
 
 	if (time(NULL) - _time > WebServ::TIMEOUT)
 		return true;

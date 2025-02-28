@@ -11,8 +11,9 @@ class AStream : public IStream {
 		int _fd;
 		std::string _id;
 		std::string _input;
-		std::string _output;
 		std::time_t _time;
+		size_t _size;
+		int _step;
 
 		AStream(int fd, std::string id);
 		AStream(const AStream &src);
@@ -26,7 +27,11 @@ class AStream : public IStream {
 
 		virtual void setData(std::vector<char> &buffer, size_t bytes);
 		virtual std::string getData(size_t bytes);
-		virtual bool isTimedOut(void);
+		virtual size_t getSize(void) const;
+		virtual std::string getMime(void) const;
+		virtual void setStep(int values);
+		virtual int getStep(void) const;
+		virtual bool isTimedOut(void) const;
 
 };
 

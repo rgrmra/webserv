@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "Connection.hpp"
+#include "IStream.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "parser.hpp"
@@ -14,20 +15,20 @@ using namespace std;
 
 void request::parseRequest(Connection *connection, string line) {
 
-	if (!connection->getStartLineParsed())
+	if (connection->getStep() == IStream::NONE)
 		return parseStartLine(connection, line);
 
-	if (!connection->getHeadersParsed())
+	if (connection->getStep() == IStream::STARTLINE)
 		return parseHeaders(connection, line);
 
-	if (connection->getHeadersParsed()) {
+	if (connection->getStep() == IStream::HEADERS) {
 
-		size_t body_size = connection->getBuffer().size();
+		size_t body_size = connection->getInput().size();
 		size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
 		if (body_size == content_length) {
-			connection->setBody(connection->getBuffer());
-			connection->setSend(true);
+			connection->setBody(connection->getInput());
+			connection->setStep(IStream::BODY);
 		} else if (body_size > content_length)
 			return response::pagePayloadTooLarge(connection);
 	}
@@ -63,7 +64,8 @@ void request::parseStartLine(Connection *connection, string line) {
 	connection->setUri(uri);
 	connection->setProtocol(protocol);
 	splitPathQuery(connection);
-	connection->setStartLineParsed(true);
+	//connection->setStartLineParsed(true);
+	connection->setStep(IStream::STARTLINE);
 
 	return;
 }
@@ -86,7 +88,8 @@ void request::parseHeaders(Connection *connection, std::string line) {
 		return response::pageBadRequest(connection);
 
 	if (line == "\r") {
-		connection->setHeadersParsed(true);
+		//connection->setHeadersParsed(true);
+		connection->setStep(IStream::HEADERS);
 
 		if (!connection->getHeaders().size())
 			return response::pageBadRequest(connection);
@@ -98,8 +101,10 @@ void request::parseHeaders(Connection *connection, std::string line) {
 			if ((*connection)[header::TRANSFER_ENCONDING] != "chuncked")
 				return response::pageNotImplemented(connection);
 
-		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) == 0)
+		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) == 0) {
+			connection->setStep(IStream::BODY);
 			return response::pageOK(connection);
+		}
 
 		return;
 	}
