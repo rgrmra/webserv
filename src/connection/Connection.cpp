@@ -1,10 +1,9 @@
 #include "Connection.hpp"
 #include "AStream.hpp"
-#include "Archive.hpp"
+#include "Resource.hpp"
 #include "Cgi.hpp"
 #include "IStream.hpp"
 #include "Location.hpp"
-#include "Page.hpp"
 #include "Server.hpp"
 #include "WebServ.hpp"
 #include "header.hpp"
@@ -21,18 +20,10 @@ using namespace std;
 
 Connection::Connection(int fd, string ip)
 	: AStream(fd, ip),
-	  //_fd(fd),
-	  //_ip(ip),
 	  _file(NULL),
-	  //_time(time(NULL)),
-	  //_startline_parsed(false),
-	  //_headers_parsed(false),
-	  //_send(false),
 	  _has_content_lenght(false),
-	  _has_transfer_enconding(false),
-	  _transfers(0) {
+	  _has_transfer_enconding(false) {
 
-	//_http = Http::getInstance();
 }
 
 Connection::Connection(const Connection &src)
@@ -46,11 +37,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	//_http = rhs._http;
-	//_fd = rhs._fd;
-	//_ip = rhs._ip;
 	_host = rhs._host;
-	//_buffer = rhs._buffer;
 	_method = rhs._method;
 	_path = rhs._path;
 	_protocol = rhs._protocol;
@@ -60,12 +47,6 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_body = rhs._body;
 	_file = rhs._file;
 	_server = rhs._server;
-	_response = rhs._response;
-	//_time = rhs._time;
-	//_startline_parsed = rhs._startline_parsed;
-	//_headers_parsed = rhs._headers_parsed;
-	//_send = rhs._send;
-	_transfers = rhs._transfers;
 	_has_content_lenght = rhs._has_content_lenght;
 	_has_transfer_enconding = rhs._has_transfer_enconding;
 
@@ -74,15 +55,12 @@ Connection &Connection::operator=(const Connection &rhs) {
 
 Connection::~Connection(void) {
 
-	if (_file) {
-		WebServ::getInstance()->delStream(_file->getFd());
+	if (_file)
 		delete _file;
-	}
 }
 
 void Connection::parseRequest(void) {
 
-	//istringstream iss(_buffer);
 	istringstream iss(_input);
 	string line;
 
@@ -94,13 +72,10 @@ void Connection::parseRequest(void) {
 		if (_step < IStream::HEADERS) {
 			request::parseRequest(this, line);
 
-			//size_t pos = _buffer.find("\r\n");
 			size_t pos = _input.find("\r\n");
 			if (pos != string::npos)
-				//_buffer = _buffer.substr(pos + 2);
 				_input = _input.substr(pos + 2);
 		} else
-			//request::parseRequest(this, _buffer);
 			request::parseRequest(this, _input);
 	}
 
@@ -114,16 +89,6 @@ void Connection::parseRequest(void) {
 		return response::pageOK(this);
 }
 
-//int Connection::getFd(void) const {
-//
-//	return _fd;
-//}
-
-//string Connection::getIp(void) const {
-//
-//	return _ip;
-//}
-
 void Connection::setHost(string host) {
 
 	host = _host;
@@ -134,36 +99,13 @@ string Connection::getHost(void) const {
 	return _host;
 }
 
-//void Connection::append(vector<char> &text, int bytes) {
-//
-//	if (!bytes || text.empty())
-//		return;
-//
-//	_buffer.append(text.begin(), text.begin() + bytes);
-//
-//	if (_buffer.find("\r\n") != string::npos)
-//		parseRequest();
-//
-//	_time = time(NULL);
-//}
-//
-void Connection::setData(vector<char> &text, size_t bytes) {
+void Connection::processInput(size_t bytes) {
 
-	if (!bytes || text.empty())
-		return;
-
-	_input.append(text.begin(), text.begin() + bytes);
+	(void) bytes;
 
 	if (_input.find("\r\n") != string::npos)
 		parseRequest();
-
-	_time = time(NULL);
 }
-
-//string Connection::getBuffer(void) const {
-//
-//	return string().append(_buffer.begin(), _buffer.end());
-//}
 
 std::string Connection::getInput(void) const {
 
@@ -302,15 +244,10 @@ string Connection::getBody(void) const {
 	return _body;
 }
 
-//void Connection::setFile(AFile *file) {
-//
-//	if (_file)
-//		delete _file;
-//
-//	_file = file;
-//}
+void Connection::setResource(Resource *file) {
 
-void Connection::setFile(Archive *file) {
+	if (_file)
+		delete _file;
 
 	_file = file;
 }
@@ -335,17 +272,7 @@ Location &Connection::getLocation(void) {
 	return _location;
 }
 
-//time_t Connection::getTime(void) const {
-//
-//	return _time;
-//}
-
 void Connection::buildResponse(void) {
-
-	//if (dynamic_cast<Cgi *>(_file) && _file->empty())
-	//	return;
-	//if (_file && _file->empty())
-	//	return response::pageNotFound(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
@@ -364,78 +291,23 @@ void Connection::buildResponse(void) {
 	for (; it != _headers.end(); it++)
 		oss << it->first + ": " + it->second + "\r\n";
 
-	_response = oss.str() + "\r\n";
-	//_ready = true;
+	_output = oss.str() + "\r\n";
 }
 
-//string Connection::getResponse(int bytes) {
-//
-//	if (_file)
-//		_response += _file->getBuffer(bytes);
-//
-//	if (_response.empty())
-//		return "";
-//
-//	string tmp = _response.substr(0, bytes);
-//	_response.erase(0, bytes);
-//
-//	_time = time(NULL);
-//
-//	return tmp;
-//}
+void Connection::processOutput(size_t bytes) {
 
-string Connection::getData(size_t bytes) {
-
-	if (_file)
-		_response += _file->getData(bytes);
-
-	if (_response.empty()) {
-		if ((*this)[header::KEEP_ALIVE] != "keep-alive")
-			_step = IStream::CLOSE;
-		return "";
+	if (_file) {
+		_output += _file->getData(bytes);
+		cout << "here: " << _output << endl;
 	}
 
-	string tmp = _response.substr(0, bytes);
-	_response.erase(0, bytes);
-
-	_time = time(NULL);
-
-	return tmp;
+	if (_output.empty()) {
+		if ((*this)[header::CONNECTION] != "keep-alive")
+			_step = IStream::CLOSE;
+		else
+			_step = IStream::KEEPALIVE;
+	}
 }
-
-//string Connection::getResponse(void) {
-//
-//	if (dynamic_cast<Page *>(_file))
-//		_response += _file->getBuffer(_file->getSize());
-//
-//	_time = time(NULL);
-//
-//	return _response;
-//}
-
-size_t Connection::getResponseSize(void) const {
-
-	return _response.size();
-}
-//void Connection::setStartLineParsed(bool value) {
-//
-//	_startline_parsed = value;
-//}
-//
-//bool Connection::getStartLineParsed(void) const {
-//
-//	return _startline_parsed;
-//}
-//
-//void Connection::setHeadersParsed(bool value) {
-//
-//	_headers_parsed = value;
-//}
-//
-//bool Connection::getHeadersParsed(void) const {
-//
-//	return _headers_parsed;
-//}
 
 bool Connection::hasContentLenght(void) const {
 
@@ -447,29 +319,18 @@ bool Connection::hasTransferEnconding(void) const {
 	return _has_transfer_enconding;
 }
 
-//void Connection::setSend(bool send) {
-//
-//	_send = send;
-//	//_ready = send;
-//}
-
-//bool Connection::isReady(void) const {
-//
-//	return _ready;
-//}
-
 void Connection::setQueryString(string query_string) {
-	_query_string = query_string;
-}
 
-size_t Connection::getTransfers(void) const {
-  return _transfers;
+	_query_string = query_string;
 }
 
 void Connection::resetConnection(void) {
 
+	_input.clear();
+	_size = 0;
+	_step = NONE;
+
 	_host.clear();
-	//_buffer.clear();
 	_method.clear();
 	_path.clear();
 	_protocol.clear();
@@ -478,16 +339,14 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 
-	delete _file;
-	_file = NULL;
+	if (_file) {
+		delete _file;
+		_file = NULL;
+	}
 
-	_response.clear();
 	_query_string.clear();
 	_time = time(NULL);
 
-	//_startline_parsed = false;
-	//_headers_parsed = false;
-	//_send = false;
 	_has_content_lenght = false;
 	_has_transfer_enconding = false;
 }
