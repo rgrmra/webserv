@@ -7,7 +7,7 @@ using namespace std;
 Page::Page(Connection *connection)
 	: Resource(connection) {
 
-	connection->setPath(".html");
+	_type = "text/html";
 
 	string code = connection->getCode();
 	string status = connection->getStatus();
