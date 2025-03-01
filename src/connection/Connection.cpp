@@ -1,20 +1,12 @@
 #include "Connection.hpp"
-#include "AStream.hpp"
-#include "Resource.hpp"
-#include "Cgi.hpp"
-#include "IStream.hpp"
-#include "Location.hpp"
-#include "Server.hpp"
-#include "WebServ.hpp"
-#include "header.hpp"
 #include "Http.hpp"
-#include "parser.hpp"
-#include "Request.hpp"
+#include "Resource.hpp"
+#include "header.hpp"
+#include "request.hpp"
 #include "response.hpp"
-#include <iostream>
+#include <list>
 #include <sstream>
 #include <string>
-#include <vector>
 
 using namespace std;
 
@@ -296,10 +288,8 @@ void Connection::buildResponse(void) {
 
 void Connection::processOutput(size_t bytes) {
 
-	if (_file) {
+	if (_file)
 		_output += _file->getData(bytes);
-		cout << "here: " << _output << endl;
-	}
 
 	if (_output.empty()) {
 		if ((*this)[header::CONNECTION] != "keep-alive")

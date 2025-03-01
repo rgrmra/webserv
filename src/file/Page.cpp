@@ -1,6 +1,7 @@
 #include "Connection.hpp"
 #include "Page.hpp"
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ Page::Page(Connection *connection)
 		"<head><title>" + code + " " + status + "</title></head>\n"
 		"<body>\n"
 		"<center><h1>" + code + " " + status + "</h1></center>\n"
-		"<hr><center>webserv</center>\n"
+		"<hr><center>webserv/0.1.0</center>\n"
 		"</body>\n"
 		"</html>\n";
 

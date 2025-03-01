@@ -1,6 +1,8 @@
 #include "Connection.hpp"
 #include "File.hpp"
 #include <iostream>
+#include <string>
+#include <vector>
 
 using namespace std;
 

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "Common.hpp"
 #include "IStream.hpp"
-#include "Request.hpp"
+#include "request.hpp"
 #include "Connection.hpp"
 #include "response.hpp"
 
