@@ -19,7 +19,7 @@ using namespace std;
 
 void process::request(Connection *connection) {
     string url = (*connection)[header::REFERER];
-    // if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html) 
+    // if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html)
     //  connection->setPath(process::getPathFromReferer(url) + connection->getPath());
 
     Location location = process::isValidPath(connection);
@@ -41,7 +41,7 @@ void process::request(Connection *connection) {
 	string uri = path;
 	path = location.getRoot() + connection->getPath();
 
-	
+
 	connection->setPath(path);
 	if (process::isDirectory(path))
 		return connection->setResource(new Directory(connection));
@@ -52,8 +52,14 @@ void process::request(Connection *connection) {
         return response::pageMovedPermanently(connection);
     }
 
-	if (process::isCGI(path))
-		return connection->setResource(new Cgi(connection, location.getFastCgi()));
+	if (process::isCGI(path)) {
+		try {
+			return connection->setResource(new Cgi(connection, location.getFastCgi()));
+		}
+		catch (exception &e) {
+			return response::pageInternalServerError(connection);
+		}
+	}
 
 	if (process::isFile(path))
 		return connection->setResource(new File(connection));
