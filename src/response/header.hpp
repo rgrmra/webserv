@@ -5,6 +5,7 @@
 namespace header {
 
 	static const std::string ACCEPT = "Accept";
+	static const std::string COOKIE = "Cookie";
 	static const std::string CONNECTION = "Connection";
 	static const std::string CONTENT_TYPE = "Content-Type";
 	static const std::string CONTENT_LENGTH = "Content-Length";

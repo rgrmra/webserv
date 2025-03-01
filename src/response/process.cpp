@@ -1,18 +1,19 @@
-#include "Archive.hpp"
-#include "Connection.hpp"
+#include "Directory.hpp"
 #include "File.hpp"
-#include "AutoIndex.hpp"
+#include "Connection.hpp"
 #include "Location.hpp"
+#include "Cgi.hpp"
 #include "URL.hpp"
 #include "header.hpp"
-#include "../CGI/Cgi.hpp"
 #include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
 #include <iostream>
 #include <list>
+#include <set>
 #include <string>
 #include <sys/stat.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -41,6 +42,10 @@ void process::request(Connection *connection) {
 	path = location.getRoot() + connection->getPath();
 
 	
+	connection->setPath(path);
+	if (process::isDirectory(path))
+		return connection->setResource(new Directory(connection));
+
     if (process::isDirectory(path) && path[path.size() - 1] != '/') {
 
         connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
@@ -48,33 +53,15 @@ void process::request(Connection *connection) {
     }
 
 	if (process::isCGI(path))
-	{
-		connection->setPath("/home/rgrmra/webserv/index.py");
-		//Cgi *cgi = new Cgi(*connection);
-		Archive *archive = new Archive(connection);
+		return connection->setResource(new Cgi(connection, location.getFastCgi()));
 
-		//connection->setFile(cgi);
-		connection->setFile(archive);
+	if (process::isFile(path))
+		return connection->setResource(new File(connection));
 
-		//cout << "CGI Output:::::: " << cgi->getCgiOutput() << endl;
-		//cout << "CGI Exit Status:::::: " << cgi->getExitStatus() << endl;
+	if (process::isDirectory(path) && not process::checkIndex(location, path))
+		return response::pageForbbiden(connection);
 
-		return;
-
-	}
-
-    // connection->setPath(path);
-    if (process::isDirectory(path) && not process::checkIndex(location, path))
-        return response::pageForbbiden(connection);
-
-    if (process::isCGI(path))
-    {
-        // cout << "CGI Path:::::: " << path << endl;
-        // function to handle CGI
-    }
-    //if (process::isDirectory(path) && location.getAutoIndex())
-    //    return connection->setFile(new AutoIndex(path, uri));
-    //connection->setFile(new File(path));
+	response::pageNotFound(connection);
 }
 
 bool process::isDirectory(const std::string &path) {
@@ -99,12 +86,25 @@ bool process::isFile(const std::string &path) {
 
 // TODO: refactor
 bool process::isCGI(const std::string &path) {
-	size_t pos = path.find_last_of(".");
-	if (pos == std::string::npos) {
+
+	if (!isFile(path))
 		return false;
-	}
-	std::string extension = path.substr(pos);
-	return extension == ".php" || extension == ".py" || extension == ".go";
+
+	if (access(path.c_str(), F_OK) == -1)
+		return false;
+
+	if (access(path.c_str(), X_OK) == -1)
+		return false;
+
+	return true;
+
+
+//	size_t pos = path.find_last_of(".");
+//	if (pos == std::string::npos) {
+//		return false;
+//	}
+//	std::string extension = path.substr(pos);
+//	return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
 string process::getFileExtension(string path) {

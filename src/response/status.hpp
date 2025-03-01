@@ -19,6 +19,7 @@ namespace status {
 	static const std::string UNPROCESSABLE_CONTENT = "Unprocessable Content";
 	static const std::string INTERNAL_SERVER_ERROR = "Internal Server Error";
 	static const std::string NOT_IMPLEMENTED = "Not Implemented";
+	static const std::string BAD_GATEWAY = "Bad Gateway";
 	static const std::string GATEWAY_TIMEOUT = "Gateway Timeout";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "HTTP Version Not Supported";
 }
