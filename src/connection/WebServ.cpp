@@ -211,7 +211,8 @@ void WebServ::closeConnection(int client_fd) {
 		return;
 
 	if (!dynamic_cast<Connection *>(it->second)) {
-		return _client_connections.erase(it);
+		_client_connections.erase(it);
+		return;
 	}
 
 	logger::debug(it->second->getId() + " connection closed");
