@@ -1,7 +1,7 @@
 #include "AStream.hpp"
-#include "Mime.hpp"
 #include "WebServ.hpp"
-#include <iostream>
+#include <ctime>
+#include <string>
 
 int _fd;
 std::string _id;

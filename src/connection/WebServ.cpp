@@ -1,25 +1,20 @@
-#include "AStream.hpp"
 #include "Cgi.hpp"
-#include "Resource.hpp"
 #include "Connection.hpp"
-#include "IStream.hpp"
-#include "header.hpp"
 #include "Http.hpp"
-#include "logger.hpp"
-#include "response.hpp"
 #include "WebServ.hpp"
+#include "logger.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <netdb.h>
+#include <map>
+#include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/ucontext.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <vector>
 
 using namespace std;
 
@@ -160,7 +155,6 @@ void WebServ::controlEpoll(int client_fd, int flag, int option) {
 	event.data.fd = client_fd;
 
 	if (epoll_ctl(_epoll_fd, option, client_fd, &event) == -1) {
-		cout << strerror(errno) << endl;
 		logger::error("epoll_ctl failed");
 	}
 }
@@ -211,6 +205,8 @@ void WebServ::closeConnection(int client_fd) {
 		return;
 
 	if (!dynamic_cast<Connection *>(it->second)) {
+		if (dynamic_cast<Cgi *>(it->second))
+			return dynamic_cast<Cgi *>(it->second)->sendCGI();
 		_client_connections.erase(it);
 		return;
 	}
@@ -264,7 +260,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	}
 	
 	if (stream->getStep() <= IStream::RESPONSE)
-		return controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	if (stream->getStep() == IStream::CLOSE)
 		closeConnection(fd);

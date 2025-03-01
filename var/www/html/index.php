@@ -1,4 +1,6 @@
 #!/usr/bin/php-cgi
 <?php
-	phpinfo()
+	//phpinfo()
+	$data = file_get_contents("php://input");
+	echo "received: " . $data;
 ?>

@@ -3,7 +3,6 @@
 #include "Resource.hpp"
 #include <algorithm>
 #include <dirent.h>
-#include <iostream>
 
 using namespace std;
 
@@ -12,8 +11,8 @@ Directory::Directory(Connection *connection)
 	
 	DIR *dir;
 	struct dirent *ent;
+	Location location = connection->getLocation();
 
-	cout << "yes" << endl;
 	_output += std::string("<html>\n<head><title>Index of</title>"
 		"<script src=\"https://cdn.tailwindcss.com\"></script>"
 		"</head>\n"
@@ -25,9 +24,7 @@ Directory::Directory(Connection *connection)
 
 	std::vector<std::string> entries;
 
-	cout << "dir: " << connection->getPath() << endl;
 	if ((dir = opendir(connection->getPath().c_str())) != NULL) {
-		std::cout << "Opened directory" << std::endl;
 		while ((ent = readdir(dir)) != NULL) {
 			std::string name = ent->d_name;
 			if (name == ".")
@@ -43,7 +40,7 @@ Directory::Directory(Connection *connection)
 
 	typedef std::vector<std::string>::iterator vector_iterator;
 	for (vector_iterator it = entries.begin(); it != entries.end(); ++it) {
-		_output += "<a href=\"./" + connection->getPath() + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
+		_output += "<a href=\"./" + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
 			+ *it 
 			+ "</a>\n";
 	}
@@ -52,9 +49,6 @@ Directory::Directory(Connection *connection)
 	_connection->buildResponse();
 	_connection->setStep(IStream::RESPONSE);
 	_step = IStream::CLOSE;
-
-	cout << _output << endl;
-	cout << _size << endl;
 }
 
 Directory::Directory(const Directory &src)

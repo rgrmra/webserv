@@ -2,7 +2,7 @@
 #include "Connection.hpp"
 #include "Mime.hpp"
 #include "WebServ.hpp"
-#include "header.hpp"
+#include <string>
 
 using namespace std;
 

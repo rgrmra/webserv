@@ -4,10 +4,9 @@
 #include "WebServ.hpp"
 #include "code.hpp"
 #include "header.hpp"
-#include "parser.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <cstdlib>
+#include <csignal>
 #include <cstring>
 #include <stdexcept>
 #include <string>
@@ -16,8 +15,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
-
-#include <iostream>
 
 using namespace std;
 
@@ -33,16 +30,28 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 	_fd = _sock[0];
 
 	vector<string> _env;
+	_env.push_back("SERVER_SOFTWARE=webserv/0.1.0");
+	_env.push_back("SERVER_NAME=");
 	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	_env.push_back("SCRIPT_FILENAME=" + connection->getPath());
-	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
-	_env.push_back("QUERY_STRING=" + connection->getQueryString());
-	_env.push_back("CONTENT_LENGTH=" + parser::toString(connection->getBody().size()));
-	_env.push_back("CONTENT_TYPE=" + (*connection)[header::CONTENT_TYPE]);
 	_env.push_back("SERVER_PROTOCOL=" + response::PROTOCOL);
-	_env.push_back("HTTP_USER_AGENT=" + (*connection)[header::USER_AGENT]);
+	_env.push_back("SERVER_PORT=");
+	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
+	_env.push_back("PATH_INFO=");
+	_env.push_back("PATH_TRANSLATED=");
+	_env.push_back("SCRIPT_FILENAME=" + connection->getPath());
+	_env.push_back("SCRIPT_NAME=teste");
+	_env.push_back("QUERY_STRING=" + connection->getQueryString());
+	_env.push_back("REMOTE_HOST=");
+	_env.push_back("REMOTE_ADDR=");
+	_env.push_back("AUTH_TYPE=");
+	_env.push_back("REMOTE_USER=");
+	_env.push_back("REMOTE_IDENT=");
+	_env.push_back("CONTENT_TYPE=" + (*connection)[header::CONTENT_TYPE]);
+	_env.push_back("CONTENT_LENGTH=" + (*connection)[header::CONTENT_LENGTH]);
 	_env.push_back("HTTP_COOKIE=" + (*connection)[header::COOKIE]);
 	_env.push_back("REDIRECT_STATUS=200");
+	_env.push_back("HTTP_ACCEPT=" + (*connection)[header::ACCEPT]);
+	_env.push_back("HTTP_USER_AGENT=" + (*connection)[header::USER_AGENT]);
 
 	vector<char *> _envp = createVector(_env);
 
@@ -58,8 +67,11 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 		throw runtime_error("fork failed");
 	} else if (_pid == 0) {
 		close(_sock[0]);
+		int fd = dup(_sock[1]);
 		dup2(_sock[1], STDOUT_FILENO);
+		dup2(fd, STDIN_FILENO);
 		close(_sock[1]);
+		close(fd);
 
 		execve(_argv.data()[0], _argv.data(), _envp.data());
 
@@ -68,13 +80,17 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 		throw runtime_error("execve failed");
 	}
 	close(_sock[1]);
+	_sock[1] = -1;
 
 	deleteVector(_argv);
 	deleteVector(_envp);
 
+	_output = connection->getBody();
+	_step = IStream::RESPONSE;
+
 	WebServ *webserv = WebServ::getInstance();
 	webserv->addStream(this);
-	webserv->controlEpoll(_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
+	webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
 }
 
 Cgi::Cgi(const Cgi &src)
@@ -136,7 +152,7 @@ void Cgi::sendCGI(void) {
 	if (waitpid(_pid, &status, WUNTRACED) && WEXITSTATUS(status)) {
 		_connection->setCode(code::BAD_GATEWAY);
 		_connection->setStatus(status::BAD_GATEWAY);
-		_output = Page(_connection).getData(1024);
+		_output = Page(_connection).getData(parser::KILOBYTE);
 		_type = "text/html";
 	} else {
 		string tmp = parser::find("Content-type: ", _output, "\n");
