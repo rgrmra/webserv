@@ -26,6 +26,7 @@ namespace response {
 	void pageUnprocessableContent(Connection *connection);
 	void pageInternalServerError(Connection *connection);
 	void pageNotImplemented(Connection *connection);
+	void pageBadGateway(Connection *connection);
 	void pageGatewayTimeOut(Connection *connection);
 	void pageHttpVersionNotSupported(Connection *connection);
 

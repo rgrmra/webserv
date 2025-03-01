@@ -1,13 +1,16 @@
+#include "Connection.hpp"
 #include "Page.hpp"
-#include "AFile.hpp"
-#include <cstddef>
 #include <sstream>
-#include <string>
 
 using namespace std;
 
-Page::Page(const std::string code, const std::string status)
-	: AFile(".html") {
+Page::Page(Connection *connection)
+	: Resource(connection) {
+
+	_type = "text/html";
+
+	string code = connection->getCode();
+	string status = connection->getStatus();
 
 	ostringstream oss;
 	oss << "<html>\n"
@@ -18,43 +21,27 @@ Page::Page(const std::string code, const std::string status)
 		"</body>\n"
 		"</html>\n";
 
-	_page = oss.str();
-
-	_size = _page.size();
-	_buffer = _page;
+	_output = oss.str();
+	_size = _output.size();
+	_connection->buildResponse();
+	_connection->setStep(IStream::RESPONSE);
+	_step = CLOSE;
 }
 
 Page::Page(const Page &src)
-	: AFile(src._path) {
+	: Resource(src._connection) {
 
 	*this = src;
 }
 
 Page &Page::operator=(const Page &rhs) {
 
-	if (this != &rhs)
+	if (this == &rhs)
 		return *this;
-
-	_page = rhs._page;
-	_buffer = rhs._page;
-	_size = rhs._size;
 
 	return *this;
 }
 
 Page::~Page(void) {
 
-}
-
-bool Page::empty(void) const {
-
-	return false;
-}
-
-string Page::getBuffer(size_t bytes) {
-
-	string tmp = _buffer.substr(0, bytes);
-	_buffer.erase(0, bytes);
-
-	return tmp;
 }

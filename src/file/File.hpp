@@ -1,22 +1,23 @@
 #ifndef FILE_HPP
 #define FILE_HPP
 
-#include "AFile.hpp"
+#include "Resource.hpp"
 #include <fstream>
-#include <string>
 
-class File : public AFile {
+class Connection;
+
+class File : public Resource {
+
 	private:
 		std::ifstream _file;
 
+		void processOutput(size_t bytes);
+
 	public:
-		File(std::string file_path);
+		File(Connection *connection);
 		File(const File &src);
 		File &operator=(const File &rhs);
 		~File(void);
-
-		virtual bool empty(void) const;
-		std::string getBuffer(size_t bytes);
 
 };
 

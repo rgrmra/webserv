@@ -1,0 +1,76 @@
+#include "Directory.hpp"
+#include "Connection.hpp"
+#include "Resource.hpp"
+#include <algorithm>
+#include <dirent.h>
+#include <iostream>
+
+using namespace std;
+
+Directory::Directory(Connection *connection)
+	: Resource(connection) {
+	
+	DIR *dir;
+	struct dirent *ent;
+
+	cout << "yes" << endl;
+	_output += std::string("<html>\n<head><title>Index of</title>"
+		"<script src=\"https://cdn.tailwindcss.com\"></script>"
+		"</head>\n"
+		"<body class=\"bg-gray-100 text-gray-900 min-h-screen\">\n"
+		"<div class=\"container mx-auto p-4\">\n"
+		"<div class=\"bg-white text-gray-900 rounded-lg shadow-lg p-8 max-w-3xl w-full mx-auto mt-8\">\n"
+		"<h1 class=\"text-3xl font-bold mb-4\">Index of</h1>\n"
+		"<div class=\"space-y-2\">\n");
+
+	std::vector<std::string> entries;
+
+	cout << "dir: " << connection->getPath() << endl;
+	if ((dir = opendir(connection->getPath().c_str())) != NULL) {
+		std::cout << "Opened directory" << std::endl;
+		while ((ent = readdir(dir)) != NULL) {
+			std::string name = ent->d_name;
+			if (name == ".")
+				continue;
+			entries.push_back(name);
+		}
+		closedir(dir);
+	} else {
+		_output += "<p>Unable to open directory</p>\n";
+	}
+
+	std::sort(entries.begin(), entries.end());
+
+	typedef std::vector<std::string>::iterator vector_iterator;
+	for (vector_iterator it = entries.begin(); it != entries.end(); ++it) {
+		_output += "<a href=\"./" + connection->getPath() + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
+			+ *it 
+			+ "</a>\n";
+	}
+	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
+	_size = _output.size();
+	_connection->buildResponse();
+	_connection->setStep(IStream::RESPONSE);
+	_step = IStream::CLOSE;
+
+	cout << _output << endl;
+	cout << _size << endl;
+}
+
+Directory::Directory(const Directory &src)
+	: Resource(src._connection) {
+
+	*this = src;
+}
+
+Directory &Directory::operator=(const Directory &rhs) {
+
+	if (this == &rhs)
+		return *this;
+
+	return *this;
+}
+
+Directory::~Directory(void) {
+
+}

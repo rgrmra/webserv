@@ -21,6 +21,7 @@ namespace code {
 	static const std::string UNPROCESSABLE_CONTENT = "422";
 	static const std::string INTERNAL_SERVER_ERROR = "500";
 	static const std::string NOT_IMPLEMENTED = "501";
+	static const std::string BAD_GATEWAY= "502";
 	static const std::string GATEWAY_TIMEOUT = "504";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "505";
 

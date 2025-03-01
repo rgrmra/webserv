@@ -1,11 +1,13 @@
 #include "Connection.hpp"
-#include "File.hpp"
+#include "AStream.hpp"
+#include "Resource.hpp"
+#include "Cgi.hpp"
+#include "IStream.hpp"
 #include "Location.hpp"
-#include "Page.hpp"
 #include "Server.hpp"
+#include "WebServ.hpp"
 #include "header.hpp"
 #include "Http.hpp"
-#include "logger.hpp"
 #include "parser.hpp"
 #include "Request.hpp"
 #include "response.hpp"
@@ -17,21 +19,15 @@
 using namespace std;
 
 Connection::Connection(int fd, string ip)
-	: _fd(fd),
-	  _ip(ip),
+	: AStream(fd, ip),
 	  _file(NULL),
-	  _time(time(NULL)),
-	  _startline_parsed(false),
-	  _headers_parsed(false),
-	  _send(false),
 	  _has_content_lenght(false),
-	  _has_transfer_enconding(false),
-	  _transfers(0) {
+	  _has_transfer_enconding(false) {
 
-	_http = Http::getInstance();
 }
 
-Connection::Connection(const Connection &src) {
+Connection::Connection(const Connection &src)
+	: AStream(src) {
 
 	*this = src;
 }
@@ -41,11 +37,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	_http = rhs._http;
-	_fd = rhs._fd;
-	_ip = rhs._ip;
 	_host = rhs._host;
-	_buffer = rhs._buffer;
 	_method = rhs._method;
 	_path = rhs._path;
 	_protocol = rhs._protocol;
@@ -55,12 +47,6 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_body = rhs._body;
 	_file = rhs._file;
 	_server = rhs._server;
-	_response = rhs._response;
-	_time = rhs._time;
-	_startline_parsed = rhs._startline_parsed;
-	_headers_parsed = rhs._headers_parsed;
-	_send = rhs._send;
-	_transfers = rhs._transfers;
 	_has_content_lenght = rhs._has_content_lenght;
 	_has_transfer_enconding = rhs._has_transfer_enconding;
 
@@ -75,42 +61,32 @@ Connection::~Connection(void) {
 
 void Connection::parseRequest(void) {
 
-	istringstream iss(_buffer);
+	istringstream iss(_input);
 	string line;
 
 	while (getline(iss, line) && !line.empty() && _code.empty()) {
 
-		if (_send)
+		if (_step == IStream::BODY)
 			break;
 
-		if (!_headers_parsed) {
+		if (_step < IStream::HEADERS) {
 			request::parseRequest(this, line);
 
-			size_t pos = _buffer.find("\r\n");
+			size_t pos = _input.find("\r\n");
 			if (pos != string::npos)
-				_buffer = _buffer.substr(pos + 2);
+				_input = _input.substr(pos + 2);
 		} else
-			request::parseRequest(this, _buffer);
+			request::parseRequest(this, _input);
 	}
 
-	if (!_send)
+	if (_step < IStream::BODY)
 		return;
-	else if (_headers_parsed && _headers.empty())
+	else if (_step == IStream::HEADERS && _headers.empty())
 		return response::pageBadRequest(this);
 	else if (_code.empty() && _host.empty())
 		return response::pageBadRequest(this);
 	else if (_code.empty())
 		return response::pageOK(this);
-}
-
-int Connection::getFd(void) const {
-
-	return _fd;
-}
-
-string Connection::getIp(void) const {
-
-	return _ip;
 }
 
 void Connection::setHost(string host) {
@@ -123,22 +99,17 @@ string Connection::getHost(void) const {
 	return _host;
 }
 
-void Connection::append(vector<char> &text, int bytes) {
+void Connection::processInput(size_t bytes) {
 
-	if (!bytes || text.empty())
-		return;
+	(void) bytes;
 
-	_buffer.append(text.begin(), text.begin() + bytes);
-
-	if (_buffer.find("\r\n") != string::npos)
+	if (_input.find("\r\n") != string::npos)
 		parseRequest();
-
-	_time = time(NULL);
 }
 
-string Connection::getBuffer(void) const {
+std::string Connection::getInput(void) const {
 
-	return string().append(_buffer.begin(), _buffer.end());
+	return _input;
 }
 
 void Connection::setMethod(string &method) {
@@ -216,11 +187,12 @@ void Connection::addHeader(string key, string value) {
 
 		list<string> tmp = parser::split(value, ':');
 
-		_server = _http->getServerByName(tmp.front());
+		Http *http = Http::getInstance();
+		_server = http->getServerByName(tmp.front());
 		if (_server.empty())
-			_server = _http->getServerByListen(value);
+			_server = http->getServerByListen(value);
 		if (_server.empty())
-			_server = _http->getServerByListen(_ip);
+			_server = http->getServerByListen(_id);
 	}
 
 	if (key == header::CONTENT_LENGTH)
@@ -272,7 +244,7 @@ string Connection::getBody(void) const {
 	return _body;
 }
 
-void Connection::setFile(AFile *file) {
+void Connection::setResource(Resource *file) {
 
 	if (_file)
 		delete _file;
@@ -300,15 +272,7 @@ Location &Connection::getLocation(void) {
 	return _location;
 }
 
-time_t Connection::getTime(void) const {
-
-	return _time;
-}
-
 void Connection::buildResponse(void) {
-
-	if (_file && _file->empty())
-		return response::pageNotFound(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
@@ -327,57 +291,22 @@ void Connection::buildResponse(void) {
 	for (; it != _headers.end(); it++)
 		oss << it->first + ": " + it->second + "\r\n";
 
-	_response = oss.str() + "\r\n";
+	_output = oss.str() + "\r\n";
 }
 
-string Connection::getResponse(int bytes) {
+void Connection::processOutput(size_t bytes) {
 
-	if (_file)
-		_response += _file->getBuffer(bytes);
+	if (_file) {
+		_output += _file->getData(bytes);
+		cout << "here: " << _output << endl;
+	}
 
-	if (_response.empty())
-		return "";
-
-	string tmp = _response.substr(0, bytes);
-	_response.erase(0, bytes);
-
-	_time = time(NULL);
-
-	return tmp;
-}
-
-string Connection::getResponse(void) {
-
-	if (dynamic_cast<Page *>(_file))
-		_response += _file->getBuffer(_file->getSize());
-
-	_time = time(NULL);
-
-	return _response;
-}
-
-size_t Connection::getResponseSize(void) const {
-
-	return _response.size();
-}
-void Connection::setStartLineParsed(bool value) {
-
-	_startline_parsed = value;
-}
-
-bool Connection::getStartLineParsed(void) const {
-
-	return _startline_parsed;
-}
-
-void Connection::setHeadersParsed(bool value) {
-
-	_headers_parsed = value;
-}
-
-bool Connection::getHeadersParsed(void) const {
-
-	return _headers_parsed;
+	if (_output.empty()) {
+		if ((*this)[header::CONNECTION] != "keep-alive")
+			_step = IStream::CLOSE;
+		else
+			_step = IStream::KEEPALIVE;
+	}
 }
 
 bool Connection::hasContentLenght(void) const {
@@ -390,28 +319,18 @@ bool Connection::hasTransferEnconding(void) const {
 	return _has_transfer_enconding;
 }
 
-void Connection::setSend(bool send) {
-
-	_send = send;
-}
-
-bool Connection::getSend(void) const {
-
-	return _send;
-}
-
 void Connection::setQueryString(string query_string) {
-	_query_string = query_string;
-}
 
-size_t Connection::getTransfers(void) const {
-  return _transfers;
+	_query_string = query_string;
 }
 
 void Connection::resetConnection(void) {
 
+	_input.clear();
+	_size = 0;
+	_step = NONE;
+
 	_host.clear();
-	_buffer.clear();
 	_method.clear();
 	_path.clear();
 	_protocol.clear();
@@ -420,16 +339,14 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 
-	delete _file;
-	_file = NULL;
+	if (_file) {
+		delete _file;
+		_file = NULL;
+	}
 
-	_response.clear();
 	_query_string.clear();
 	_time = time(NULL);
 
-	_startline_parsed = false;
-	_headers_parsed = false;
-	_send = false;
 	_has_content_lenght = false;
 	_has_transfer_enconding = false;
 }
@@ -449,9 +366,9 @@ ostream &operator<<(ostream &os, const Connection &src) {
 
 	os << "Connection" << endl;
 	os << "client_fd: " << src.getFd() << endl;
-	os << "IP: " << src.getIp() << endl;
+	//os << "IP: " << src.getIp() << endl;
 	os << "hostname: " << src.getHost() << endl;
-	os << "buffer: " << src.getBuffer() << endl;
+	//os << "buffer: " << src.getBuffer() << endl;
 	os << "method: " << src.getMethod() << endl;
 	os << "path: " << src.getPath() << endl;
 	os << "protocol: " << src.getProtocol() << endl;

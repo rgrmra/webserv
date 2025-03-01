@@ -1,26 +1,28 @@
+#include "Connection.hpp"
 #include "File.hpp"
-#include "AFile.hpp"
-#include <fstream>
-#include <ios>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 
-File::File(std::string file_path)
-	: AFile(file_path) {
+File::File(Connection *connection)
+	: Resource(connection) {
 
-	_file.open(_path.c_str(), ios::binary);
+	cout << "path: " <<  _id.c_str() << endl;
+	_file.open(_id.c_str(), ios::binary);
 	if (!_file.is_open())
 		return;
 
 	_file.seekg(0, ios::end);
 	_size = _file.tellg();
 	_file.seekg(0, ios::beg);
+
+	_connection->buildResponse();
+	_connection->setStep(IStream::RESPONSE);
+	_step = CLOSE;
 }
 
 File::File(const File &src)
-	: AFile(src._path) {
+	: Resource(src._connection){
 
 	*this = src;
 }
@@ -30,28 +32,17 @@ File &File::operator=(const File &rhs) {
 	if (this == &rhs)
 		return *this;
 
-	_path = rhs._path;
-	_file.open(rhs._path.c_str(), ios::binary);
-	_size = rhs._size;
-
 	return *this;
 }
 
 File::~File(void) {
 
-	if (_file.is_open())
-		_file.close();
 }
 
-bool File::empty(void) const {
-
-	return !_file.is_open();
-}
-
-std::string File::getBuffer(size_t bytes) {
+void File::processOutput(size_t bytes) {
 
 	if (!_file.is_open())
-		return "";
+		return;
 
 	vector<char> buffer(bytes);
 	_file.read(buffer.data(), bytes);
@@ -61,7 +52,5 @@ std::string File::getBuffer(size_t bytes) {
 	for (; it != buffer.begin() + _file.gcount(); it++)
 		tmp += *it;
 
-	_size -= (_size > bytes) ? bytes : _size;
-
-	return tmp;
+	_output.append(tmp);
 }

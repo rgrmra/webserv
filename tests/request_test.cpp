@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "Common.hpp"
+#include "IStream.hpp"
 #include "Request.hpp"
 #include "Connection.hpp"
 #include "response.hpp"
@@ -103,7 +104,8 @@ TEST(RequestTest, ParseRequest_HeadersParsed) {
 	request::parseRequest(&connection, line);
 	line = "\r";
 	request::parseRequest(&connection, line);
-	EXPECT_TRUE(connection.getHeadersParsed()) << "Headers should be parsed";
+	//EXPECT_TRUE(connection.getHeadersParsed()) << "Headers should be parsed";
+	EXPECT_EQ(connection.getStep(), IStream::RESPONSE);
 }
 
 TEST(RequestTest, ParseRequest_HeadersNotParsed) {
@@ -112,5 +114,7 @@ TEST(RequestTest, ParseRequest_HeadersNotParsed) {
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
-	EXPECT_FALSE(connection.getHeadersParsed()) << "Headers should not be parsed";
+	//EXPECT_FALSE(connection.getHeadersParsed()) << "Headers should not be parsed";
+	EXPECT_EQ(connection.getStep(), IStream::STARTLINE);
+	EXPECT_NE(connection.getStep(), IStream::HEADERS);
 }
