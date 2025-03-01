@@ -150,8 +150,8 @@ void Cgi::sendCGI(void) {
 	int status = 0;
 
 	if (waitpid(_pid, &status, WUNTRACED) && WEXITSTATUS(status)) {
-		_connection->setCode(code::BAD_GATEWAY);
-		_connection->setStatus(status::BAD_GATEWAY);
+		_connection->setCode(code::INTERNAL_SERVER_ERROR);
+		_connection->setStatus(status::INTERNAL_SERVER_ERROR);
 		_output = Page(_connection).getData(parser::KILOBYTE);
 		_type = "text/html";
 	} else {
