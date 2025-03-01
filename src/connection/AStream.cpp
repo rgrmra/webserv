@@ -15,6 +15,7 @@ AStream::AStream(int fd, std::string id)
 	  _id(id),
 	  _time(time(NULL)),
 	  _size(0),
+	  _transfers(0),
 	  _step(IStream::NONE) {
 
 }
@@ -31,7 +32,12 @@ AStream &AStream::opeartor(const AStream &rhs) {
 
 	_fd = rhs._fd;
 	_id = rhs._id;
+	_input = rhs._input;
+	_output = rhs._output;
 	_time = rhs._time;
+	_size = rhs._size;
+	_transfers = rhs._transfers;
+	_step = rhs._step;
 
 	return *this;
 }
@@ -50,23 +56,37 @@ std::string AStream::getId(void) const {
 	return _id;
 }
 
+void AStream::processInput(size_t bytes) {
+
+	(void) bytes;
+}
+
 void AStream::setData(std::vector<char> &buffer, size_t bytes) {
 
 	if (!bytes || buffer.empty())
-		return;
+		return processInput(bytes);
 
 	_input.append(buffer.begin(), buffer.begin() + bytes);
+
+	processInput(bytes);
 
 	_time = time(NULL);
 }
 
+void AStream::processOutput(size_t bytes) {
+
+	(void) bytes;
+}
+
 std::string AStream::getData(size_t bytes) {
 
-	if (!bytes || _input.empty())
+	processOutput(bytes);
+
+	if (_output.empty())
 		return "";
 
-	string tmp = _input.substr(0, bytes);
-	_input.erase(0, bytes);
+	string tmp = _output.substr(0, bytes);
+	_output.erase(0, bytes);
 
 	_time = time(NULL);
 
@@ -78,14 +98,9 @@ size_t AStream::getSize(void) const {
 	return _size;
 }
 
-string AStream::getMime(void) const {
+void AStream::setStep(int step) {
 
-	return Mime::getInstance()->getType(_id);
-}
-
-void AStream::setStep(int value) {
-
-	_step = value;
+	_step = step;
 }
 
 int AStream::getStep(void) const {
@@ -95,7 +110,12 @@ int AStream::getStep(void) const {
 
 bool AStream::isTimedOut(void) const {
 
-	if (time(NULL) - _time > WebServ::TIMEOUT)
+	size_t elapsed_time = time(NULL) - _time;
+	
+	if (_transfers && elapsed_time >= WebServ::KEEP_ALIVE_TIMEOUT)
+		return true;
+
+	if (elapsed_time >= WebServ::TIMEOUT)
 		return true;
 
 	return false;

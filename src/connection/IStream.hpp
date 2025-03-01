@@ -13,7 +13,8 @@ class IStream {
 			HEADERS = 2,
 			BODY = 4,
 			RESPONSE = 8,
-			CLOSE = 16
+			KEEPALIVE = 16,
+			CLOSE = 32
 		};
 
 		virtual ~IStream(void) {};
