@@ -1,7 +1,6 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "Archive.hpp"
 #include "parser.hpp"
 #include <map>
 #include <netdb.h>
@@ -28,23 +27,20 @@ class WebServ {
 		void acceptNewConnection(int client_fd);
 		void closeConnection(int client_fd);
 		void inputHandler(std::map<int, IStream *>::iterator it);
-		int sendMessage(IStream *connection, std::string message);
 		void outputHandler(std::map<int, IStream *>::iterator it);
-		//int isBindedSocket(int fd);
-		bool isTimedOut(int client_fd, IStream *connection);
 		void checkTimeOut(void);
 
 	public:
 		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;
 		static const int MAX_EVENTS = 252;
-		static const long TIMEOUT = 10;
+		static const long TIMEOUT = 30;
 		static const long KEEP_ALIVE_TIMEOUT = 3;
 		
 		static WebServ *getInstance(void);
 
 		virtual ~WebServ(void);
 
-		void addStream(int fd, IStream *stream);
+		void addStream(IStream *stream);
 		void delStream(int fd);
 		void controlEpoll(int client_fd, int flag, int option);
 

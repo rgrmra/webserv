@@ -1,5 +1,6 @@
 #include "AStream.hpp"
-#include "Archive.hpp"
+#include "Cgi.hpp"
+#include "Resource.hpp"
 #include "Connection.hpp"
 #include "IStream.hpp"
 #include "header.hpp"
@@ -47,21 +48,15 @@ WebServ::~WebServ(void) {
 	while (_client_connections.begin() != _client_connections.end()) {
 		map<int, IStream *>::iterator ic = _client_connections.begin();
 
-		//if (ic->second->getSend()) {
-		//	closeConnection(ic->first);
-		//	continue;
-		//}
-		//response::pageInternalServerError(ic->second);
-
-		//if (sendMessage(ic->second, ic->second->getResponse()) == -1)
-		//	continue;
-
 		closeConnection(ic->first);
 	}
 
 	map<string, int>::iterator it = _binded_sockets.begin();
 	for (; it != _binded_sockets.end(); it++)
 		close(it->second);
+
+	if (_epoll_fd != -1)
+		close(_epoll_fd);
 }
 
 WebServ *WebServ::getInstance(void) {
@@ -168,7 +163,6 @@ void WebServ::controlEpoll(int client_fd, int flag, int option) {
 		cout << strerror(errno) << endl;
 		logger::error("epoll_ctl failed");
 	}
-	//std::cout << client_fd << std::endl;
 }
 
 string WebServ::getIpByFileDescriptor(int client_fd) {
@@ -207,10 +201,6 @@ void WebServ::acceptNewConnection(int client_fd) {
 	
 	controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 	_client_connections[fd] = new Connection(fd, host);
-	//Archive *archive = new Archive(fd, host);
-	//_client_connections[fd] = new Archive(fd, host);
-	//_client_connections[archive->getFd()] = archive;
-
 }
 
 void WebServ::closeConnection(int client_fd) {
@@ -221,13 +211,10 @@ void WebServ::closeConnection(int client_fd) {
 		return;
 
 	if (!dynamic_cast<Connection *>(it->second)) {
-		cout << "ignoring fd: " << it->second->getFd() << endl;
-		//dynamic_cast<Archive *>(it->second)->teste();
 		return _client_connections.erase(it);
 	}
 
 	logger::debug(it->second->getId() + " connection closed");
-	cout << "deleting fd: " << it->second->getFd() << endl;
 
 	close(it->first);
 	delete dynamic_cast<Connection *>(it->second);
@@ -236,123 +223,54 @@ void WebServ::closeConnection(int client_fd) {
 
 void WebServ::inputHandler(map<int, IStream *>::iterator it) {
 
-	//map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	//Connection *connection = it->second;
-	
 	int fd = it->first;
 	IStream *stream = it->second;
 
-	//cout << "reading: " << fd << endl;
 	vector<char> buffer(BUFFER_SIZE);
 	int bytes_read = recv(fd, buffer.data(), WebServ::BUFFER_SIZE, MSG_NOSIGNAL);
-	cout << bytes_read << endl;
 	if (bytes_read == -1) {
 		logger::fatal("recv");
 		return closeConnection(fd);
-	} else if (bytes_read == 0 && buffer.at(0) == EOF && dynamic_cast<Connection *>(stream)) {
+	} else if ((bytes_read == 0 || buffer.at(0) == EOF)) {
+		if (dynamic_cast<Cgi *>(stream))
+			return dynamic_cast<Cgi *>(stream)->sendCGI();
 		logger::warning(stream->getId() + " disconected");
 		return closeConnection(fd);
-	} else if (bytes_read == 0 || buffer.at(0) == EOF) {
-		cout << "step: " << stream->getStep() << endl;
-		if (stream->getStep() != IStream::CLOSE)
-			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-		return;
 	}
-	//} else if (bytes_read == 0 || buffer.at(0) == EOF) {
-	//	logger::warning(stream->getId() + " disconected");
-	//	if (dynamic_cast<Connection *>(stream))
-	//		return closeConnection(fd);
-	//	return;
-	//}
 
 	stream->setData(buffer, bytes_read);
 
-	//std::cout << "step: " << stream->getStep() << ", fd: " << stream->getFd() << endl;
 	if (stream->getStep() < IStream::BODY)
 		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 
 	if (dynamic_cast<Connection *>(stream))
-		controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-}
-
-int WebServ::sendMessage(IStream *connection, std::string message) {
-
-	int status = send(connection->getFd(), message.c_str(), message.size(), MSG_NOSIGNAL);
-	if (status == -1) {
-		logger::fatal("client is no longer available to receive messages");
-		closeConnection(connection->getFd());
-	}
-
-	return status;
+		controlEpoll(fd, EPOLLIN |EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 
-	//map<int, Connection *>::iterator it = _client_connections.find(client_fd);
-	//Connection *connection = it->second;
-	
 	int fd = it->first;
 	IStream *stream = it->second;
 
-	//cout << "sending: " << fd << endl;
 	if (stream->getStep() < IStream::RESPONSE)
-		return controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	string  tmp = stream->getData(WebServ::BUFFER_SIZE);
-	//cout << "1"<< endl;
 	int status = send(fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL);
 	if (status == -1) {
 		logger::fatal("client is no longer available to receive messages");
 		return closeConnection(stream->getFd());
 	}
-	//cout << "2"<< endl;
 	
-	//if (sendMessage(it->second, connection->getResponse(BUFFER_SIZE)) == -1)
-	//	return;
-
-	//if (connection->getResponseSize())
-	//	return controlepoll(client_fd, epollout | epollet, epoll_ctl_mod);
-	//else if ((*connection)[header::CONNECTION] == "keep-alive") {
-	//	connection->resetConnection();
-	//	return controlEpoll(client_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-	//}
-
-	if (stream->getStep() < IStream::CLOSE)
+	if (stream->getStep() <= IStream::RESPONSE)
 		return controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	if (stream->getStep() == IStream::CLOSE)
 		closeConnection(fd);
-}
-
-//int WebServ::isBindedSocket(int fd) {
-//
-//	map<string, int>::iterator it = _binded_sockets.begin();
-//	for (; it != _binded_sockets.end(); it++)
-//		if (fd == it->second)
-//			return true;
-//
-//	return false;
-//}
-
-bool WebServ::isTimedOut(int client_fd, IStream *connection) {
-
-	//if (connection->getTransfers() && time(NULL) - connection->getTime() >= KEEP_ALIVE_TIMEOUT) {
-	//	closeConnection(client_fd);
-	//	return true;
-	//}
-
-	if (!connection->isTimedOut())
-		return false;
-
-	//response::pageGatewayTimeOut(connection);
-
-	//controlEpoll(client_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
-	
-	// NOTE: temporary
-	cout << "why" << endl;
-	closeConnection(client_fd);
-
-	return true;
+	else if (stream->getStep() == IStream::KEEPALIVE) {
+		dynamic_cast<Connection *>(stream)->resetConnection();
+		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	}
 }
 
 void WebServ::checkTimeOut(void) {
@@ -360,12 +278,14 @@ void WebServ::checkTimeOut(void) {
 	if (_client_connections.empty())
 		return;
 
-	//cout << "yes" << endl;
-
 	map<int, IStream *>::iterator it = _client_connections.begin();
-	for (; it != _client_connections.end(); it++)
-		if (isTimedOut(it->first, it->second))
-			return;
+	for (; it != _client_connections.end(); it++) {
+		if (!it->second->isTimedOut())
+			continue;
+
+		closeConnection(it->first);
+		break;
+	}
 }
 
 void WebServ::run(void) {
@@ -391,7 +311,6 @@ void WebServ::run(void) {
 			int fd = events[i].data.fd;
 
 			map<int, IStream *>::iterator it = _client_connections.find(fd);
-			//if (isBindedSocket(fd))
 			if (it == _client_connections.end())
 				acceptNewConnection(fd);
 			else if (events[i].events & (EPOLLIN | EPOLLET))
@@ -413,9 +332,9 @@ void WebServ::stop(void) {
 	_epoll_fd = -1;
 }
 
-void WebServ::addStream(int fd, IStream *stream) {
+void WebServ::addStream(IStream *stream) {
 
-	_client_connections[fd] = stream;
+	_client_connections[stream->getFd()] = stream;
 }
 
 void WebServ::delStream(int fd) {
