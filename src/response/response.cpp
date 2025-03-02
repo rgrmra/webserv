@@ -3,17 +3,17 @@
 #include "Connection.hpp"
 #include "header.hpp"
 #include "logger.hpp"
-#include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <iostream>
 #include <string>
 #include <sys/stat.h>
 
 using namespace std;
 
 static void buildHeaderAndBody(Connection *connection) {
+
+	logger::warning(connection->getId() + " " + connection->getCode() + " " + connection->getStatus());
 
 	string header_connection = (*connection)[header::CONNECTION];
 	string header_location = (*connection)[header::LOCATION];
@@ -23,16 +23,14 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->addHeader(header::CONNECTION, header_connection);
 	connection->addHeader(header::LOCATION, header_location);
+	connection->buildResponse();
 }
 
 void response::pageOK(Connection *connection) {
 
 	connection->setCode(code::OK);
 	connection->setStatus(status::OK);
-
 	process::request(connection);
-	if (connection->getCode() != code::OK)
-		return;
 
 	logger::info(connection->getHost() + " "
 			+ connection->getMethod() + " "
@@ -40,8 +38,6 @@ void response::pageOK(Connection *connection) {
 			+ connection->getProtocol() + " "
 			+ connection->getCode() + " - "
 			+ connection->getHeaderByKey(header::USER_AGENT));
-
-	buildHeaderAndBody(connection);
 }
 
 void response::pageMovedPermanently(Connection *connection) {

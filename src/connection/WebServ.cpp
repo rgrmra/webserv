@@ -2,6 +2,7 @@
 #include "Connection.hpp"
 #include "Http.hpp"
 #include "WebServ.hpp"
+#include "response.hpp"
 #include "logger.hpp"
 #include <cerrno>
 #include <cstdio>
@@ -211,6 +212,7 @@ void WebServ::closeConnection(int client_fd) {
 		return;
 	}
 
+	controlEpoll(client_fd, 0, EPOLL_CTL_DEL);
 	logger::debug(it->second->getId() + " connection closed");
 
 	close(it->first);
@@ -241,7 +243,7 @@ void WebServ::inputHandler(map<int, IStream *>::iterator it) {
 		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 
 	if (dynamic_cast<Connection *>(stream))
-		controlEpoll(fd, EPOLLIN |EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+		controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void WebServ::outputHandler(map<int, IStream *>::iterator it) {
@@ -259,7 +261,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 		return closeConnection(stream->getFd());
 	}
 	
-	if (stream->getStep() <= IStream::RESPONSE)
+	if (stream->getStep() == IStream::RESPONSE)
 		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	if (stream->getStep() == IStream::CLOSE)
@@ -279,9 +281,11 @@ void WebServ::checkTimeOut(void) {
 	for (; it != _client_connections.end(); it++) {
 		if (!it->second->isTimedOut())
 			continue;
+		
+		if (!dynamic_cast<Connection *>(it->second))
+			continue;
 
-		closeConnection(it->first);
-		break;
+		dynamic_cast<Connection *>(it->second)->sendTimeOut();
 	}
 }
 
@@ -300,7 +304,7 @@ void WebServ::run(void) {
 	epoll_event events[MAX_EVENTS];
 
 	while (_epoll_fd != -1) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 1000);
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 10000);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
 
@@ -330,7 +334,7 @@ void WebServ::stop(void) {
 }
 
 void WebServ::addStream(IStream *stream) {
-
+	
 	_client_connections[stream->getFd()] = stream;
 }
 

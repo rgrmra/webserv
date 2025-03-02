@@ -156,8 +156,6 @@ Location process::isValidPath(Connection *connection) {
 	list<string>::iterator it = splited_path.begin();
 	for (; it != splited_path.end(); it ++) {
 
-		cout << *it << endl;
-
 		if (*it == ".")
 			continue;
 
