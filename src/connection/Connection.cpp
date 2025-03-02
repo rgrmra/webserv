@@ -1,12 +1,15 @@
+#include "Cgi.hpp"
 #include "Connection.hpp"
 #include "Http.hpp"
 #include "Resource.hpp"
+#include "WebServ.hpp"
 #include "header.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include <list>
 #include <sstream>
 #include <string>
+#include <sys/epoll.h>
 
 using namespace std;
 
@@ -284,6 +287,8 @@ void Connection::buildResponse(void) {
 		oss << it->first + ": " + it->second + "\r\n";
 
 	_output = oss.str() + "\r\n";
+	_step = IStream::RESPONSE;
+	WebServ::getInstance()->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void Connection::processOutput(size_t bytes) {
@@ -350,6 +355,13 @@ std::string Connection::operator[](std::string key) {
 		return it->second;
 
 	return empty ;
+}
+
+void Connection::sendTimeOut(void) {
+
+	if (_file && dynamic_cast<Cgi *>(_file))
+		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
+	response::pageGatewayTimeOut(this);
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {

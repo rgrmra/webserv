@@ -9,7 +9,6 @@ using namespace std;
 File::File(Connection *connection)
 	: Resource(connection) {
 
-	cout << "path: " <<  _id.c_str() << endl;
 	_file.open(_id.c_str(), ios::binary);
 	if (!_file.is_open())
 		return;

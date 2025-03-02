@@ -112,9 +112,6 @@ bool AStream::isTimedOut(void) const {
 
 	size_t elapsed_time = time(NULL) - _time;
 	
-	if (_transfers && elapsed_time >= WebServ::KEEP_ALIVE_TIMEOUT)
-		return true;
-
 	if (elapsed_time >= WebServ::TIMEOUT)
 		return true;
 

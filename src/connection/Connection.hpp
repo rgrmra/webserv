@@ -72,6 +72,7 @@ class Connection : public AStream {
 		bool hasContentLenght(void) const;
 		bool hasTransferEnconding(void) const;
 		void resetConnection(void);
+		void sendTimeOut(void);
 
 		std::string operator[](std::string key);
 

@@ -6,7 +6,6 @@
 #include "header.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <csignal>
 #include <cstring>
 #include <stdexcept>
 #include <string>

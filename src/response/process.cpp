@@ -52,14 +52,8 @@ void process::request(Connection *connection) {
         return response::pageMovedPermanently(connection);
     }
 
-	if (process::isCGI(path)) {
-		try {
-			return connection->setResource(new Cgi(connection, location.getFastCgi()));
-		}
-		catch (exception &e) {
-			return response::pageInternalServerError(connection);
-		}
-	}
+	if (process::isCGI(path))
+		return connection->setResource(new Cgi(connection, location.getFastCgi()));
 
 	if (process::isFile(path))
 		return connection->setResource(new File(connection));
@@ -155,8 +149,6 @@ Location process::isValidPath(Connection *connection) {
 
 	list<string>::iterator it = splited_path.begin();
 	for (; it != splited_path.end(); it ++) {
-
-		cout << *it << endl;
 
 		if (*it == ".")
 			continue;
