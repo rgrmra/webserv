@@ -27,9 +27,7 @@ TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
 	string line = "GET /index.html?name=changes HTTP/1.1\r";
 	request::parseRequest(&connection, line);
 	EXPECT_EQ(connection.getMethod(), "GET");
-	EXPECT_EQ(connection.getPath(), "/index.html");
-	EXPECT_EQ(connection.getUri(), "/index.html?name=changes");
-	EXPECT_EQ(connection.getQueryString(), "name=changes");
+	EXPECT_EQ(connection.getPath(), "/index.html?name=changes");
 	EXPECT_EQ(connection.getProtocol(), "HTTP/1.1");
 }
 

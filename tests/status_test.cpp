@@ -26,7 +26,7 @@ TEST(StatusTest, NotFound) {
 }
 
 TEST(StatusTest, NotAllowed) {
-	EXPECT_EQ(status::NOT_ALLOWED, "Not Allowed");
+	EXPECT_EQ(status::NOT_ALLOWED, "Method Not Allowed");
 }
 
 TEST(StatusTest, LengthRequired) {
