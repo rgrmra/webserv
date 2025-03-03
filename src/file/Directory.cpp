@@ -49,8 +49,6 @@ Directory::Directory(Connection *connection)
 	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
 	_size = _output.size();
 	_step = IStream::CLOSE;
-	_connection->setStep(IStream::RESPONSE);
-	_connection->buildResponse();
 }
 
 Directory::Directory(const Directory &src)

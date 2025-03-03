@@ -20,8 +20,6 @@ File::File(Connection *connection)
 	_file.seekg(0, ios::beg);
 
 	_step = IStream::CLOSE;
-	_connection->setStep(IStream::RESPONSE);
-	_connection->buildResponse();
 }
 
 File::File(const File &src)

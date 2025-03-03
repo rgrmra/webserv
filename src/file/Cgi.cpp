@@ -173,7 +173,6 @@ void Cgi::sendCGI(void) {
 	}
 	_size = _output.size();
 	_step = IStream::CLOSE;
-	_connection->setStep(IStream::RESPONSE);
 	_connection->buildResponse();
 	_pid = -1;
 }
