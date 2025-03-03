@@ -33,6 +33,7 @@ class Location {
 		std::string getURI(void) const;
 		void addMethod(std::string method);
 		void setMethods(std::set<std::string> methods);
+		std::string getMethod(std::string method) const;
 		std::set<std::string> getMethods(void) const;
 		void setDenyMethods(std::string deny_methods);
 		bool getDenyMethods(void) const;
