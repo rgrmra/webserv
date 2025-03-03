@@ -1,3 +1,4 @@
+#include "IStream.hpp"
 #include "Page.hpp"
 #include "code.hpp"
 #include "Connection.hpp"
@@ -6,14 +7,27 @@
 #include "process.hpp"
 #include "response.hpp"
 #include "status.hpp"
+#include <iostream>
 #include <string>
 #include <sys/stat.h>
 
 using namespace std;
 
 static void buildHeaderAndBody(Connection *connection) {
+	connection->setStep(IStream::BODY);
 
-	logger::warning(connection->getId() + " " + connection->getCode() + " " + connection->getStatus());
+	if (connection->getCode() == code::OK) {
+		logger::info(connection->getHost() + " "
+				+ connection->getMethod() + " "
+				+ connection->getPath() + " "
+				+ connection->getProtocol() + " "
+				+ connection->getCode() + " - "
+				+ connection->getHeaderByKey(header::USER_AGENT));
+	} else {
+		logger::warning(connection->getId() + " "
+			+ connection->getCode() + " "
+			+ connection->getStatus());
+	}
 
 	string header_connection = (*connection)[header::CONNECTION];
 	string header_location = (*connection)[header::LOCATION];
@@ -31,23 +45,15 @@ void response::pageOK(Connection *connection) {
 	connection->setCode(code::OK);
 	connection->setStatus(status::OK);
 	process::request(connection);
-
-	logger::info(connection->getHost() + " "
-			+ connection->getMethod() + " "
-			+ connection->getPath() + " "
-			+ connection->getProtocol() + " "
-			+ connection->getCode() + " - "
-			+ connection->getHeaderByKey(header::USER_AGENT));
+	if (connection->getCode() == code::OK)
+		buildHeaderAndBody(connection);
 }
 
 void response::pageMovedPermanently(Connection *connection) {
 
 	connection->setCode(code::MOVED_PERMANENTLY);
 	connection->setStatus(status::MOVED_PERMANENTLY);
-	// TODO: check if getReturnURI is a valid path or a text
-	connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
 	connection->setResource(new Page(connection));
-	//connection->setResource(new Text(connection->getLocation().getReturnURI()));
 	buildHeaderAndBody(connection);
 }
 
@@ -83,7 +89,7 @@ void response::pageNotFound(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
-void response::pageNotAllowed(Connection *connection) {
+void response::pageMethodNotAllowed(Connection *connection) {
 
 	connection->setCode(code::NOT_ALLOWED);
 	connection->setStatus(status::NOT_ALLOWED);

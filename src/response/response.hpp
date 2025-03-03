@@ -18,7 +18,7 @@ namespace response {
 	void pageUnauthorized(Connection *connection);
 	void pageForbbiden(Connection *connection);
 	void pageNotFound(Connection *connection);
-	void pageNotAllowed(Connection *connection);
+	void pageMethodNotAllowed(Connection *connection);
 	void pageLengthRequired(Connection *connection);
 	void pagePayloadTooLarge(Connection *connection);
 	void pageURITooLong(Connection *connection);
