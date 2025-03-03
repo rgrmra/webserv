@@ -279,14 +279,18 @@ void WebServ::checkTimeOut(void) {
 
 	map<int, IStream *>::iterator it = _client_connections.begin();
 	for (; it != _client_connections.end(); it++) {
-		if (!it->second->isTimedOut())
-			continue;
-
 		Connection *connection = dynamic_cast<Connection *>(it->second);
 		if (!connection)
 			continue;
 
-		connection->sendTimeOut();
+		if (connection->isTimedOut())
+			connection->sendTimeOut();
+
+		if (!connection->isKeepAliveTimedOut())
+			continue;
+
+		closeConnection(it->first);
+		break;
 	}
 }
 
@@ -305,7 +309,7 @@ void WebServ::run(void) {
 	epoll_event events[MAX_EVENTS];
 
 	while (_epoll_fd != -1) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 10000);
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 1000);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
 

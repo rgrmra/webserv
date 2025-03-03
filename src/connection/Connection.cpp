@@ -315,6 +315,14 @@ void Connection::resetConnection(void) {
 	_time = time(NULL);
 }
 
+bool Connection::isKeepAliveTimedOut(void) const {
+
+	if (_transfers && time(NULL) - _time > WebServ::KEEP_ALIVE_TIMEOUT)
+		return true;
+
+	return false;
+}
+
 void Connection::sendTimeOut(void) {
 
 	if (_file && dynamic_cast<Cgi *>(_file))

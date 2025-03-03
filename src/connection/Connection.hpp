@@ -66,6 +66,7 @@ class Connection : public AStream {
 		void buildResponse(void);
 		void processOutput(size_t bytes);
 		void resetConnection(void);
+		bool isKeepAliveTimedOut(void) const;
 		void sendTimeOut(void);
 
 		std::string operator[](std::string key);
