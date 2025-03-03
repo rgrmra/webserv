@@ -24,7 +24,9 @@ Connection::Connection(int fd, string ip)
 }
 
 Connection::Connection(const Connection &src)
-	: AStream(src) {
+	: AStream(src),
+	  _uri(NULL),
+	  _file(NULL) {
 
 	*this = src;
 }
@@ -42,6 +44,11 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_status = rhs._status;
 	_headers = rhs._headers;
 	_body = rhs._body;
+	if (_uri)
+		delete _uri;
+	_uri = rhs._uri;
+	if (_file)
+		delete _file;
 	_file = rhs._file;
 	_server = rhs._server;
 
