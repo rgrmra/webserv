@@ -19,7 +19,7 @@ class Cgi : public Resource {
 		void processInput(size_t bytes);
 
 	public:
-		Cgi(Connection *connection, std::string fastcgi_pass);
+		Cgi(Connection *connection);
 		Cgi(const Cgi &src);
 		Cgi &operator=(const Cgi &rhs);
 		virtual ~Cgi(void);

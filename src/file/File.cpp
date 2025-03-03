@@ -9,6 +9,8 @@ using namespace std;
 File::File(Connection *connection)
 	: Resource(connection) {
 
+	_id = connection->getUri()->getAbsolutePath();
+
 	_file.open(_id.c_str(), ios::binary);
 	if (!_file.is_open())
 		return;
@@ -17,9 +19,9 @@ File::File(Connection *connection)
 	_size = _file.tellg();
 	_file.seekg(0, ios::beg);
 
-	_connection->buildResponse();
+	_step = IStream::CLOSE;
 	_connection->setStep(IStream::RESPONSE);
-	_step = CLOSE;
+	_connection->buildResponse();
 }
 
 File::File(const File &src)
