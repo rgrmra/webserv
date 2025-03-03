@@ -1,6 +1,7 @@
 #include "Cgi.hpp"
 #include "Connection.hpp"
 #include "Http.hpp"
+#include "IStream.hpp"
 #include "WebServ.hpp"
 #include "response.hpp"
 #include "logger.hpp"
@@ -259,17 +260,16 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	if (status == -1) {
 		logger::fatal("client is no longer available to receive messages");
 		return closeConnection(stream->getFd());
+	} else if (status == 0) {
+		if (stream->getStep() == IStream::CLOSE)
+			return closeConnection(fd);
+		else if (stream->getStep() == IStream::KEEPALIVE) {
+			dynamic_cast<Connection *>(stream)->resetConnection();
+			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+		}
 	}
-	
-	if (stream->getStep() == IStream::RESPONSE)
-		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	if (stream->getStep() == IStream::CLOSE)
-		closeConnection(fd);
-	else if (stream->getStep() == IStream::KEEPALIVE) {
-		dynamic_cast<Connection *>(stream)->resetConnection();
-		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-	}
+	return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void WebServ::checkTimeOut(void) {
@@ -281,11 +281,12 @@ void WebServ::checkTimeOut(void) {
 	for (; it != _client_connections.end(); it++) {
 		if (!it->second->isTimedOut())
 			continue;
-		
-		if (!dynamic_cast<Connection *>(it->second))
+
+		Connection *connection = dynamic_cast<Connection *>(it->second);
+		if (!connection)
 			continue;
 
-		dynamic_cast<Connection *>(it->second)->sendTimeOut();
+		connection->sendTimeOut();
 	}
 }
 
