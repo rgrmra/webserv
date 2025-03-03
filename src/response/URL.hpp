@@ -4,33 +4,37 @@
 #include <string>
 #include <ostream>
 
+class Connection;
+
 class URL {
 	private:
+		Connection *_connection;
 		std::string _scheme;
 		std::string _host;
 		std::string _port;
 		std::string _path;
+		std::string _file;
+		std::string _extension;
 		std::string _query;
 
+		void formatPath(std::string path);
+		void processPath(std::string path);
+
 	public:
-		URL(void);
-		URL(std::string url);
+		URL(Connection *connection);
 		URL(const URL &src);
 		URL &operator=(const URL &rhs);
 		~URL(void);
 
-		void setScheme(std::string scheme);
 		std::string getScheme(void) const;
-		void setHost(std::string host);
 		std::string getHost(void) const;
-		void setPort(std::string port);
 		std::string getPort(void) const;
-		void setPath(std::string path);
 		std::string getPath(void) const;
-		void setQuery(std::string query);
+		std::string getFile(void) const;
+		std::string getExtension(void) const;
 		std::string getQuery(void) const;
-		std::string getLocation(void);
-		void clear(void);
+		std::string getAbsolutePath(void) const;
+		std::string getLocation(void) const;
 
 };
 
