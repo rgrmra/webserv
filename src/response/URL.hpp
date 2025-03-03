@@ -17,6 +17,7 @@ class URL {
 		std::string _extension;
 		std::string _query;
 
+		void convertCharacters(std::string &path);
 		void formatPath(std::string path);
 		void processPath(std::string path);
 

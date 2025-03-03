@@ -2,8 +2,10 @@
 #include "Connection.hpp"
 #include "parser.hpp"
 #include "process.hpp"
+#include <cctype>
 #include <csetjmp>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -67,6 +69,35 @@ URL::~URL(void) {
 
 }
 
+void URL::convertCharacters(string &path) {
+
+	std::string output;
+
+	for (size_t i = 0; i < path.length(); ++i) {
+
+		if (path[i] == '%' && i + 2 < path.length()) {
+
+			string tmp = path.substr(i, i + 2);
+
+			if (tmp.find_first_of("0123456789ABCDEFG") != string::npos) {
+				output += '%';
+				continue;
+			}
+
+			std::istringstream iss(tmp);
+			int value;
+
+			iss >> std::hex >> value;
+			output += static_cast<char>(value);
+
+			i += 2;
+		}
+
+		output += path[i];
+	}
+	path = output;
+}
+
 void URL::formatPath(std::string path) {
 
 	list<string> new_path;
@@ -84,6 +115,8 @@ void URL::formatPath(std::string path) {
 
 			continue;
 		}
+
+		convertCharacters(*it);
 
 		new_path.push_back(*it);
 	}
