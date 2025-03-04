@@ -7,6 +7,7 @@
 #include "parser.hpp"
 #include "response.hpp"
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <pthread.h>
 #include <sstream>
@@ -14,7 +15,7 @@
 
 using namespace std;
 
-void request::parseRequest(Connection *connection, string line) {
+void request::parseRequest(Connection *connection, string &line) {
 
 	if (connection->getStep() == IStream::NONE)
 		return parseStartLine(connection, line);
@@ -30,7 +31,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 
 	string method, path, protocol;
 
-	if (line.at(line.size() -1) != '\r')
+	if (line.at(line.size() - 1) != '\r')
 		return response::pageBadRequest(connection);
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
@@ -65,11 +66,13 @@ void request::parseStartLine(Connection *connection, string &line) {
 
 void request::parseHeaders(Connection *connection, std::string &line) {
 
-	if (line.at(line.size() -1) != '\r')
+	if (line.at(line.size() - 1) != '\r')
 		return response::pageBadRequest(connection);
 
 	if (line == "\r") {
 		connection->setStep(IStream::HEADERS);
+
+		connection->setUri(new URL(connection));
 
 		if (!connection->getHeaders().size())
 			return response::pageBadRequest(connection);
@@ -79,10 +82,13 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 			&& !(*connection == header::TRANSFER_ENCONDING))
 			return response::pageBadRequest(connection);
 
-		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) == 0)
-			return response::pageOK(connection);
+		if (*connection == header::TRANSFER_ENCONDING)
+			return;
 
-		return;
+		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) > 0)
+			return;
+		
+		return response::pageOK(connection);
 	}
 
 	size_t separator = line.find_first_of(":");
@@ -103,18 +109,93 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 void request::parseBody(Connection *connection, string &line) {
 
-	// TODO: transfer enconding parser
+	if (*connection == header::TRANSFER_ENCONDING)
+		return parseTransferEncoding(connection, line);
 	
-	size_t body_size = line.size();
+	if (line.size() < 4)
+		return;
+
+	size_t body_size = line.size() - 4;
 	size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
-	if (body_size == content_length) {
-		connection->setBody(line);
-		return response::pageOK(connection);
+	if (body_size < content_length)
+		return;
+
+	if (body_size > content_length) {
+
+		if (line.substr(content_length, body_size) == "\r\n\r\n")
+			line.erase(content_length);
+		else
+			return response::pagePayloadTooLarge(connection);
 	}
 
-	if (body_size > content_length)
+	connection->addBody(line);
+	line.clear();
+	
+	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
 		return response::pagePayloadTooLarge(connection);
+
+	response::pageOK(connection);
+}
+
+void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
+
+	if (buffer.size() < 4)
+		return;
+
+	if (!parser::compare("0\r\n\r\n", buffer))
+		return response::pageBadRequest(connection);
+	buffer.clear();
+
+	connection->setStep(IStream::BODY);
+	return response::pageOK(connection);
+}
+
+void request::parseTransferEncoding(Connection *connection, string &buffer) {
+
+	if (buffer.empty())
+		return;
+
+	string chunk_size_value = buffer.substr(0, buffer.find("\r\n"));
+	size_t chunk_size_length = chunk_size_value.size() + 2;
+
+	if (chunk_size_value.find_first_not_of("0123456789ABCDEF") != string::npos)
+		return response::pageBadRequest(connection);
+
+	if (chunk_size_value == "0")
+		return checkTransferEncodingEnd(connection, buffer);
+
+	size_t chunk_line_length;
+	convertToHex(connection, chunk_size_value, chunk_line_length);
+	if (connection->getCode() != "")
+		return;
+
+	string chunk_line_value = buffer.substr(chunk_size_length, chunk_line_length);
+
+	if (chunk_line_value.size() != chunk_line_length)
+		return;
+	buffer.erase(0, chunk_size_length + chunk_line_length);
+
+	connection->addBody(chunk_line_value);
+	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
+		return response::pagePayloadTooLarge(connection);
+
+	if (!parser::compare("\r\n", buffer))
+		return response::pageBadRequest(connection);
+	buffer.erase(0, 2);
+
+	return parseTransferEncoding(connection, buffer);
+}
+
+void request::convertToHex(Connection *connection, string &line, size_t &chunck_size) {
+
+	if (line.find_first_not_of("0123456789ABCDEF") != string::npos)
+		return response::pageBadRequest(connection);
+
+	char *rest;
+	chunck_size = strtoul(line.c_str(), &rest, 16);
+	if (rest[0] != '\0')
+		return response::pageBadRequest(connection);
 }
 
 void request::validateHeader(Connection *connection, string &key, string &value) {
@@ -163,7 +244,7 @@ void request::validateTransferEncoding(Connection *connection, string &value) {
 	if (connection->getMethod() != "POST")
 		return response::pageBadRequest(connection);
 
-	if (value != "chuncked")
+	if (value != "chunked")
 		return response::pageNotImplemented(connection);
 
 	if (*connection == header::CONTENT_LENGTH)
