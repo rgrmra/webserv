@@ -211,13 +211,28 @@ Server Http::getServerByListen(string listen) const {
 
 Server Http::getServerByName(string name) const {
 
+	list<string> listen = parser::split(name, ':');
+
 	vector<Server>::const_iterator it = _servers.begin();
 	for (; it != _servers.end(); it++) {
+
+		set<string> ports;
+		vector<string> listens = it->getListen();
+		vector<string>::iterator listensIt = listens.begin();
+		for (; listensIt != listens.end(); listensIt++) {
+
+			list<string> tmp = parser::split(*listensIt, ':');
+			ports.insert(tmp.back());
+		}
 
 		vector<string> names = it->getNames();
 		vector<string>::iterator namesIt= names.begin();
 		for(; namesIt!= names.end(); namesIt++) {
-			if (name == *namesIt)
+
+			if (listen.size() == 1 && listen.front() == *namesIt)
+				return *it;
+
+			if (listen.front() == *namesIt && ports.find(listen.back()) != ports.end())
 				return *it;
 		}
 	}

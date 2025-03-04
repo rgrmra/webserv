@@ -20,11 +20,6 @@ using namespace std;
 
 void process::request(Connection *connection) {
 
-	connection->setUri(new URL(connection));
-
-	// TODO: understant how header Referer works and implement
-	// (*connection)[header::REFERER];
-
 	Location &location = connection->getLocation();
 	if (location.empty())
 		return response::pageNotFound(connection);
@@ -52,8 +47,7 @@ void process::methodGet(Connection *connection) {
 	string path = uri->getAbsolutePath();
 	Location &location = connection->getLocation();
 
-	// TODO: understand how header Location works and implement
-	// (*connection)[header::REFERER]
+	connection->addHeader(header::LOCATION, uri->getLocation());
 	
 	if (isDirectory(path)) {
 
@@ -79,6 +73,8 @@ void process::methodGet(Connection *connection) {
 }
 
 void process::methodPost(Connection *connection) {
+
+	cout << connection->getBody() << endl;
 
 	response::pageNotFound(connection);
 }
