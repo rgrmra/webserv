@@ -12,54 +12,78 @@
 #include <list>
 #include <set>
 #include <string>
+#include <strings.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 using namespace std;
 
 void process::request(Connection *connection) {
-    string url = (*connection)[header::REFERER];
-    // if (url.size()) #FIXME: this condition is duplicating the path in some cases (e.g. links in html)
-    //  connection->setPath(process::getPathFromReferer(url) + connection->getPath());
 
-    Location location = process::isValidPath(connection);
-    connection->setLocation(location);
-    if (location.empty())
-        return response::pageNotFound(connection);
-    if (location.getReturnCode().size())
-	{
-        return response::pageMovedPermanently(connection);
+	connection->setUri(new URL(connection));
+
+	// TODO: understant how header Referer works and implement
+	// (*connection)[header::REFERER];
+
+	Location &location = connection->getLocation();
+	if (location.empty())
+		return response::pageNotFound(connection);
+
+	if (location.getReturnCode().size())
+		return response::pageMovedPermanently(connection);
+
+	const string &method = connection->getMethod();
+	if (location.getMethod(method) == "")
+		return response::pageMethodNotAllowed(connection);
+
+	if (method == "GET")
+		return methodGet(connection);
+
+	if (method == "POST")
+		return methodPost(connection);
+
+	if (method == "DELETE")
+		return methodDelete(connection);
+}
+	
+void process::methodGet(Connection *connection) {
+
+	URL *uri = connection->getUri();
+	string path = uri->getAbsolutePath();
+	Location &location = connection->getLocation();
+
+	// TODO: understand how header Location works and implement
+	// (*connection)[header::REFERER]
+	
+	if (isDirectory(path)) {
+
+		if (path.at(path.size() - 1) == '/') {
+
+			if (location.getAutoIndex())
+				return connection->setResource(new Directory(connection));
+
+			return response::pageForbbiden(connection);
+		}
+
+		connection->addHeader(header::LOCATION, uri->getLocation() + "/");
+		return response::pageMovedPermanently(connection);
 	}
 
-    string queryString = connection->getPath().find('?') != string::npos ? connection->getPath().substr(connection->getPath().find('?')) : "";
-    if (not queryString.empty())
-        connection->setQueryString(queryString);
-
-    string path = connection->getPath();
-    path = not queryString.empty() ? path.substr(0, path.find('?')) : path;
-
-	string uri = path;
-	path = location.getRoot() + connection->getPath();
-
-
-	connection->setPath(path);
-	if (process::isDirectory(path))
-		return connection->setResource(new Directory(connection));
-
-    if (process::isDirectory(path) && path[path.size() - 1] != '/') {
-
-        connection->addHeader(header::LOCATION, connection->getPath() + string("/"));
-        return response::pageMovedPermanently(connection);
-    }
-
-	if (process::isCGI(path))
-		return connection->setResource(new Cgi(connection, location.getFastCgi()));
+	if (location.getFastCgi() != "" && process::isCGI(path))
+		return connection->setResource(new Cgi(connection));
 
 	if (process::isFile(path))
 		return connection->setResource(new File(connection));
 
-	if (process::isDirectory(path) && not process::checkIndex(location, path))
-		return response::pageForbbiden(connection);
+	response::pageNotFound(connection);
+}
+
+void process::methodPost(Connection *connection) {
+
+	response::pageNotFound(connection);
+}
+
+void process::methodDelete(Connection *connection) {
 
 	response::pageNotFound(connection);
 }
@@ -97,120 +121,22 @@ bool process::isCGI(const std::string &path) {
 		return false;
 
 	return true;
-
-
-//	size_t pos = path.find_last_of(".");
-//	if (pos == std::string::npos) {
-//		return false;
-//	}
-//	std::string extension = path.substr(pos);
-//	return extension == ".php" || extension == ".py" || extension == ".go";
 }
 
-string process::getFileExtension(string path) {
+string process::checkIndex(const Location &location, std::string &path) {
 
-	list<string> splited_path = parser::split(path, '/');
-	if (splited_path.empty())
-		return "";
+	const set<string> &indexes = location.getIndexes();
 
-	size_t pos;
-	list<string>::iterator it = splited_path.begin();
-	for (; it != splited_path.end(); it++) {
+	set<string>::const_iterator it = indexes.begin();
+	for (; it != indexes.end(); it++) {
 
-		if (*it == "." || *it == "..")
+		cout << location.getRoot() + path + *it << endl;
+
+		if (!isFile(location.getRoot() + path + *it))
 			continue;
 
-		pos = it->find_first_of(".");
-		if (pos == string::npos)
-			continue;
-
-		return it->substr(pos + 1);
+		path.append(*it);
+		return *it;
 	}
-
 	return "";
-}
-
-Location process::isValidPath(Connection *connection) {
-
-	list<Location> locations;
-	locations.push_back(connection->getServer().getLocationByURI("/"));
-
-	string path = connection->getPath();
-
-	size_t pos = path.find_first_of("?");
-	if (pos != string::npos)
-		path.erase(pos);
-
-	list<string> splited_path = parser::split(path, '/');
-	if (splited_path.empty())
-		return locations.back();
-
-	string tmp;
-
-	list<string>::iterator it = splited_path.begin();
-	for (; it != splited_path.end(); it ++) {
-
-		if (*it == ".")
-			continue;
-
-		if (*it == "..") {
-			if (locations.size() > 1)
-				locations.pop_back();
-
-			continue;
-		}
-
-		if (it->find_first_of(".?") != string::npos) {
-
-			return locations.back();
-		}
-
-		tmp += "/" + *it;
-
-		Location location = connection->getServer().getLocationByURI(tmp);
-		if (!location.empty())
-			locations.push_back(location);
-	}
-	return locations.back();
-}
-
-bool process::checkIndex(const Location &location, std::string &path) {
-	const std::set<std::string> &indexes = location.getIndexes();
-	const string &bar = path.find_last_of('/') == path.size() - 1 ? "" : "/";
-
-	typedef std::set<std::string>::const_iterator set_iterator;
-	for (set_iterator it = indexes.begin(); it != indexes.end(); ++it) {
-        std::string indexPath = path + bar + *it;
-        if (isFile(indexPath)) {
-            path = indexPath;
-            return true;
-        }
-    }
-    return location.getAutoIndex();
-}
-
-string process::getPathFromReferer(string url) {
-
-	size_t pos = url.find_first_of("://");
-	if (pos != string::npos)
-		url.erase(0, pos + 3);
-
-	pos = url.find_first_of("/");
-	if (pos != string::npos)
-		url.erase(0, pos);
-
-	pos = url.find_first_of("?");
-	if (pos != string::npos)
-		url.erase(pos);
-
-	return url;
-}
-
-string process::getFileFromPath(string path) {
-
-	list<string> tmp = parser::split(path, '/');
-	if (tmp.empty())
-		return "/";
-
-	return "/" + tmp.back().append((path.at(path.size() - 1) == '/') ? "/" : "");
 }

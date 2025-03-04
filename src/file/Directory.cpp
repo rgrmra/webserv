@@ -8,6 +8,8 @@ using namespace std;
 
 Directory::Directory(Connection *connection)
 	: Resource(connection) {
+
+	_type = "text/html";
 	
 	DIR *dir;
 	struct dirent *ent;
@@ -24,7 +26,7 @@ Directory::Directory(Connection *connection)
 
 	std::vector<std::string> entries;
 
-	if ((dir = opendir(connection->getPath().c_str())) != NULL) {
+	if ((dir = opendir(connection->getUri()->getAbsolutePath().c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			std::string name = ent->d_name;
 			if (name == ".")
@@ -46,8 +48,6 @@ Directory::Directory(Connection *connection)
 	}
 	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
 	_size = _output.size();
-	_connection->buildResponse();
-	_connection->setStep(IStream::RESPONSE);
 	_step = IStream::CLOSE;
 }
 

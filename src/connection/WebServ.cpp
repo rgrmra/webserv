@@ -1,6 +1,7 @@
 #include "Cgi.hpp"
 #include "Connection.hpp"
 #include "Http.hpp"
+#include "IStream.hpp"
 #include "WebServ.hpp"
 #include "response.hpp"
 #include "logger.hpp"
@@ -259,17 +260,16 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	if (status == -1) {
 		logger::fatal("client is no longer available to receive messages");
 		return closeConnection(stream->getFd());
+	} else if (status == 0) {
+		if (stream->getStep() == IStream::CLOSE)
+			return closeConnection(fd);
+		else if (stream->getStep() == IStream::KEEPALIVE) {
+			dynamic_cast<Connection *>(stream)->resetConnection();
+			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+		}
 	}
-	
-	if (stream->getStep() == IStream::RESPONSE)
-		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	if (stream->getStep() == IStream::CLOSE)
-		closeConnection(fd);
-	else if (stream->getStep() == IStream::KEEPALIVE) {
-		dynamic_cast<Connection *>(stream)->resetConnection();
-		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-	}
+	return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void WebServ::checkTimeOut(void) {
@@ -279,13 +279,18 @@ void WebServ::checkTimeOut(void) {
 
 	map<int, IStream *>::iterator it = _client_connections.begin();
 	for (; it != _client_connections.end(); it++) {
-		if (!it->second->isTimedOut())
-			continue;
-		
-		if (!dynamic_cast<Connection *>(it->second))
+		Connection *connection = dynamic_cast<Connection *>(it->second);
+		if (!connection)
 			continue;
 
-		dynamic_cast<Connection *>(it->second)->sendTimeOut();
+		if (connection->isTimedOut())
+			connection->sendTimeOut();
+
+		if (!connection->isKeepAliveTimedOut())
+			continue;
+
+		closeConnection(it->first);
+		break;
 	}
 }
 
@@ -304,7 +309,7 @@ void WebServ::run(void) {
 	epoll_event events[MAX_EVENTS];
 
 	while (_epoll_fd != -1) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 10000);
+		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 1000);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
 

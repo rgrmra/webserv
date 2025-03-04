@@ -24,9 +24,7 @@ Page::Page(Connection *connection)
 
 	_output = oss.str();
 	_size = _output.size();
-	_connection->buildResponse();
-	_connection->setStep(IStream::RESPONSE);
-	_step = CLOSE;
+	_step = IStream::CLOSE;
 }
 
 Page::Page(const Page &src)

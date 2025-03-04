@@ -7,6 +7,8 @@
 #include "response.hpp"
 #include "status.hpp"
 #include <cstring>
+#include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <sys/epoll.h>
@@ -17,7 +19,7 @@
 
 using namespace std;
 
-Cgi::Cgi(Connection *connection, string fastcgi_pass)
+Cgi::Cgi(Connection *connection)
 	: Resource(connection) {
 
 	_sock[0] = -1;
@@ -28,6 +30,8 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 
 	_fd = _sock[0];
 
+	URL *uri = _connection->getUri();
+
 	vector<string> _env;
 	_env.push_back("SERVER_SOFTWARE=webserv/0.1.0");
 	_env.push_back("SERVER_NAME=");
@@ -37,9 +41,9 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
 	_env.push_back("PATH_INFO=");
 	_env.push_back("PATH_TRANSLATED=");
-	_env.push_back("SCRIPT_FILENAME=" + connection->getPath());
+	_env.push_back("SCRIPT_FILENAME=" + uri->getAbsolutePath());
 	_env.push_back("SCRIPT_NAME=teste");
-	_env.push_back("QUERY_STRING=" + connection->getQueryString());
+	_env.push_back("QUERY_STRING=" + uri->getQuery());
 	_env.push_back("REMOTE_HOST=");
 	_env.push_back("REMOTE_ADDR=");
 	_env.push_back("AUTH_TYPE=");
@@ -55,7 +59,7 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 	vector<char *> _envp = createVector(_env);
 
 	vector<string> _args;
-	_args.push_back(fastcgi_pass);
+	_args.push_back(connection->getLocation().getFastCgi());
 	_args.push_back(connection->getPath());
 
 	vector<char *> _argv = createVector(_args);
@@ -89,7 +93,10 @@ Cgi::Cgi(Connection *connection, string fastcgi_pass)
 
 	WebServ *webserv = WebServ::getInstance();
 	webserv->addStream(this);
-	webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
+	if (_output.empty())
+		webserv->controlEpoll(_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
+	else
+		webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
 }
 
 Cgi::Cgi(const Cgi &src)
@@ -154,6 +161,7 @@ void Cgi::sendCGI(void) {
 		_output = Page(_connection).getData(parser::KILOBYTE);
 		_type = "text/html";
 	} else {
+		// TODO: CGI parser
 		string tmp = parser::find("Content-type: ", _output, "\n");
 		if (tmp.size()) {
 			_type = tmp;
@@ -164,9 +172,8 @@ void Cgi::sendCGI(void) {
 			_type = "text/plain";
 	}
 	_size = _output.size();
-	_connection->buildResponse();
-	_connection->setStep(IStream::RESPONSE);
 	_step = IStream::CLOSE;
+	_connection->buildResponse();
 	_pid = -1;
 }
 

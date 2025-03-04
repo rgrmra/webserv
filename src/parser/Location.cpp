@@ -79,6 +79,14 @@ void Location::setMethods(set<string> methods) {
 
 	_allow_methods = methods;
 }
+string Location::getMethod(string method) const {
+
+	set<string>::iterator tmp = _allow_methods.find(method);
+	if (tmp == _allow_methods.end())
+		return "";
+
+	return *tmp;
+}
 
 set<string> Location::getMethods(void) const {
 

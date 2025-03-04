@@ -2,10 +2,13 @@
 #include "Connection.hpp"
 #include "Http.hpp"
 #include "Resource.hpp"
+#include "URL.hpp"
 #include "WebServ.hpp"
+#include "directive.hpp"
 #include "header.hpp"
 #include "request.hpp"
 #include "response.hpp"
+#include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
@@ -15,14 +18,15 @@ using namespace std;
 
 Connection::Connection(int fd, string ip)
 	: AStream(fd, ip),
-	  _file(NULL),
-	  _has_content_lenght(false),
-	  _has_transfer_enconding(false) {
+	  _uri(NULL),
+	  _file(NULL) {
 
 }
 
 Connection::Connection(const Connection &src)
-	: AStream(src) {
+	: AStream(src),
+	  _uri(NULL),
+	  _file(NULL) {
 
 	*this = src;
 }
@@ -40,15 +44,21 @@ Connection &Connection::operator=(const Connection &rhs) {
 	_status = rhs._status;
 	_headers = rhs._headers;
 	_body = rhs._body;
+	if (_uri)
+		delete _uri;
+	_uri = rhs._uri;
+	if (_file)
+		delete _file;
 	_file = rhs._file;
 	_server = rhs._server;
-	_has_content_lenght = rhs._has_content_lenght;
-	_has_transfer_enconding = rhs._has_transfer_enconding;
 
 	return *this;
 }
 
 Connection::~Connection(void) {
+
+	if (_uri)
+		delete _uri;
 
 	if (_file)
 		delete _file;
@@ -86,7 +96,7 @@ void Connection::parseRequest(void) {
 
 void Connection::setHost(string host) {
 
-	host = _host;
+	_host = host;
 }
 
 string Connection::getHost(void) const {
@@ -102,11 +112,6 @@ void Connection::processInput(size_t bytes) {
 		parseRequest();
 }
 
-std::string Connection::getInput(void) const {
-
-	return _input;
-}
-
 void Connection::setMethod(string &method) {
 
 	_method = method;
@@ -117,12 +122,13 @@ string Connection::getMethod(void) const {
 	return _method;
 }
 
-void Connection::setUri(string uri) {
+void Connection::setUri(URL *uri) {
 
 	_uri = uri;
+	cout << *_uri << endl;
 }
 
-string Connection::getUri(void) const {
+URL *Connection::getUri(void) const {
 
 	return _uri;
 }
@@ -135,10 +141,6 @@ void Connection::setPath(string path) {
 string Connection::getPath(void) const {
 
 	return _path;
-}
-
-std::string Connection::getQueryString(void) const {
-	return _query_string;
 }
 
 void Connection::setProtocol(string protocol) {
@@ -172,29 +174,6 @@ string Connection::getStatus(void) const {
 }
 
 void Connection::addHeader(string key, string value) {
-
-	if (value.empty())
-		return;
-
-	if (key == header::HOST) {
-
-		_host = value;
-
-		list<string> tmp = parser::split(value, ':');
-
-		Http *http = Http::getInstance();
-		_server = http->getServerByName(tmp.front());
-		if (_server.empty())
-			_server = http->getServerByListen(value);
-		if (_server.empty())
-			_server = http->getServerByListen(_id);
-	}
-
-	if (key == header::CONTENT_LENGTH)
-		_has_content_lenght = true;
-
-	if (key == header::TRANSFER_ENCONDING)
-		_has_transfer_enconding = true;
 
 	_headers[key] = value;
 }
@@ -269,6 +248,9 @@ Location &Connection::getLocation(void) {
 
 void Connection::buildResponse(void) {
 
+	if (_file && _file->getStep() < CLOSE)
+		return;
+
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";
 	else
@@ -304,24 +286,10 @@ void Connection::processOutput(size_t bytes) {
 	}
 }
 
-bool Connection::hasContentLenght(void) const {
-
-	return _has_content_lenght;
-}
-
-bool Connection::hasTransferEnconding(void) const {
-
-	return _has_transfer_enconding;
-}
-
-void Connection::setQueryString(string query_string) {
-
-	_query_string = query_string;
-}
-
 void Connection::resetConnection(void) {
 
 	_input.clear();
+	_output.clear();
 	_size = 0;
 	_step = NONE;
 
@@ -334,17 +302,34 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 
+	if (_uri) {
+		delete _uri;
+		_uri = NULL;
+	}
+
 	if (_file) {
 		delete _file;
 		_file = NULL;
 	}
 
-	_query_string.clear();
 	_time = time(NULL);
-
-	_has_content_lenght = false;
-	_has_transfer_enconding = false;
 }
+
+bool Connection::isKeepAliveTimedOut(void) const {
+
+	if (_transfers && time(NULL) - _time > WebServ::KEEP_ALIVE_TIMEOUT)
+		return true;
+
+	return false;
+}
+
+void Connection::sendTimeOut(void) {
+
+	if (_file && dynamic_cast<Cgi *>(_file))
+		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
+	response::pageGatewayTimeOut(this);
+}
+
 
 std::string Connection::operator[](std::string key) {
 
@@ -357,11 +342,12 @@ std::string Connection::operator[](std::string key) {
 	return empty ;
 }
 
-void Connection::sendTimeOut(void) {
+bool Connection::operator==(string key) {
 
-	if (_file && dynamic_cast<Cgi *>(_file))
-		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
-	response::pageGatewayTimeOut(this);
+	if (_headers.find(key) == _headers.end())
+		return false;
+
+	return true;
 }
 
 ostream &operator<<(ostream &os, const Connection &src) {

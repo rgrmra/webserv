@@ -1,53 +1,46 @@
 #include "URL.hpp"
+#include "Connection.hpp"
+#include "parser.hpp"
+#include "process.hpp"
+#include <cctype>
 #include <csetjmp>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
-URL::URL(void) {
+URL::URL(Connection *connection)
+	: _connection(connection) {
 
-}
+	string uri = connection->getPath();
 
-URL::URL(string uri) {
+	_scheme = "http";
 
-	size_t pos = 0;
-	size_t scheme_end = uri.find("://", pos);
-	
-	// Parse scheme
-	if (scheme_end != string::npos) {
-		_scheme = uri.substr(pos, scheme_end);
-		uri.erase(0, scheme_end + 3);
-	}
+	list<string> tmp = parser::split(connection->getHost(), ':');
+	if (tmp.size())
+		_host = tmp.front();
 
-	// Parse host
-	size_t host_end = uri.find(':', pos);
-	if (host_end == string::npos) {
-		host_end = uri.find('/', pos);
-	}
-	_host = uri.substr(pos, host_end - pos);
-	pos = host_end;
+	if (tmp.size() > 1)
+		_port = tmp.back();
 
-	// Parse port (if present)
-	if (uri[pos] == ':') {
-		size_t port_end = uri.find('/', pos);
-		_port = uri.substr(pos + 1, port_end - pos - 1);
-		pos = port_end;
-	}
-
-	// Parse path
-	size_t path_end = uri.find('?', pos);
-	if (path_end != string::npos) {
-		_path = uri.substr(pos, path_end - pos);
-		pos = path_end;
+	size_t pos = uri.find_first_of("?");
+	if (pos != string::npos) {
+		_path = uri.substr(0, pos);
+		_query = uri.substr(pos + 1);
 	} else {
-		_path = uri.substr(pos);
-		pos = uri.length();
+		_path = uri;
+		_query = "";
 	}
 
-	size_t query_start = uri.find('?', pos);
-	if (query_start != string::npos) {
-		_query = uri.substr(query_start + 1);
-	}
+	pos = _path.find_last_of("/");
+	if (pos != string::npos)
+		_file = _path.substr(pos + 1, _path.size());
+
+	processPath(_path);
+
+	pos = _file.find_last_of(".");
+	if (pos != string::npos)
+		_extension = _file.substr(pos, _file.size());
 }
 
 URL::URL(const URL &src) {
@@ -60,11 +53,14 @@ URL &URL::operator=(const URL &rhs) {
 	if (this == &rhs)
 		return *this;
 
+	_connection = rhs._connection;
 	_scheme = rhs._scheme;
 	_host = rhs._host;
 	_port = rhs._port;
 	_path = rhs._path;
 	_query = rhs._query;
+	_file = rhs._file;
+	_extension = rhs._extension;
 
 	return *this;
 }
@@ -73,9 +69,96 @@ URL::~URL(void) {
 
 }
 
-void URL::setScheme(string scheme) {
+void URL::convertCharacters(string &path) {
 
-	_scheme = scheme;
+	std::string output;
+
+	for (size_t i = 0; i < path.length(); ++i) {
+
+		if (path[i] == '%' && i + 2 < path.length()) {
+
+			string tmp = path.substr(i, i + 2);
+
+			if (tmp.find_first_of("0123456789ABCDEFG") != string::npos) {
+				output += '%';
+				continue;
+			}
+
+			std::istringstream iss(tmp);
+			int value;
+
+			iss >> std::hex >> value;
+			output += static_cast<char>(value);
+
+			i += 2;
+		}
+
+		output += path[i];
+	}
+	path = output;
+}
+
+void URL::formatPath(std::string path) {
+
+	list<string> new_path;
+	list<string> splited_path = parser::split(path, '/');
+
+	list<string>::iterator it = splited_path.begin();
+	for (; it != splited_path.end(); it ++) {
+
+		if (*it == ".")
+			continue;
+
+		if (*it == "..") {
+			if (new_path.size())
+				new_path.pop_back();
+
+			continue;
+		}
+
+		convertCharacters(*it);
+
+		new_path.push_back(*it);
+	}
+
+	string tmp;
+
+	for (it = new_path.begin(); it != new_path.end(); it++)
+		tmp += "/" + *it;
+
+	_path = tmp + (path.at(path.size() -1) == '/' ? "/" : "");
+}
+
+void URL::processPath(string path) {
+
+	Server server = _connection->getServer();
+	formatPath(path);
+
+	list<string> paths;
+	while (path.size()) {
+		paths.push_back(path);
+
+		size_t pos = path.find_first_of("/");
+		if (pos == 0) {
+			paths.push_back("/");
+			break;
+		}
+
+		path = path.substr(0, pos);
+	}
+
+	Location location;
+
+	for (list<string>::iterator it = paths.begin(); it != paths.end(); it++) {
+		location = server.getLocationByURI(*it);
+		if (!location.empty())
+			break;
+	}
+
+	if (process::isDirectory(location.getRoot() + _path))
+		_file = process::checkIndex(location, _path);
+
+	_connection->setLocation(location);
 }
 
 string URL::getScheme(void) const {
@@ -83,19 +166,9 @@ string URL::getScheme(void) const {
 	return _scheme;
 }
 
-void URL::setHost(string host) {
-
-	_host = host;
-}
-
 string URL::getHost(void) const {
 
 	return _host;
-}
-
-void URL::setPort(string port) {
-
-	_port = port;
 }
 
 string URL::getPort(void) const {
@@ -103,19 +176,9 @@ string URL::getPort(void) const {
 	return _port;
 }
 
-void URL::setPath(string path) {
-
-	_path = path;
-}
-
 string URL::getPath(void) const {
 
 	return _path;
-}
-
-void URL::setQuery(string query) {
-
-	_query = query;
 }
 
 string URL::getQuery(void) const {
@@ -123,24 +186,36 @@ string URL::getQuery(void) const {
 	return _query;
 }
 
-std::string URL::getLocation(void) {
+string URL::getFile(void) const {
 
-	return (_scheme.size() ? _scheme : "http") + "://"
-		+ _host + (_port.size() ? ":" + _port : "") + _path;
+	return _file;
 }
 
-void URL::clear(void) {
+string URL::getExtension(void) const {
 
-	_scheme.clear();
-	_host.clear();
-	_port.clear();
-	_path.clear();
-	_query.clear();
+	return _extension;
+}
+
+std::string URL::getAbsolutePath(void) const {
+
+	return _connection->getLocation().getRoot() + _path;
+}
+
+std::string URL::getLocation(void) const {
+
+	return (_scheme.size() ? _scheme : "http") + "://"
+		+ _host + (_port.size() ? ":" + _port : "")
+		+ _path.substr(0, _path.size() - _file.size());
 }
 
 ostream &operator<<(ostream &os, const URL &src) {
 
-	return os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
+	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
 		+ src.getHost() + (src.getPort().size() ? ":" + src.getPort() : "")
-		+ src.getPath() + (src.getQuery().size() ? "?" + src.getQuery() : "");
+		+ src.getPath() + (src.getQuery().size() ? "?" + src.getQuery() : "") << endl;
+
+	os << "file: " << src.getFile() << ", extension: " << src.getExtension() << endl;
+	os << "location: " << src.getLocation() << endl;
+
+	return os << "absolute path: " << src.getAbsolutePath() << endl;
 }
