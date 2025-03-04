@@ -20,8 +20,6 @@ using namespace std;
 
 void process::request(Connection *connection) {
 
-	connection->setUri(new URL(connection));
-
 	// TODO: understant how header Referer works and implement
 	// (*connection)[header::REFERER];
 
@@ -79,6 +77,8 @@ void process::methodGet(Connection *connection) {
 }
 
 void process::methodPost(Connection *connection) {
+
+	cout << connection->getBody() << endl;
 
 	response::pageNotFound(connection);
 }
