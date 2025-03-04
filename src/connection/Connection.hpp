@@ -54,6 +54,7 @@ class Connection : public AStream {
 		void setHeaders(std::map<std::string, std::string> headers);
 		std::string getHeaderByKey(std::string key) const;
 		std::string getHeaders(void) const;
+		void addBody(std::string body);
 		void setBody(std::string body);
 		std::string getBody(void) const;
 		void setUri(URL *uri);

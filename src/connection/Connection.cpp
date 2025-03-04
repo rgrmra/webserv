@@ -81,7 +81,7 @@ void Connection::parseRequest(void) {
 			if (pos != string::npos)
 				_input = _input.substr(pos + 2);
 		} else
-			request::parseRequest(this, _input);
+			return request::parseRequest(this, _input);
 	}
 
 	if (_step < IStream::BODY)
@@ -206,6 +206,11 @@ string Connection::getHeaders(void) const {
 		oss << it->first << ": " << it->second << endl;
 
 	return oss.str();
+}
+	
+void Connection::addBody(std::string body) {
+
+	_body.append(body);
 }
 
 void Connection::setBody(string body) {
