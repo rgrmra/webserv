@@ -32,29 +32,7 @@ Cgi::Cgi(Connection *connection)
 
 	URL *uri = _connection->getUri();
 
-	vector<string> _env;
-	_env.push_back("SERVER_SOFTWARE=webserv/0.1.0");
-	_env.push_back("SERVER_NAME=");
-	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	_env.push_back("SERVER_PROTOCOL=" + response::PROTOCOL);
-	_env.push_back("SERVER_PORT=");
-	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
-	_env.push_back("PATH_INFO=");
-	_env.push_back("PATH_TRANSLATED=");
-	_env.push_back("SCRIPT_FILENAME=" + uri->getAbsolutePath());
-	_env.push_back("SCRIPT_NAME=teste");
-	_env.push_back("QUERY_STRING=" + uri->getQuery());
-	_env.push_back("REMOTE_HOST=");
-	_env.push_back("REMOTE_ADDR=");
-	_env.push_back("AUTH_TYPE=");
-	_env.push_back("REMOTE_USER=");
-	_env.push_back("REMOTE_IDENT=");
-	_env.push_back("CONTENT_TYPE=" + (*connection)[header::CONTENT_TYPE]);
-	_env.push_back("CONTENT_LENGTH=" + (*connection)[header::CONTENT_LENGTH]);
-	_env.push_back("HTTP_COOKIE=" + (*connection)[header::COOKIE]);
-	_env.push_back("REDIRECT_STATUS=200");
-	_env.push_back("HTTP_ACCEPT=" + (*connection)[header::ACCEPT]);
-	_env.push_back("HTTP_USER_AGENT=" + (*connection)[header::USER_AGENT]);
+	populateEnv(connection);
 
 	vector<char *> _envp = createVector(_env);
 
@@ -97,6 +75,53 @@ Cgi::Cgi(Connection *connection)
 		webserv->controlEpoll(_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 	else
 		webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
+}
+
+void Cgi::populateEnv(Connection *connection) {
+
+	//Server side
+	//example for http://example.com/cgi-bin/script.php/extra/path
+	_env.push_back("GATEWAY_INTERFACE=" + response::GATEWAY_INTERFACE);
+	// Só se tiver path info, path info é o que vem depois do script name
+	// ex, "/extra/path" precisa setar PATH_INFO e PATH_TRANSLATED
+	// _env.push_back("PATH_INFO=");// ex, "/extra/path"
+	// _env.push_back("PATH_TRANSLATED=");// ex, "/var/www/extra/path"
+	_env.push_back("QUERY_STRING=" + connection->getUri()->getQuery());
+	_env.push_back("REMOTE_ADDR=");// Client IP address
+	_env.push_back("REMOTE_HOST=");// Client host name or IP if not Host Name
+	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
+	_env.push_back("SCRIPT_NAME=");//ex, "/cgi-bin/script.php"
+	_env.push_back("SERVER_NAME=");// ex "example.com"
+	_env.push_back("REMOTE_PORT=");// Client port
+	_env.push_back("SERVER_PROTOCOL=" + response::PROTOCOL);
+	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
+	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
+	_env.push_back("SCRIPT_FILENAME=" + connection->getUri()->getAbsolutePath());
+	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
+
+
+	//From headers
+	map<string, string> headers = connection->getHeaders();
+	for (map<string, string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+		string key = it->first;
+		string value = it->second;
+
+		string transformed_key;
+		for (size_t i = 0; i < key.size(); ++i) {
+			transformed_key += (key[i] == '-') ? '_' : toupper(key[i]);
+		}
+
+		if (transformed_key == "CONTENT_TYPE") {
+			_env.push_back("CONTENT_TYPE=" + value);
+		} else if (transformed_key == "CONTENT_LENGTH") {
+			_env.push_back("CONTENT_LENGTH=" + value);
+		} else if (transformed_key == "AUTHORIZATION") {
+			// TODO: precisamos verificar se splitamos em AUTH_TYPE e REMOTE_USER
+			_env.push_back("HTTP_AUTHORIZATION=" + value); // or parse it
+		} else {
+			_env.push_back("HTTP_" + transformed_key + "=" + value);
+		}
+	}
 }
 
 Cgi::Cgi(const Cgi &src)

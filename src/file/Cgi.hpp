@@ -12,8 +12,10 @@ class Cgi : public Resource {
 	private:
 		int _sock[2];
 		pid_t _pid;
+		vector<string> _env;
 
 		std::vector<char *> createVector(std::vector<std::string> &container);
+		void populateEnv(Connection *connection);
  		void deleteVector(std::vector<char *> &container);
 		void closeSockets(void);
 		void processInput(size_t bytes);
