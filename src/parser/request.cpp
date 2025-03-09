@@ -1,7 +1,6 @@
 #include "request.hpp"
 #include "Connection.hpp"
 #include "IStream.hpp"
-#include "color.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "parser.hpp"
@@ -111,23 +110,15 @@ void request::parseBody(Connection *connection, string &line) {
 
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
-	
-	if (line.size() < 4)
-		return;
 
-	size_t body_size = line.size() - 4;
+	size_t body_size = line.size() ;
 	size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
 	if (body_size < content_length)
 		return;
 
-	if (body_size > content_length) {
-
-		if (line.substr(content_length, body_size) == "\r\n\r\n")
-			line.erase(content_length);
-		else
-			return response::pagePayloadTooLarge(connection);
-	}
+	if (body_size > content_length)
+		return response::pagePayloadTooLarge(connection);
 
 	connection->addBody(line);
 	line.clear();
