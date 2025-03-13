@@ -176,3 +176,11 @@ void response::pageHttpVersionNotSupported(Connection *connection) {
 	connection->setResource(new Page(connection));
 	buildHeaderAndBody(connection);
 }
+
+void response::pageConflict(Connection *connection) {
+
+	connection->setCode(code::CONFLICT);
+	connection->setStatus(status::CONFLICT);
+	connection->setResource(new Page(connection));
+	buildHeaderAndBody(connection);
+}
