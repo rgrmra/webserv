@@ -81,7 +81,11 @@ void process::methodPost(Connection *connection) {
 
 void process::methodDelete(Connection *connection) {
 
-	response::pageNotFound(connection);
+	URL *uri = connection->getUri();
+	string path = uri->getAbsolutePath();
+
+	if (!process::isFile(path))
+		response::pageNotFound(connection);
 }
 
 bool process::isDirectory(const std::string &path) {
@@ -98,7 +102,7 @@ bool process::isFile(const std::string &path) {
 
 	struct stat info;
 
-	if (stat(path.c_str(), &info) == 0)
+	if (!stat(path.c_str(), &info))
 		return (info.st_mode & S_IFREG) != 0;
 
 	return false;
