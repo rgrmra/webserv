@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <ctime>
 
 using namespace std;
 
@@ -335,6 +336,16 @@ void Connection::sendTimeOut(void) {
 	response::pageGatewayTimeOut(this);
 }
 
+void Connection::setTime() {
+
+	struct tm tm_info;
+	char buffer[128];
+	time_t now = time(NULL);
+
+	gmtime_r(&now, &tm_info);
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", &tm_info);
+	addHeader("Date", buffer);
+}	
 
 std::string Connection::operator[](std::string key) {
 
