@@ -86,6 +86,17 @@ void process::methodDelete(Connection *connection) {
 
 	if (!process::isFile(path))
 		response::pageNotFound(connection);
+	
+	if (isDirectory(path)) {
+		
+		if (!hasSlashAtEnd(path))
+			return response::pageUnauthorized(connection);
+	}
+}
+
+bool process::hasSlashAtEnd(const std::string &path) {
+
+	return (path.at(path.size() - 1) == '/');
 }
 
 bool process::isDirectory(const std::string &path) {
@@ -103,7 +114,7 @@ bool process::isFile(const std::string &path) {
 	struct stat info;
 
 	if (!stat(path.c_str(), &info))
-		return (info.st_mode & S_IFREG) != 0;
+		return S_ISREG(info.st_mode);
 
 	return false;
 }

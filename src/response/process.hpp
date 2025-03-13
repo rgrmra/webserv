@@ -15,6 +15,7 @@ namespace process {
 
 	bool isFile(const std::string &path);
 	bool isDirectory(const std::string &path);
+	bool hasSlashAtEnd(const std::string &path);
 	bool isCGI(const std::string &path);
 	std::string checkIndex(const Location &location, std::string &path);
 
