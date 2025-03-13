@@ -49,9 +49,7 @@ void process::methodGet(Connection *connection) {
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
-	cout << "checkpoint 0" << endl << "path: " << path << endl;
-	if (isDirectory(path)) {
-		cout << "checkpoint 1" << endl << "path: " << path << endl;
+	if (uri->isDirectory()) {
 
 		if (hasSlashAtEnd(path)) {
 
@@ -66,10 +64,10 @@ void process::methodGet(Connection *connection) {
 		return response::pageMovedPermanently(connection);
 	}
 
-	if (location.getFastCgi() != "" && process::isCGI(path))
+	if (location.getFastCgi() != "" && uri->isCgi())
 		return connection->setResource(new Cgi(connection));
 
-	if (process::isFile(path))
+	if (uri->isFile())
 		return connection->setResource(new File(connection));
 
 	response::pageNotFound(connection);
@@ -114,57 +112,4 @@ void process::methodDelete(Connection *connection) {
 bool process::hasSlashAtEnd(const std::string &path) {
 
 	return (path.at(path.size() - 1) == '/');
-}
-
-bool process::isDirectory(const std::string &path) {
-
-	struct stat statbuf;
-
-	if (stat(path.c_str(), &statbuf) != 0)
-		return false;
-
-	return S_ISDIR(statbuf.st_mode);
-}
-
-bool process::isFile(const std::string &path) {
-
-	struct stat statbuf;
-
-	if (stat(path.c_str(), &statbuf) != 0)
-		return false;
-
-	return S_ISREG(statbuf.st_mode);
-}
-
-// TODO: refactor
-bool process::isCGI(const std::string &path) {
-
-	if (!isFile(path))
-		return false;
-
-	if (access(path.c_str(), F_OK) == -1)
-		return false;
-
-	if (access(path.c_str(), X_OK) == -1)
-		return false;
-
-	return true;
-}
-
-string process::checkIndex(const Location &location, std::string &path) {
-
-	const set<string> &indexes = location.getIndexes();
-
-	set<string>::const_iterator it = indexes.begin();
-	for (; it != indexes.end(); it++) {
-
-		cout << location.getRoot() + "/" + *it << endl;
-
-		if (!isFile(location.getRoot() + "/" + *it))
-			continue;
-
-		path.append(*it);
-		return *it;
-	}
-	return "";
 }
