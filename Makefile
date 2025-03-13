@@ -6,7 +6,7 @@
 #    By: vini <vini@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2025/02/19 21:20:54 by vini             ###   ########.fr        #
+#    Updated: 2025/03/12 23:00:09 by vini             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,8 @@ MAGENTA				= \033[35m
 RESET				= \033[0m
 
 NAME				= webserv
+
+CONFIG_FILE			= configurations/new.conf
 
 FILES				= $(shell find ./src -type f -name '*.cpp')
 
@@ -60,6 +62,21 @@ test_clean:
 	@rm -rf build
 	$(call print_color, $(RED), "Removing test library")
 
+# -----------------------------------------------------------------------------
+# Documentation:
+#
+# To override the default configuration file, you can specify a different file
+# by setting the CONFIG_FILE variable when invoking make. For example:
+#
+#     make CONFIG_FILE=configurations/default.conf
+#
+# This command tells the build process to use the configuration file located at
+# "default.conf" instead of the default one (new.conf). Ensure that the file at 
+# "newpath" exists and is correctly formatted for your application.
+# -----------------------------------------------------------------------------
+run:
+	@./webserv $(CONFIG_FILE)
+
 define run_colorized_tests
 	@cd build && \
 	GTEST_COLOR=1 ctest --output-on-failure -j12
@@ -71,4 +88,4 @@ define print_color
 	@echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: test_clean test sub all clean fclean re
+.PHONY: test_clean test sub all clean fclean re run
