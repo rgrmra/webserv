@@ -51,7 +51,7 @@ void process::methodGet(Connection *connection) {
 	
 	if (isDirectory(path)) {
 
-		if (path.at(path.size() - 1) == '/') {
+		if (hasSlashAtEnd(path)) {
 
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
@@ -85,12 +85,16 @@ void process::methodDelete(Connection *connection) {
 	string path = uri->getAbsolutePath();
 
 	if (!process::isFile(path))
+		// TODO: Implementar logica
 		response::pageNotFound(connection);
 	
 	if (isDirectory(path)) {
 		
 		if (!hasSlashAtEnd(path))
-			return response::pageUnauthorized(connection);
+			return response::pageConflict(connection);
+		
+		
+		// TODO: Implementar logica
 	}
 }
 
@@ -103,8 +107,8 @@ bool process::isDirectory(const std::string &path) {
 
 	struct stat info;
 
-	if (stat(path.c_str(), &info) == 0)
-		return (info.st_mode & S_IFDIR) != 0;
+	if (!stat(path.c_str(), &info))
+		return S_ISDIR(info.st_mode);
 
 	return false;
 }
