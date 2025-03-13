@@ -81,17 +81,16 @@ void process::methodPost(Connection *connection) {
 
 void process::methodDelete(Connection *connection) {
 
-	URL *uri = connection->getUri();
-	string path = uri->getAbsolutePath();
+	string path = connection->getLocation().getRoot() + connection->getPath();
 
-	cout << "pathhhh " << path << endl;
 	if (!process::isFile(path) && !isDirectory(path))
 		return response::pageNotFound(connection);
 	
-	cout << "checkpoint" << endl;
 	if (isDirectory(path) && !hasSlashAtEnd(path))
 		return response::pageConflict(connection);
 
+	// FIXME: Arrumar check index ou criar uma nova para checar se no diretorio
+	// tem a presenca de index
 	string indexFile = process::checkIndex(connection->getLocation(), path);
 	cout << indexFile.empty() << std::endl;
 	if (isDirectory(path) && isCGI(path) && indexFile.empty())
