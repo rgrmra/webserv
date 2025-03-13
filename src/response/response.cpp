@@ -37,6 +37,7 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->addHeader(header::CONNECTION, header_connection);
 	connection->addHeader(header::LOCATION, header_location);
+	connection->setTime();
 	connection->buildResponse();
 }
 
