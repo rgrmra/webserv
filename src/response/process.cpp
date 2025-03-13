@@ -49,10 +49,13 @@ void process::methodGet(Connection *connection) {
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
+	cout << "checkpoint 0" << endl << "path: " << path << endl;
 	if (isDirectory(path)) {
+		cout << "checkpoint 1" << endl << "path: " << path << endl;
 
 		if (hasSlashAtEnd(path)) {
 
+			cout << "checkpoint 2" << endl << "path: " << path << endl;
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
 
@@ -81,20 +84,27 @@ void process::methodPost(Connection *connection) {
 
 void process::methodDelete(Connection *connection) {
 
+	URL *uri = connection->getUri();
 	string path = connection->getLocation().getRoot() + connection->getPath();
 
-	if (!process::isFile(path) && !isDirectory(path))
-		return response::pageNotFound(connection);
-	
-	if (isDirectory(path) && !hasSlashAtEnd(path))
-		return response::pageConflict(connection);
+	if (!process::isFile(path) && !isDirectory(path)) {
 
-	// FIXME: Arrumar check index ou criar uma nova para checar se no diretorio
-	// tem a presenca de index
-	string indexFile = process::checkIndex(connection->getLocation(), path);
-	cout << indexFile.empty() << std::endl;
-	if (isDirectory(path) && isCGI(path) && indexFile.empty())
+		connection->addHeader(header::LOCATION, uri->getLocation());
+		return response::pageNotFound(connection);
+	}
+	
+	if (isDirectory(path) && !hasSlashAtEnd(path)) {
+
+		connection->addHeader(header::LOCATION, uri->getLocation());
+		return response::pageConflict(connection);
+	}
+
+	// TODO: Alterar abordagem usando a implementacao da URI
+	if (isDirectory(path) && isCGI(path) /* verificar se tem nao tem index*/) {
+
+		connection->addHeader(header::LOCATION, uri->getLocation());
 		return response::pageForbbiden(connection);
+	}
 
 	// TODO: pass to CGI handle file
 
@@ -108,22 +118,22 @@ bool process::hasSlashAtEnd(const std::string &path) {
 
 bool process::isDirectory(const std::string &path) {
 
-	struct stat info;
+	struct stat statbuf;
 
-	if (!stat(path.c_str(), &info))
-		return S_ISDIR(info.st_mode);
+	if (stat(path.c_str(), &statbuf) != 0)
+		return false;
 
-	return false;
+	return S_ISDIR(statbuf.st_mode);
 }
 
 bool process::isFile(const std::string &path) {
 
-	struct stat info;
+	struct stat statbuf;
 
-	if (!stat(path.c_str(), &info))
-		return S_ISREG(info.st_mode);
+	if (stat(path.c_str(), &statbuf) != 0)
+		return false;
 
-	return false;
+	return S_ISREG(statbuf.st_mode);
 }
 
 // TODO: refactor
@@ -143,11 +153,6 @@ bool process::isCGI(const std::string &path) {
 
 string process::checkIndex(const Location &location, std::string &path) {
 
-	// BUG: Essa funcao deve considerar o path que foi passado na requisicao
-	// e caso ele exista deve chegar se tem algum arquivo de index
-	// dentro do diretorio passado.
-	// Dessa maneira, ela esta retornando appendando o index mesmo 
-	// quando eh passado apenas um diretoro.
 	const set<string> &indexes = location.getIndexes();
 
 	set<string>::const_iterator it = indexes.begin();
