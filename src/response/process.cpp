@@ -84,18 +84,22 @@ void process::methodDelete(Connection *connection) {
 	URL *uri = connection->getUri();
 	string path = uri->getAbsolutePath();
 
-	if (!process::isFile(path))
-		// TODO: Implementar logica
-		response::pageNotFound(connection);
+	cout << "pathhhh " << path << endl;
+	if (!process::isFile(path) && !isDirectory(path))
+		return response::pageNotFound(connection);
 	
-	if (isDirectory(path)) {
-		
-		if (!hasSlashAtEnd(path))
-			return response::pageConflict(connection);
-		
-		
-		// TODO: Implementar logica
-	}
+	cout << "checkpoint" << endl;
+	if (isDirectory(path) && !hasSlashAtEnd(path))
+		return response::pageConflict(connection);
+
+	string indexFile = process::checkIndex(connection->getLocation(), path);
+	cout << indexFile.empty() << std::endl;
+	if (isDirectory(path) && isCGI(path) && indexFile.empty())
+		return response::pageForbbiden(connection);
+
+	// TODO: pass to CGI handle file
+
+	// TODO: Implementar logica
 }
 
 bool process::hasSlashAtEnd(const std::string &path) {
@@ -140,14 +144,19 @@ bool process::isCGI(const std::string &path) {
 
 string process::checkIndex(const Location &location, std::string &path) {
 
+	// BUG: Essa funcao deve considerar o path que foi passado na requisicao
+	// e caso ele exista deve chegar se tem algum arquivo de index
+	// dentro do diretorio passado.
+	// Dessa maneira, ela esta retornando appendando o index mesmo 
+	// quando eh passado apenas um diretoro.
 	const set<string> &indexes = location.getIndexes();
 
 	set<string>::const_iterator it = indexes.begin();
 	for (; it != indexes.end(); it++) {
 
-		cout << location.getRoot() + path + *it << endl;
+		cout << location.getRoot() + "/" + *it << endl;
 
-		if (!isFile(location.getRoot() + path + *it))
+		if (!isFile(location.getRoot() + "/" + *it))
 			continue;
 
 		path.append(*it);
