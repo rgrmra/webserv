@@ -1,16 +1,19 @@
 #include "URL.hpp"
 #include "Connection.hpp"
+#include "Location.hpp"
 #include "parser.hpp"
 #include "process.hpp"
 #include <cctype>
-#include <csetjmp>
 #include <iostream>
 #include <sstream>
+#include <sys/stat.h>
+#include <unistd.h>
 
 using namespace std;
 
 URL::URL(Connection *connection)
-	: _connection(connection) {
+	: _connection(connection),
+	  _dac(0) {
 
 	string uri = connection->getPath();
 
@@ -67,6 +70,27 @@ URL &URL::operator=(const URL &rhs) {
 
 URL::~URL(void) {
 
+}
+
+string URL::checkIndex(const Location &location, string &path) {
+
+	const set<string> &indexes = location.getIndexes();
+
+	if (_connection->getMethod() == "DELETE")
+		return "";
+
+	set<string>::const_iterator it = indexes.begin();
+	for (; it != indexes.end(); it++) {
+
+		cout << location.getRoot() + path + *it << endl;
+
+		if (!_isFile(location.getRoot() + path + *it))
+			continue;
+
+		path.append(*it);
+		return *it;
+	}
+	return "";
 }
 
 void URL::convertCharacters(string &path) {
@@ -155,10 +179,76 @@ void URL::processPath(string path) {
 			break;
 	}
 
-	if (process::isDirectory(location.getRoot() + _path))
-		_file = process::checkIndex(location, _path);
+	if (_isDirectory(location.getRoot() + _path))
+		_file = checkIndex(location, _path);
 
 	_connection->setLocation(location);
+
+	checkDAC(location.getRoot() + _path);
+}
+
+bool URL::_isDirectory(const string &path) {
+
+	struct stat info;
+
+	if (stat(path.c_str(), &info) == 0)
+		return S_ISDIR(info.st_mode);
+
+	return false;
+}
+
+bool URL::_isFile(const string &path) {
+
+	struct stat info;
+
+	if (stat(path.c_str(), &info) == 0)
+		return S_ISREG(info.st_mode);
+
+	return false;
+}
+
+bool URL::_isReadable(const string &path) {
+
+	if (access(path.c_str(), R_OK) == 0)
+		return true;
+
+	return false;
+}
+
+bool URL::_isWritable(const string &path) {
+
+	if (access(path.c_str(), W_OK) == 0)
+		return true;
+
+	return false;
+}
+
+bool URL::_isExecutable(const string &path) {
+
+	if (access(path.c_str(), X_OK) == 0)
+		return true;
+
+	return false;
+}
+
+void URL::checkDAC(const string &path) {
+
+	if (_isFile(path))
+		_dac |= FILE;
+	else if (_isDirectory(path))
+		_dac |= DIRECTORY;
+
+	if (_isReadable(path))
+		_dac |= READ;
+
+	if (_isWritable(path))
+		_dac |= WRITE;
+
+	if (_isExecutable(path))
+		_dac |= EXECUTE;
+
+	if (_connection->getLocation().getFastCgi().size())
+		_dac |= CGI;
 }
 
 string URL::getScheme(void) const {
@@ -208,6 +298,36 @@ std::string URL::getLocation(void) const {
 		+ _path.substr(0, _path.size() - _file.size());
 }
 
+bool URL::isDirectory(void) const {
+
+	return _dac & DIRECTORY;
+}
+
+bool URL::isFile(void) const {
+
+	return _dac & FILE;
+}
+
+bool URL::isCgi(void) const {
+
+	return _dac & CGI;
+}
+
+bool URL::isReadable(void) const {
+
+	return _dac & READ;
+}
+
+bool URL::isWritable(void) const {
+
+	return _dac & WRITE;
+}
+
+bool URL::isExecutable(void) const {
+
+	return _dac & EXECUTE;
+}
+
 ostream &operator<<(ostream &os, const URL &src) {
 
 	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
@@ -217,5 +337,11 @@ ostream &operator<<(ostream &os, const URL &src) {
 	os << "file: " << src.getFile() << ", extension: " << src.getExtension() << endl;
 	os << "location: " << src.getLocation() << endl;
 
-	return os << "absolute path: " << src.getAbsolutePath() << endl;
+	os << "absolute path: " << src.getAbsolutePath() << endl;
+
+	os << "dac: " << (src.isDirectory() ? "d" : "") << (src.isFile() ? "." : "");
+	os << (src.isReadable() ? "r" : "-") << (src.isWritable() ? "w" : "-");
+	os << (src.isExecutable() ? "x" : "-") << (src.isCgi() ? " cgi" : "");
+
+	return os;
 }
