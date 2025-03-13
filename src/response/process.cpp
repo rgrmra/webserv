@@ -49,7 +49,7 @@ void process::methodGet(Connection *connection) {
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
-	if (isDirectory(path)) {
+	if (uri->isDirectory()) {
 
 		if (path.at(path.size() - 1) == '/') {
 
@@ -63,10 +63,10 @@ void process::methodGet(Connection *connection) {
 		return response::pageMovedPermanently(connection);
 	}
 
-	if (location.getFastCgi() != "" && process::isCGI(path))
+	if (location.getFastCgi() != "" && uri->isCgi())
 		return connection->setResource(new Cgi(connection));
 
-	if (process::isFile(path))
+	if (uri->isFile())
 		return connection->setResource(new File(connection));
 
 	response::pageNotFound(connection);
@@ -82,57 +82,4 @@ void process::methodPost(Connection *connection) {
 void process::methodDelete(Connection *connection) {
 
 	response::pageNotFound(connection);
-}
-
-bool process::isDirectory(const std::string &path) {
-
-	struct stat info;
-
-	if (stat(path.c_str(), &info) == 0)
-		return (info.st_mode & S_IFDIR) != 0;
-
-	return false;
-}
-
-bool process::isFile(const std::string &path) {
-
-	struct stat info;
-
-	if (stat(path.c_str(), &info) == 0)
-		return (info.st_mode & S_IFREG) != 0;
-
-	return false;
-}
-
-// TODO: refactor
-bool process::isCGI(const std::string &path) {
-
-	if (!isFile(path))
-		return false;
-
-	if (access(path.c_str(), F_OK) == -1)
-		return false;
-
-	if (access(path.c_str(), X_OK) == -1)
-		return false;
-
-	return true;
-}
-
-string process::checkIndex(const Location &location, std::string &path) {
-
-	const set<string> &indexes = location.getIndexes();
-
-	set<string>::const_iterator it = indexes.begin();
-	for (; it != indexes.end(); it++) {
-
-		cout << location.getRoot() + path + *it << endl;
-
-		if (!isFile(location.getRoot() + path + *it))
-			continue;
-
-		path.append(*it);
-		return *it;
-	}
-	return "";
 }
