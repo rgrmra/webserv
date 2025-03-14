@@ -234,16 +234,16 @@ bool URL::_isExecutable(const string &path) {
 }
 
 bool URL::_isDirectoryEmpty(const char* path) {
-    DIR* dir = opendir(path);
-    if (!dir) return false;
+	DIR* dir = opendir(path);
+	if (!dir) return false;
 
-    for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
-        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
-            closedir(dir);
-            return false;}}
+	for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			closedir(dir);
+			return false;}}
 
-    closedir(dir);
-    return true;
+	closedir(dir);
+	return true;
 }
 
 void URL::checkDAC(const string &path) {
