@@ -164,7 +164,7 @@ void Cgi::sendCGI(void) {
 		// TODO: CGI parser
 		string tmp = parser::find("Content-type: ", _output, "\n");
 		if (tmp.size()) {
-			_type = tmp;
+			_type = tmp.substr(0, tmp.size() - 1);
 			size_t pos = _output.find("\n");
 			if (pos != string::npos)
 				_output.erase(0, pos + 1);
