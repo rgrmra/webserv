@@ -231,6 +231,21 @@ bool URL::_isExecutable(const string &path) {
 	return false;
 }
 
+bool URL::_is_directory_empty(const char* path) {
+    DIR* dir = opendir(path);
+    if (!dir) return false;
+
+    for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
+        if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
+            closedir(dir);
+            return false;
+        }
+    }
+
+    closedir(dir);
+    return true;
+}
+
 void URL::checkDAC(const string &path) {
 
 	if (_isFile(path))
