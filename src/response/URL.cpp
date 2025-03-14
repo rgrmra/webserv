@@ -8,6 +8,8 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <cstring>
 
 using namespace std;
 
@@ -231,7 +233,7 @@ bool URL::_isExecutable(const string &path) {
 	return false;
 }
 
-bool URL::_is_directory_empty(const char* path) {
+bool URL::_isDirectoryEmpty(const char* path) {
     DIR* dir = opendir(path);
     if (!dir) return false;
 

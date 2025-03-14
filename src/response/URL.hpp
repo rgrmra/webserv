@@ -3,8 +3,6 @@
 
 #include <string>
 #include <ostream>
-#include <dirent.h>
-#include <cstring>
 
 class Connection;
 class Location;
@@ -44,7 +42,7 @@ class URL {
 		bool _isReadable(const std::string &path);
 		bool _isWritable(const std::string &path);
 		bool _isExecutable(const std::string &path);
-		bool _is_directory_empty(const char* path);
+		bool _isDirectoryEmpty(const char* path);
 
 		void checkDAC(const std::string &path);
 
