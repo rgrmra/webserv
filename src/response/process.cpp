@@ -101,9 +101,10 @@ void process::methodDelete(Connection *connection) {
 		return response::pageForbbiden(connection);
 	}
 
-	// TODO: pass to CGI handle file
+	if (uri->isDirectory() && uri->isCgi())
+		return connection->setResource(new Cgi(connection));
 
-	// TODO: Implementar logica
+	// TODO: Implementar logica do file
 }
 
 bool process::hasSlashAtEnd(const std::string &path) {
