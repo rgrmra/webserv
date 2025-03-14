@@ -236,11 +236,9 @@ bool URL::_is_directory_empty(const char* path) {
     if (!dir) return false;
 
     for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
-        if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
             closedir(dir);
-            return false;
-        }
-    }
+            return false;}}
 
     closedir(dir);
     return true;
