@@ -8,6 +8,8 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <cstring>
 
 using namespace std;
 
@@ -229,6 +231,19 @@ bool URL::_isExecutable(const string &path) {
 		return true;
 
 	return false;
+}
+
+bool URL::_isDirectoryEmpty(const char* path) {
+	DIR* dir = opendir(path);
+	if (!dir) return false;
+
+	for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			closedir(dir);
+			return false;}}
+
+	closedir(dir);
+	return true;
 }
 
 void URL::checkDAC(const string &path) {
