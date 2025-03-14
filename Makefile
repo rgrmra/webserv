@@ -6,7 +6,7 @@
 #    By: vini <vini@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/01 17:31:36 by rde-mour          #+#    #+#              #
-#    Updated: 2025/03/12 23:00:09 by vini             ###   ########.fr        #
+#    Updated: 2025/03/13 23:56:33 by vini             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,6 +51,18 @@ fclean: 			clean
 
 re:					fclean all
 
+build:
+	@docker build -t webserv .
+
+up:
+	docker compose -f docker-compose.yml up --build
+
+rm:
+	@docker rmi webserv
+
+logs:
+	@docker logs -f $(shell docker ps -q)
+
 sub:
 	@bash scripts/submodules.sh
 
@@ -88,4 +100,4 @@ define print_color
 	@echo "$(1)$(2)$(RESET)"
 endef
 
-.PHONY: test_clean test sub all clean fclean re run
+.PHONY: test_clean test sub all clean fclean re run build up logs
