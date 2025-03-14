@@ -12,7 +12,7 @@ services:
       - "8080:8080"
     working_dir: /app
     command: bash -c "
-      make all run -C /app &
+      make run -C /app &
       while inotifywait -r -e modify,create,delete src/ include/;
       do kill -SIGINT $(pidof webserv) &&
       make -C /app &&

@@ -17,6 +17,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN make
+RUN make re
 
 CMD ["tail", "-f", "/dev/null"]
