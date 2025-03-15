@@ -104,6 +104,7 @@ void process::methodDelete(Connection *connection) {
 		// NOTE: Cgi nao pode ser deletado, falta terminar implementacao
 		return connection->setResource(new Cgi(connection));
 
+	// TODO implementar logica quando o CGI nao esta ativo
 	// TODO: Implementar logica do file
 }
 
