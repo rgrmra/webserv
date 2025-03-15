@@ -16,6 +16,7 @@ namespace response {
 	void builder(Connection * connection, std::string code);
 
 	void pageOK(Connection *connection);
+	void pageNoContent(Connection *connection);
 	void pageMovedPermanently(Connection *connection);
 	void pageBadRequest(Connection *connection);
 	void pageUnauthorized(Connection *connection);
