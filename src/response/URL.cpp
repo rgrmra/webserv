@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <cstring>
 
 using namespace std;
 
@@ -233,17 +232,40 @@ bool URL::_isExecutable(const string &path) {
 	return false;
 }
 
-bool URL::_isDirectoryEmpty(const char* path) {
-	DIR* dir = opendir(path);
-	if (!dir) return false;
+bool URL::_isDirectoryEmpty(const std::string &path) {
 
-	for (struct dirent* entry = readdir(dir); entry; entry = readdir(dir)) {
-		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
-			closedir(dir);
-			return false;}}
+	DIR* dir = opendir(path.c_str());
+	if (!dir)
+		return false;
+
+	for (struct dirent *entry = readdir(dir); entry; entry = readdir(dir)) {
+
+		string tmp = entry->d_name;
+		if (tmp == "." || tmp == "..")
+			continue;
+
+		closedir(dir);
+		return false;
+	}
 
 	closedir(dir);
 	return true;
+}
+
+bool URL::_isDeletable(const string &path) {
+
+	string tmp = path.substr(0, path.size() - _file.size());
+
+	if (_isWritable(tmp))
+		return false;
+
+	if (isDirectory() && _isDirectoryEmpty(path))
+		return true;
+
+	if (isFile())
+		return true;
+
+	return false;
 }
 
 void URL::checkDAC(const string &path) {
@@ -264,6 +286,9 @@ void URL::checkDAC(const string &path) {
 
 	if (_connection->getLocation().getFastCgi().size())
 		_dac |= CGI;
+
+	if (_isDeletable(path))
+		_dac |= DELETE;
 }
 
 string URL::getScheme(void) const {
@@ -343,6 +368,11 @@ bool URL::isExecutable(void) const {
 	return _dac & EXECUTE;
 }
 
+bool URL::isDeletable() const {
+
+	return _dac & DELETE;
+}
+
 ostream &operator<<(ostream &os, const URL &src) {
 
 	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
@@ -357,6 +387,7 @@ ostream &operator<<(ostream &os, const URL &src) {
 	os << "dac: " << (src.isDirectory() ? "d" : "") << (src.isFile() ? "." : "");
 	os << (src.isReadable() ? "r" : "-") << (src.isWritable() ? "w" : "-");
 	os << (src.isExecutable() ? "x" : "-") << (src.isCgi() ? " cgi" : "");
+	os << (src.isDeletable() ? " deletable" : "");
 
 	return os;
 }
