@@ -11,6 +11,7 @@ RUN apk add --no-cache \
 	make \
 	php \
 	php-cgi \
+    valgrind \
 	python3
 
 WORKDIR /app
