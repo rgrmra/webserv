@@ -255,15 +255,17 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	if (stream->getStep() < IStream::RESPONSE)
 		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	string  tmp = stream->getData(WebServ::BUFFER_SIZE);
+	string tmp = stream->getData(WebServ::BUFFER_SIZE);
 	int status = send(fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL);
 	if (status == -1) {
 		logger::fatal("client is no longer available to receive messages");
 		return closeConnection(stream->getFd());
 	} else if (status == 0) {
+		if (dynamic_cast<Cgi *>(stream))
+			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 		if (stream->getStep() == IStream::CLOSE)
 			return closeConnection(fd);
-		else if (stream->getStep() == IStream::KEEPALIVE) {
+		if (stream->getStep() == IStream::KEEPALIVE) {
 			dynamic_cast<Connection *>(stream)->resetConnection();
 			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 		}
