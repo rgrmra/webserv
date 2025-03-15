@@ -43,31 +43,37 @@ static void buildHeaderAndBody(Connection *connection) {
 void response::builder(Connection *connection, string code) {
 
 	if (responses.empty()) {
-		responses[code::OK] = pageOK;
-		responses[code::MOVED_PERMANENTLY] = pageMovedPermanently;
-		responses[code::BAD_REQUEST] = pageBadRequest;
-		responses[code::UNAUTHORIZED] = pageUnauthorized;
-		responses[code::FORBBIDEN] = pageForbbiden;
-		responses[code::NOT_FOUND] = pageNotFound;
-		responses[code::NOT_ALLOWED] = pageMethodNotAllowed;
-		responses[code::LENGTH_REQUIRED] = pageLengthRequired;
-		responses[code::PAYLOAD_TOO_LARGE] = pagePayloadTooLarge;
-		responses[code::URI_TOO_LONG] = pageURITooLong;
-		responses[code::UNSUPPORTED_MEDIA_TYPE] = pageUnsupportedMediaType;
-		responses[code::UNPROCESSABLE_CONTENT] = pageUnsupportedMediaType;
-		responses[code::INTERNAL_SERVER_ERROR] = pageInternalServerError;
-		responses[code::NOT_IMPLEMENTED] = pageNotImplemented;
-		responses[code::BAD_GATEWAY] = pageBadGateway;
-		responses[code::GATEWAY_TIMEOUT] = pageGatewayTimeOut;
-		responses[code::HTTP_VERSION_NOT_SUPPORTED] = pageHttpVersionNotSupported;
-		cout << "load" << endl;
+		responses[code::OK] = status::OK;
+		responses[code::MOVED_PERMANENTLY] = status::MOVED_PERMANENTLY;
+		responses[code::BAD_REQUEST] = status::BAD_REQUEST;
+		responses[code::UNAUTHORIZED] = status::UNAUTHORIZED;
+		responses[code::FORBBIDEN] = status::FORBBIDEN;
+		responses[code::NOT_FOUND] = status::NOT_FOUND;
+		responses[code::NOT_ALLOWED] = status::NOT_ALLOWED;
+		responses[code::LENGTH_REQUIRED] = status::LENGTH_REQUIRED;
+		responses[code::PAYLOAD_TOO_LARGE] = status::PAYLOAD_TOO_LARGE;
+		responses[code::URI_TOO_LONG] = status::URI_TOO_LONG;
+		responses[code::UNSUPPORTED_MEDIA_TYPE] = status::UNSUPPORTED_MEDIA_TYPE;
+		responses[code::UNPROCESSABLE_CONTENT] = status::UNPROCESSABLE_CONTENT;
+		responses[code::INTERNAL_SERVER_ERROR] = status::INTERNAL_SERVER_ERROR;
+		responses[code::NOT_IMPLEMENTED] = status::NOT_IMPLEMENTED;
+		responses[code::BAD_GATEWAY] = status::BAD_GATEWAY;
+		responses[code::GATEWAY_TIMEOUT] = status::GATEWAY_TIMEOUT;
+		responses[code::HTTP_VERSION_NOT_SUPPORTED] = status::HTTP_VERSION_NOT_SUPPORTED;
 	}
 
-	map<string, function>::iterator it = responses.find(code);
+	map<string, string>::iterator it = responses.find(code);
 	if (it == responses.end())
 		return pageInternalServerError(connection);
 
-	it->second(connection);
+	connection->setCode(code);
+	connection->setStatus(it->second);
+	if (code == code::OK)
+		process::request(connection);
+	else
+		connection->setResource(new Page(connection));
+	if (code == connection->getCode())
+		buildHeaderAndBody(connection);
 }
 
 void response::pageOK(Connection *connection) {

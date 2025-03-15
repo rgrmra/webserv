@@ -9,11 +9,9 @@ class Location;
 
 namespace response {
 
-	typedef void (*function)(Connection *);
-
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
-	static std::map<std::string, function> responses;
+	static std::map<std::string, std::string> responses;
 
 	void builder(Connection * connection, std::string code);
 
