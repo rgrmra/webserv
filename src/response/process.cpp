@@ -101,6 +101,7 @@ void process::methodDelete(Connection *connection) {
 	}
 
 	if (uri->isDirectory() && uri->isCgi())
+		// NOTE: Cgi nao pode ser deletado, falta terminar implementacao
 		return connection->setResource(new Cgi(connection));
 
 	// TODO: Implementar logica do file
