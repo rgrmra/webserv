@@ -16,7 +16,8 @@ class URL {
 			EXECUTE = 4,
 			FILE = 8,
 			DIRECTORY = 16,
-			CGI = 32
+			CGI = 32,
+			DELETE = 64
 		};
 
 		Connection *_connection;
@@ -42,7 +43,8 @@ class URL {
 		bool _isReadable(const std::string &path);
 		bool _isWritable(const std::string &path);
 		bool _isExecutable(const std::string &path);
-		bool _isDirectoryEmpty(const char* path);
+		bool _isDirectoryEmpty(const std::string &path);
+		bool _isDeletable(const std::string &path);
 
 		void checkDAC(const std::string &path);
 
@@ -69,6 +71,7 @@ class URL {
 		bool isReadable(void) const;
 		bool isWritable(void) const;
 		bool isExecutable(void) const;
+		bool isDeletable(void) const;
 
 };
 
