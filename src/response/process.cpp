@@ -62,7 +62,7 @@ void process::methodGet(Connection *connection) {
 		return response::pageMovedPermanently(connection);
 	}
 
-	if (location.getFastCgi() != "" && uri->isCgi())
+	if (uri->isCgi())
 		return connection->setResource(new Cgi(connection));
 
 	if (uri->isFile())
