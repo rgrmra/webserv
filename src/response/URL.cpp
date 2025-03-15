@@ -256,7 +256,7 @@ bool URL::_isDeletable(const string &path) {
 
 	string tmp = path.substr(0, path.size() - _file.size());
 
-	if (_isWritable(tmp))
+	if (!_isWritable(tmp))
 		return false;
 
 	if (isDirectory() && _isDirectoryEmpty(path))
