@@ -94,8 +94,7 @@ void process::methodDelete(Connection *connection) {
 		return response::pageConflict(connection);
 	}
 
-	// TODO: Alterar abordagem usando a implementacao da URI
-	if (uri->isDirectory() && uri->isCgi() && false /* verificar se tem nao tem index*/) {
+	if (uri->isDirectory() && uri->isCgi() && !uri->isDeletable()) {
 
 		connection->addHeader(header::LOCATION, uri->getLocation());
 		return response::pageForbbiden(connection);
