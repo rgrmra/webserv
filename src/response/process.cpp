@@ -74,7 +74,10 @@ void process::methodGet(Connection *connection) {
 
 void process::methodPost(Connection *connection) {
 
-	cout << connection->getBody() << endl;
+	URL *uri = connection->getUri();
+
+	if (uri->isCgi())
+		return connection->setResource(new Cgi(connection));
 
 	response::pageNotFound(connection);
 }
