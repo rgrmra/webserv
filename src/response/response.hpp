@@ -11,6 +11,9 @@ namespace response {
 
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
+	static std::map<std::string, std::string> responses;
+
+	void builder(Connection * connection, std::string code);
 
 	void pageOK(Connection *connection);
 	void pageMovedPermanently(Connection *connection);
