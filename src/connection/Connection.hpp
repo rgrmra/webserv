@@ -27,6 +27,7 @@ class Connection : public AStream {
 		Resource *_file;
 		Server _server;
 		Location _location;
+		std::vector<Resource *> _garbage;
 
 		void parseRequest(void);
 

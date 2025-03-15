@@ -60,8 +60,8 @@ Connection::~Connection(void) {
 	if (_uri)
 		delete _uri;
 
-	if (_file)
-		delete _file;
+	for (size_t i = 0; i < _garbage.size(); i++)
+		delete _garbage[i];
 }
 
 void Connection::parseRequest(void) {
@@ -225,9 +225,7 @@ string Connection::getBody(void) const {
 
 void Connection::setResource(Resource *file) {
 
-	if (_file)
-		delete _file;
-
+	_garbage.push_back(file);
 	_file = file;
 }
 
@@ -266,6 +264,7 @@ void Connection::buildResponse(void) {
 		_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
+	
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
@@ -307,15 +306,11 @@ void Connection::resetConnection(void) {
 	_headers.clear();
 	_body.clear();
 
-	if (_uri) {
+	if (_uri)
 		delete _uri;
-		_uri = NULL;
-	}
 
-	if (_file) {
-		delete _file;
-		_file = NULL;
-	}
+	_uri = NULL;
+	_file = NULL;
 
 	_time = time(NULL);
 }
