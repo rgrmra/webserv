@@ -40,6 +40,36 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->buildResponse();
 }
 
+void response::builder(Connection *connection, string code) {
+
+	if (responses.empty()) {
+		responses[code::OK] = pageOK;
+		responses[code::MOVED_PERMANENTLY] = pageMovedPermanently;
+		responses[code::BAD_REQUEST] = pageBadRequest;
+		responses[code::UNAUTHORIZED] = pageUnauthorized;
+		responses[code::FORBBIDEN] = pageForbbiden;
+		responses[code::NOT_FOUND] = pageNotFound;
+		responses[code::NOT_ALLOWED] = pageMethodNotAllowed;
+		responses[code::LENGTH_REQUIRED] = pageLengthRequired;
+		responses[code::PAYLOAD_TOO_LARGE] = pagePayloadTooLarge;
+		responses[code::URI_TOO_LONG] = pageURITooLong;
+		responses[code::UNSUPPORTED_MEDIA_TYPE] = pageUnsupportedMediaType;
+		responses[code::UNPROCESSABLE_CONTENT] = pageUnsupportedMediaType;
+		responses[code::INTERNAL_SERVER_ERROR] = pageInternalServerError;
+		responses[code::NOT_IMPLEMENTED] = pageNotImplemented;
+		responses[code::BAD_GATEWAY] = pageBadGateway;
+		responses[code::GATEWAY_TIMEOUT] = pageGatewayTimeOut;
+		responses[code::HTTP_VERSION_NOT_SUPPORTED] = pageHttpVersionNotSupported;
+		cout << "load" << endl;
+	}
+
+	map<string, function>::iterator it = responses.find(code);
+	if (it == responses.end())
+		return pageInternalServerError(connection);
+
+	it->second(connection);
+}
+
 void response::pageOK(Connection *connection) {
 
 	connection->setCode(code::OK);
