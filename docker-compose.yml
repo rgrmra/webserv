@@ -1,0 +1,20 @@
+name: webreq
+
+services:
+  cpp-dev:
+    build: .
+    volumes:
+      - ./src:/app/src
+      - ./include:/app/include
+      - ./Makefile:/app/Makefile
+      - ./build:/app/build
+    ports:
+      - "8080:8080"
+    working_dir: /app
+    command: bash -c "
+      make run -C /app &
+      while inotifywait -r -e modify,create,delete src/ include/;
+      do kill -SIGINT $(pidof webserv) &&
+      make -C /app &&
+      make run &
+      done"

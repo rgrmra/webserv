@@ -13,6 +13,7 @@ namespace process {
 	void methodPost(Connection *connection);
 	void methodDelete(Connection *connection);
 
+	bool hasSlashAtEnd(const std::string &path);
 };
 
 #endif /* PROCESS_HPP */

@@ -49,6 +49,7 @@ class Connection : public AStream {
 		std::string getCode(void) const;
 		void setStatus(std::string status);
 		std::string getStatus(void) const;
+		void setTime(void);
 		void addHeader(std::string key, std::string value);
 		void addHeader(std::string key, size_t value);
 		void setHeaders(std::map<std::string, std::string> headers);

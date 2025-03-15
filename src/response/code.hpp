@@ -14,6 +14,7 @@ namespace code {
 	static const std::string FORBBIDEN = "403";
 	static const std::string NOT_FOUND = "404";
 	static const std::string NOT_ALLOWED = "405";
+	static const std::string CONFLICT = "409";
 	static const std::string LENGTH_REQUIRED = "411";
 	static const std::string PAYLOAD_TOO_LARGE = "413";
 	static const std::string URI_TOO_LONG = "414";

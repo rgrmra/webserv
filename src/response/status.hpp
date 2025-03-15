@@ -12,6 +12,7 @@ namespace status {
 	static const std::string FORBBIDEN = "Forbbiden";
 	static const std::string NOT_FOUND = "Not Found";
 	static const std::string NOT_ALLOWED = "Method Not Allowed";
+	static const std::string CONFLICT = "Conflict";
 	static const std::string LENGTH_REQUIRED = "Length Required";
 	static const std::string PAYLOAD_TOO_LARGE = "Payload Too Large";
 	static const std::string URI_TOO_LONG = "URI Too Long";

@@ -44,14 +44,13 @@ void process::request(Connection *connection) {
 void process::methodGet(Connection *connection) {
 
 	URL *uri = connection->getUri();
-	string path = uri->getAbsolutePath();
 	Location &location = connection->getLocation();
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
 	if (uri->isDirectory()) {
 
-		if (path.at(path.size() - 1) == '/') {
+		if (hasSlashAtEnd(uri->getAbsolutePath() + "/")) {
 
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
@@ -81,5 +80,34 @@ void process::methodPost(Connection *connection) {
 
 void process::methodDelete(Connection *connection) {
 
-	response::pageNotFound(connection);
+	URL *uri = connection->getUri();
+
+	if (!uri->isFile() && !uri->isDirectory()) {
+
+		connection->addHeader(header::LOCATION, uri->getLocation());
+		return response::pageNotFound(connection);
+	}
+	
+	if (uri->isDirectory() && !hasSlashAtEnd(uri->getAbsolutePath())) {
+
+		connection->addHeader(header::LOCATION, uri->getLocation());
+		return response::pageConflict(connection);
+	}
+
+	// TODO: Alterar abordagem usando a implementacao da URI
+	if (uri->isDirectory() && uri->isCgi() && false /* verificar se tem nao tem index*/) {
+
+		connection->addHeader(header::LOCATION, uri->getLocation());
+		return response::pageForbbiden(connection);
+	}
+
+	if (uri->isDirectory() && uri->isCgi())
+		return connection->setResource(new Cgi(connection));
+
+	// TODO: Implementar logica do file
+}
+
+bool process::hasSlashAtEnd(const std::string &path) {
+
+	return (path.at(path.size() - 1) == '/');
 }

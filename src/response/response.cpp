@@ -37,6 +37,7 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->addHeader(header::CONNECTION, header_connection);
 	connection->addHeader(header::LOCATION, header_location);
+	connection->setTime();
 	connection->buildResponse();
 }
 
@@ -173,6 +174,14 @@ void response::pageHttpVersionNotSupported(Connection *connection) {
 
 	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
 	connection->setStatus(status::HTTP_VERSION_NOT_SUPPORTED);
+	connection->setResource(new Page(connection));
+	buildHeaderAndBody(connection);
+}
+
+void response::pageConflict(Connection *connection) {
+
+	connection->setCode(code::CONFLICT);
+	connection->setStatus(status::CONFLICT);
 	connection->setResource(new Page(connection));
 	buildHeaderAndBody(connection);
 }
