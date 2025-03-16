@@ -8,6 +8,7 @@
 #include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
+#include "code.hpp"
 #include <iostream>
 #include <list>
 #include <set>
@@ -15,6 +16,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -22,14 +24,14 @@ void process::request(Connection *connection) {
 
 	Location &location = connection->getLocation();
 	if (location.empty())
-		return response::pageNotFound(connection);
+		return response::builder(connection, code::NOT_FOUND);
 
 	if (location.getReturnCode().size())
-		return response::pageMovedPermanently(connection);
+		return response::builder(connection, code::MOVED_PERMANENTLY);
 
 	const string &method = connection->getMethod();
 	if (location.getMethod(method) == "")
-		return response::pageMethodNotAllowed(connection);
+		return response::builder(connection, code::NOT_ALLOWED);
 
 	if (method == "GET")
 		return methodGet(connection);
@@ -55,11 +57,11 @@ void process::methodGet(Connection *connection) {
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
 
-			return response::pageForbbiden(connection);
+			return response::builder(connection, code::FORBBIDEN);
 		}
 
 		connection->addHeader(header::LOCATION, uri->getLocation() + "/");
-		return response::pageMovedPermanently(connection);
+		return response::builder(connection, code::MOVED_PERMANENTLY);
 	}
 
 	if (uri->isCgi())
@@ -84,30 +86,69 @@ void process::methodPost(Connection *connection) {
 void process::methodDelete(Connection *connection) {
 
 	URL *uri = connection->getUri();
+	connection->addHeader(header::LOCATION, uri->getLocation());
 
-	if (!uri->isFile() && !uri->isDirectory()) {
+	if (!uri->isFile() && !uri->isDirectory())
+		return response::builder(connection, code::NOT_FOUND);
 
-		connection->addHeader(header::LOCATION, uri->getLocation());
-		return response::pageNotFound(connection);
-	}
+	if (uri->isDirectory() && !hasSlashAtEnd(uri->getAbsolutePath()))
+		return response::builder(connection, code::CONFLICT);
+
+	if (uri->isCgi())
+		return methodDeleteCgi(connection);
+
+	if (uri->isFile())
+		return deleteFile(connection, uri);
+
+	if (uri->isDirectory())
+		return deleteDirectory(connection, uri);
 	
-	if (uri->isDirectory() && !hasSlashAtEnd(uri->getAbsolutePath())) {
+	return response::builder(connection, code::FORBBIDEN);
+}
 
-		connection->addHeader(header::LOCATION, uri->getLocation());
-		return response::pageConflict(connection);
+void process::deleteDirectory(Connection *connection, URL *uri) {
+
+	if (uri->isDirectory() && uri->isDeletable()) {
+
+		std::string command = "rmdir " + uri->getAbsolutePath();
+		
+		if (system(command.c_str()))
+			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+		
+
+		return response::builder(connection, code::NO_CONTENT);
 	}
 
-	// TODO: Alterar abordagem usando a implementacao da URI
-	if (uri->isDirectory() && uri->isCgi() && false /* verificar se tem nao tem index*/) {
+	return response::builder(connection, code::FORBBIDEN);
+}
 
-		connection->addHeader(header::LOCATION, uri->getLocation());
-		return response::pageForbbiden(connection);
+void process::deleteFile(Connection *connection, URL *uri) {
+
+	if (uri->isFile() && uri->isDeletable()) {
+
+		std::string command = "rm " + uri->getAbsolutePath();
+
+		if (system(command.c_str()))
+			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+
+		return response::builder(connection, code::NO_CONTENT);
 	}
 
-	if (uri->isDirectory() && uri->isCgi())
+	return response::builder(connection, code::FORBBIDEN);
+}
+
+void process::methodDeleteCgi(Connection *connection) {
+
+	URL *uri = connection->getUri();
+	connection->addHeader(header::LOCATION, uri->getLocation());
+
+	if (uri->isDirectory() && !uri->isDeletable())
 		return connection->setResource(new Cgi(connection));
 
-	// TODO: Implementar logica do file
+	if (uri->isFile())
+		return connection->setResource(new Cgi(connection));
+	
+	return response::builder(connection, code::FORBBIDEN);
 }
 
 bool process::hasSlashAtEnd(const std::string &path) {

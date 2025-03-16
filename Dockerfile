@@ -11,12 +11,15 @@ RUN apk add --no-cache \
 	make \
 	php \
 	php-cgi \
+    valgrind \
 	python3
 
 WORKDIR /app
 
 COPY . .
 
+RUN chmod +x /app/scripts/entrypoint.sh
+
 RUN make re
 
-CMD ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
