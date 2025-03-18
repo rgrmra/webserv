@@ -9,6 +9,7 @@ if(BUILD_TESTING)
 			header_test.cpp
 			status_test.cpp
 			code_test.cpp
+			response_builder_test.cpp
 	)
 
 	target_link_libraries(webreq
@@ -17,6 +18,7 @@ if(BUILD_TESTING)
 			gtest
 			gtest_main
 			webreq_lib
+			gmock
 	)
 
 	include(GoogleTest)
