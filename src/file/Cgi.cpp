@@ -37,7 +37,6 @@ Cgi::Cgi(Connection *connection)
 
 	URL *uri = _connection->getUri();
 
-	cout << "enter cgi: " << uri->getAbsolutePath() << endl;
 	vector<string> _env;
 	_env.push_back("SERVER_SOFTWARE=webserv/0.1.0");
 	_env.push_back("SERVER_NAME=");
