@@ -1,19 +1,21 @@
 #include <Connection.hpp>
 #include <IStream.hpp>
 #include <Page.hpp>
+#include "File.hpp"
+#include "URL.hpp"
 #include "code.hpp"
 #include "header.hpp"
 #include "logger.hpp"
 #include "process.hpp"
 #include "response.hpp"
 #include "status.hpp"
-#include <iostream>
 #include <map>
 #include <string>
 
 using namespace std;
 
 static void buildHeaderAndBody(Connection *connection) {
+
 	connection->setStep(IStream::BODY);
 
 	if (connection->getCode() == code::OK) {
@@ -39,6 +41,26 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->addHeader(header::LOCATION, header_location);
 	connection->setTime();
 	connection->buildResponse();
+}
+
+static bool checkErrorPages(Connection *connection) {
+
+	string page = connection->getLocation().getErrorPageByCode(connection->getCode());
+	if (page == "")
+		return false;
+	
+	string path = connection->getPath();
+
+	connection->setPath(page);
+	URL *uri = new URL(connection);
+
+	connection->setPath(path);
+
+	if (!uri->isFile())
+		return false;
+	
+	connection->setUri(uri);
+	return true;
 }
 
 void response::builder(Connection *connection, string code) {
@@ -75,6 +97,8 @@ void response::builder(Connection *connection, string code) {
 	connection->setStatus(it->second);
 	if (code == code::OK)
 		process::request(connection);
+	else if (checkErrorPages(connection))
+		connection->setResource(new File(connection));
 	else
 		connection->setResource(new Page(connection));
 	if (code == connection->getCode())

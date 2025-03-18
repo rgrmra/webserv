@@ -55,7 +55,8 @@ Cgi::Cgi(Connection *connection)
 	_env.push_back("REMOTE_USER=");
 	_env.push_back("REMOTE_IDENT=");
 	_env.push_back("CONTENT_TYPE=" + (*connection)[header::CONTENT_TYPE]);
-	_env.push_back("CONTENT_LENGTH=" + (*connection)[header::CONTENT_LENGTH]);
+	if (*connection == header::CONTENT_LENGTH)
+		_env.push_back("CONTENT_LENGTH=" + (*connection)[header::CONTENT_LENGTH]);
 	_env.push_back("HTTP_COOKIE=" + (*connection)[header::COOKIE]);
 	_env.push_back("REDIRECT_STATUS=200");
 	_env.push_back("HTTP_ACCEPT=" + (*connection)[header::ACCEPT]);
@@ -185,8 +186,6 @@ void Cgi::parse(void) {
 
 void Cgi::sendCGI(void) {
 
-	waitpid(_pid, NULL, WUNTRACED);
-
 	if (_output.find_first_of("\r\n\r\n") == string::npos)
 		return response::pageInternalServerError(_connection);
 
@@ -216,4 +215,7 @@ void Cgi::processInput(size_t bytes) {
 
 	_output.append(_input);
 	_input.erase();
+
+	if (waitpid(_pid, NULL, WNOHANG))
+		sendCGI();
 }
