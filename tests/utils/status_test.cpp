@@ -5,6 +5,18 @@ TEST(StatusTest, OK) {
 	EXPECT_EQ(status::OK, "OK");
 }
 
+TEST(StatusTest, Created) {
+	EXPECT_EQ(status::CREATED, "Created");
+}
+
+TEST(StatusTest, Accepted) {
+	EXPECT_EQ(status::ACCEPTED, "Accepted");
+}
+
+TEST(StatusTest, NoContent) {
+	EXPECT_EQ(status::NO_CONTENT, "No Content");
+}
+
 TEST(StatusTest, MovedPermanently) {
 	EXPECT_EQ(status::MOVED_PERMANENTLY, "Moved Permanently");
 }

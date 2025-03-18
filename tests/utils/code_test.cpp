@@ -1,8 +1,25 @@
 #include "gtest/gtest.h"
 #include "code.hpp"
+#include "response.hpp"
+#include "gmock/gmock.h"
+#include "Connection.hpp"
+#include "status.hpp"
+#include <type_traits>
 
 TEST(CodeTest, OK) {
 	EXPECT_EQ(code::OK, "200");
+}
+
+TEST(CodeTest, Created) {
+	EXPECT_EQ(code::CREATED, "201");
+}
+
+TEST(CodeTest, Accepted) {
+	EXPECT_EQ(code::ACCEPTED, "202");
+}
+
+TEST(CodeTest, NoContent) {
+	EXPECT_EQ(code::NO_CONTENT, "204");
 }
 
 TEST(CodeTest, MovedPermanently) {

@@ -45,6 +45,8 @@ void response::builder(Connection *connection, string code) {
 
 	if (responses.empty()) {
 		responses[code::OK] = status::OK;
+		responses[code::CREATED] = status::CREATED;
+		responses[code::ACCEPTED] = status::ACCEPTED;
 		responses[code::NO_CONTENT] = status::NO_CONTENT;
 		responses[code::MOVED_PERMANENTLY] = status::MOVED_PERMANENTLY;
 		responses[code::BAD_REQUEST] = status::BAD_REQUEST;

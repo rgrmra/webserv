@@ -4,6 +4,7 @@
 #include "request.hpp"
 #include "Connection.hpp"
 #include "response.hpp"
+#include "../utils/test_helpers.hpp"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ Mime *mimes = NULL;
 
 TEST(RequestTest, ParseRequest_ValidRequest) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -22,7 +23,7 @@ TEST(RequestTest, ParseRequest_ValidRequest) {
 
 TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html?name=changes HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -33,7 +34,7 @@ TEST(RequestTest, ParseRequest_ValidRequestWithQueryString) {
 
 TEST(RequestTest, ParseRequest_InvalidSpacing) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "        GET    /index.html     HTTP/1.1   \r";
 	request::parseRequest(&connection, line);
@@ -45,7 +46,7 @@ TEST(RequestTest, ParseRequest_InvalidSpacing) {
 
 TEST(RequestTest, ParseRequest_InvalidSpacingDuplicate) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "        GET    /index.html     HTTP/1.1   \r";
 	request::parseRequest(&connection, line);
@@ -57,7 +58,7 @@ TEST(RequestTest, ParseRequest_InvalidSpacingDuplicate) {
 
 TEST(RequestTest, ParseRequest_MissingPath) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -69,7 +70,7 @@ TEST(RequestTest, ParseRequest_MissingPath) {
 
 TEST(RequestTest, ParseRequest_InvalidMethod) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "PATCH /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -78,7 +79,7 @@ TEST(RequestTest, ParseRequest_InvalidMethod) {
 
 TEST(RequestTest, ParseRequest_InvalidMethodDuplicate) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "PATCH /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
@@ -87,7 +88,7 @@ TEST(RequestTest, ParseRequest_InvalidMethodDuplicate) {
 
 TEST(RequestTest, ParseRequest_InvalidProtocol) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.2\r";
 	request::parseRequest(&connection, line);
@@ -96,23 +97,21 @@ TEST(RequestTest, ParseRequest_InvalidProtocol) {
 
 TEST(RequestTest, ParseRequest_HeadersParsed) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
 	line = "\r";
 	request::parseRequest(&connection, line);
-	//EXPECT_TRUE(connection.getHeadersParsed()) << "Headers should be parsed";
 	EXPECT_EQ(connection.getStep(), IStream::RESPONSE);
 }
 
 TEST(RequestTest, ParseRequest_HeadersNotParsed) {
 	mimes = Mime::getInstance();
-	mimes->configure("../../src/parser/mimes.json");
+	mimes->configure(getMimesPath());
 	Connection connection(5, "127.0.0.1");
 	string line = "GET /index.html HTTP/1.1\r";
 	request::parseRequest(&connection, line);
-	//EXPECT_FALSE(connection.getHeadersParsed()) << "Headers should not be parsed";
 	EXPECT_EQ(connection.getStep(), IStream::STARTLINE);
 	EXPECT_NE(connection.getStep(), IStream::HEADERS);
 }
