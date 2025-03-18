@@ -6,6 +6,8 @@
 namespace status {
 
 	static const std::string OK = "OK";
+	static const std::string CREATED = "Created";
+	static const std::string ACCEPTED = "Accepted";
 	static const std::string NO_CONTENT = "No Content";
 	static const std::string MOVED_PERMANENTLY = "Moved Permanently";
 	static const std::string BAD_REQUEST = "Bad Request";
