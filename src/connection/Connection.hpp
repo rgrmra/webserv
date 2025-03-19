@@ -55,7 +55,8 @@ class Connection : public AStream {
 		void addHeader(std::string key, size_t value);
 		void setHeaders(std::map<std::string, std::string> headers);
 		std::string getHeaderByKey(std::string key) const;
-		std::string getHeaders(void) const;
+		std::map<std::string, std::string> getHeaders(void) const;
+		std::size_t getHeadersSize(void) const;
 		void addBody(std::string body);
 		void setBody(std::string body);
 		std::string getBody(void) const;

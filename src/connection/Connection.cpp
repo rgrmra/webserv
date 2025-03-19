@@ -198,7 +198,12 @@ string Connection::getHeaderByKey(string key) const {
 	return "";
 }
 
-string Connection::getHeaders(void) const {
+map<string, string> Connection::getHeaders(void) const {
+
+	return _headers;
+}
+
+size_t Connection::getHeadersSize(void) const {
 
 	ostringstream oss;
 
@@ -206,9 +211,9 @@ string Connection::getHeaders(void) const {
 	for (; it != _headers.end(); it++)
 		oss << it->first << ": " << it->second << endl;
 
-	return oss.str();
+	return oss.str().size();
 }
-	
+
 void Connection::addBody(std::string body) {
 
 	_body.append(body);
@@ -265,7 +270,7 @@ void Connection::buildResponse(void) {
 		_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
-	
+
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
@@ -340,7 +345,7 @@ void Connection::setTime() {
 	gmtime_r(&now, &tm_info);
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", &tm_info);
 	addHeader("Date", buffer);
-}	
+}
 
 std::string Connection::operator[](std::string key) {
 
@@ -373,7 +378,7 @@ ostream &operator<<(ostream &os, const Connection &src) {
 	os << "protocol: " << src.getProtocol() << endl;
 	os << "code: " << src.getCode() << endl;
 	os << "status: " << src.getStatus() << endl;
-	os << "request headers: " << src.getHeaders() << endl;
+	//os << "request headers: " << src.getHeaders() << endl;
 	os << "request body: " << src.getBody() << endl;
 	//os << "http {\n" << src.getServer() << "\n}" << endl;
 	//os << "response: " << src.getResponse() << endl;

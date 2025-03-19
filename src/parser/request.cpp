@@ -73,7 +73,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 		connection->setUri(new URL(connection));
 
-		if (!connection->getHeaders().size())
+		if (!connection->getHeadersSize())
 			return response::pageBadRequest(connection);
 
 		if (connection->getMethod() == "POST"
@@ -86,7 +86,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) > 0)
 			return;
-		
+
 		return response::pageOK(connection);
 	}
 
@@ -122,7 +122,7 @@ void request::parseBody(Connection *connection, string &line) {
 
 	connection->addBody(line);
 	line.clear();
-	
+
 	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
 		return response::pagePayloadTooLarge(connection);
 
