@@ -13,13 +13,18 @@ namespace response {
 	static const std::string PROTOCOL = "HTTP/1.1";
 	static const std::string SERVER_SOFTWARE = "webserv/0.1.0";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
+	static std::map<std::string, std::string> responses;
+
+	void builder(Connection * connection, std::string code);
 
 	void pageOK(Connection *connection);
+	void pageNoContent(Connection *connection);
 	void pageMovedPermanently(Connection *connection);
 	void pageBadRequest(Connection *connection);
 	void pageUnauthorized(Connection *connection);
 	void pageForbbiden(Connection *connection);
 	void pageNotFound(Connection *connection);
+	void pageConflict(Connection *connection);
 	void pageMethodNotAllowed(Connection *connection);
 	void pageLengthRequired(Connection *connection);
 	void pagePayloadTooLarge(Connection *connection);

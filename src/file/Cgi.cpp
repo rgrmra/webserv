@@ -4,15 +4,20 @@
 #include "WebServ.hpp"
 #include "code.hpp"
 #include "header.hpp"
+#include "parser.hpp"
+#include "request.hpp"
 #include "response.hpp"
 #include "status.hpp"
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
@@ -38,7 +43,7 @@ Cgi::Cgi(Connection *connection)
 
 	vector<string> _args;
 	_args.push_back(connection->getLocation().getFastCgi());
-	_args.push_back(connection->getPath());
+	_args.push_back(uri->getAbsolutePath());
 
 	vector<char *> _argv = createVector(_args);
 
@@ -176,26 +181,52 @@ void Cgi::closeSockets(void) {
 		close(_sock[1]);
 }
 
+void Cgi::parse(void) {
+
+	istringstream iss(_output);
+	string line;
+
+	_connection->setHeaders(response::EMPTY_HEADER);
+
+	while(getline(iss, line) && !line.empty()) {
+
+		_output.erase(0, line.size() + 1);
+
+		if (line == "\r")
+			break;
+
+		size_t separator = line.find_first_of(":");
+		if (separator == string::npos)
+			return response::pageInternalServerError(_connection);
+
+		string key = line.substr(0, separator);
+		string value = line.substr(separator + 1);
+
+		parser::trim(value, " \t\v\r");
+
+		_connection->addHeader(key, value);
+	}
+}
+
 void Cgi::sendCGI(void) {
 
-	int status = 0;
+	if (_output.find_first_of("\r\n\r\n") == string::npos)
+		return response::pageInternalServerError(_connection);
 
-	if (waitpid(_pid, &status, WUNTRACED) && WEXITSTATUS(status)) {
-		_connection->setCode(code::INTERNAL_SERVER_ERROR);
-		_connection->setStatus(status::INTERNAL_SERVER_ERROR);
-		_output = Page(_connection).getData(parser::KILOBYTE);
-		_type = "text/html";
-	} else {
-		// TODO: CGI parser
-		string tmp = parser::find("Content-type: ", _output, "\n");
-		if (tmp.size()) {
-			_type = tmp;
-			size_t pos = _output.find("\n");
-			if (pos != string::npos)
-				_output.erase(0, pos + 1);
-		} else
-			_type = "text/plain";
+	parse();
+
+	if (*_connection == header::STATUS) {
+
+		string status = (*_connection)[header::STATUS];
+
+		parser::trim(status, " \t\v\r");
+
+		status = status.erase(status.find_first_of(" "));
+
+		if (status != code::OK)
+			return response::builder(_connection, status);
 	}
+
 	_size = _output.size();
 	_step = IStream::CLOSE;
 	_connection->buildResponse();
@@ -208,4 +239,7 @@ void Cgi::processInput(size_t bytes) {
 
 	_output.append(_input);
 	_input.erase();
+
+	if (waitpid(_pid, NULL, WNOHANG))
+		sendCGI();
 }

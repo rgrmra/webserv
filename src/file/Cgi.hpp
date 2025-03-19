@@ -19,6 +19,7 @@ class Cgi : public Resource {
  		void deleteVector(std::vector<char *> &container);
 		void closeSockets(void);
 		void processInput(size_t bytes);
+		void parse(void);
 
 	public:
 		Cgi(Connection *connection);

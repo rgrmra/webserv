@@ -13,11 +13,10 @@ namespace process {
 	void methodPost(Connection *connection);
 	void methodDelete(Connection *connection);
 
-	bool isFile(const std::string &path);
-	bool isDirectory(const std::string &path);
-	bool isCGI(const std::string &path);
-	std::string checkIndex(const Location &location, std::string &path);
-
+    void deleteDirectory(Connection *connection, URL *uri);
+    void deleteFile(Connection *connection, URL *uri);
+    bool hasSlashAtEnd(const std::string &path);
+	void methodDeleteCgi(Connection *connection);
 };
 
 #endif /* PROCESS_HPP */

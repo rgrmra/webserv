@@ -6,12 +6,16 @@
 namespace status {
 
 	static const std::string OK = "OK";
+	static const std::string CREATED = "Created";
+	static const std::string ACCEPTED = "Accepted";
+	static const std::string NO_CONTENT = "No Content";
 	static const std::string MOVED_PERMANENTLY = "Moved Permanently";
 	static const std::string BAD_REQUEST = "Bad Request";
 	static const std::string UNAUTHORIZED = "Unauthorized";
 	static const std::string FORBBIDEN = "Forbbiden";
 	static const std::string NOT_FOUND = "Not Found";
 	static const std::string NOT_ALLOWED = "Method Not Allowed";
+	static const std::string CONFLICT = "Conflict";
 	static const std::string LENGTH_REQUIRED = "Length Required";
 	static const std::string PAYLOAD_TOO_LARGE = "Payload Too Large";
 	static const std::string URI_TOO_LONG = "URI Too Long";

@@ -8,6 +8,7 @@
 #include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
+#include "code.hpp"
 #include <iostream>
 #include <list>
 #include <set>
@@ -15,6 +16,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -22,14 +24,14 @@ void process::request(Connection *connection) {
 
 	Location &location = connection->getLocation();
 	if (location.empty())
-		return response::pageNotFound(connection);
+		return response::builder(connection, code::NOT_FOUND);
 
 	if (location.getReturnCode().size())
-		return response::pageMovedPermanently(connection);
+		return response::builder(connection, code::MOVED_PERMANENTLY);
 
 	const string &method = connection->getMethod();
 	if (location.getMethod(method) == "")
-		return response::pageMethodNotAllowed(connection);
+		return response::builder(connection, code::NOT_ALLOWED);
 
 	if (method == "GET")
 		return methodGet(connection);
@@ -44,29 +46,28 @@ void process::request(Connection *connection) {
 void process::methodGet(Connection *connection) {
 
 	URL *uri = connection->getUri();
-	string path = uri->getAbsolutePath();
 	Location &location = connection->getLocation();
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
-	if (isDirectory(path)) {
+	if (uri->isDirectory()) {
 
-		if (path.at(path.size() - 1) == '/') {
+		if (hasSlashAtEnd(uri->getAbsolutePath() + "/")) {
 
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
 
-			return response::pageForbbiden(connection);
+			return response::builder(connection, code::FORBBIDEN);
 		}
 
 		connection->addHeader(header::LOCATION, uri->getLocation() + "/");
-		return response::pageMovedPermanently(connection);
+		return response::builder(connection, code::MOVED_PERMANENTLY);
 	}
 
-	if (location.getFastCgi() != "" && process::isCGI(path))
+	if (uri->isCgi())
 		return connection->setResource(new Cgi(connection));
 
-	if (process::isFile(path))
+	if (uri->isFile())
 		return connection->setResource(new File(connection));
 
 	response::pageNotFound(connection);
@@ -74,65 +75,83 @@ void process::methodGet(Connection *connection) {
 
 void process::methodPost(Connection *connection) {
 
-	cout << connection->getBody() << endl;
+	URL *uri = connection->getUri();
+
+	if (uri->isCgi())
+		return connection->setResource(new Cgi(connection));
 
 	response::pageNotFound(connection);
 }
 
 void process::methodDelete(Connection *connection) {
 
-	response::pageNotFound(connection);
+	URL *uri = connection->getUri();
+	connection->addHeader(header::LOCATION, uri->getLocation());
+
+	if (!uri->isFile() && !uri->isDirectory())
+		return response::builder(connection, code::NOT_FOUND);
+
+	if (uri->isDirectory() && !hasSlashAtEnd(uri->getAbsolutePath()))
+		return response::builder(connection, code::CONFLICT);
+
+	if (uri->isCgi())
+		return methodDeleteCgi(connection);
+
+	if (uri->isFile())
+		return deleteFile(connection, uri);
+
+	if (uri->isDirectory())
+		return deleteDirectory(connection, uri);
+	
+	return response::builder(connection, code::FORBBIDEN);
 }
 
-bool process::isDirectory(const std::string &path) {
+void process::deleteDirectory(Connection *connection, URL *uri) {
 
-	struct stat info;
+	if (uri->isDirectory() && uri->isDeletable()) {
 
-	if (stat(path.c_str(), &info) == 0)
-		return (info.st_mode & S_IFDIR) != 0;
+		std::string command = "rmdir " + uri->getAbsolutePath();
+		
+		if (system(command.c_str()))
+			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+		
 
-	return false;
-}
-
-bool process::isFile(const std::string &path) {
-
-	struct stat info;
-
-	if (stat(path.c_str(), &info) == 0)
-		return (info.st_mode & S_IFREG) != 0;
-
-	return false;
-}
-
-// TODO: refactor
-bool process::isCGI(const std::string &path) {
-
-	if (!isFile(path))
-		return false;
-
-	if (access(path.c_str(), F_OK) == -1)
-		return false;
-
-	if (access(path.c_str(), X_OK) == -1)
-		return false;
-
-	return true;
-}
-
-string process::checkIndex(const Location &location, std::string &path) {
-
-	const set<string> &indexes = location.getIndexes();
-
-	set<string>::const_iterator it = indexes.begin();
-	for (; it != indexes.end(); it++) {
-
-		cout << location.getRoot() + path + *it << endl;
-
-		if (!isFile(location.getRoot() + path + *it))
-			continue;
-
-		path.append(*it);
-		return *it;
+		return response::builder(connection, code::NO_CONTENT);
 	}
-	return "";
+
+	return response::builder(connection, code::FORBBIDEN);
+}
+
+void process::deleteFile(Connection *connection, URL *uri) {
+
+	if (uri->isFile() && uri->isDeletable()) {
+
+		std::string command = "rm " + uri->getAbsolutePath();
+
+		if (system(command.c_str()))
+			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+
+		return response::builder(connection, code::NO_CONTENT);
+	}
+
+	return response::builder(connection, code::FORBBIDEN);
+}
+
+void process::methodDeleteCgi(Connection *connection) {
+
+	URL *uri = connection->getUri();
+	connection->addHeader(header::LOCATION, uri->getLocation());
+
+	if (uri->isDirectory() && !uri->isDeletable())
+		return connection->setResource(new Cgi(connection));
+
+	if (uri->isFile())
+		return connection->setResource(new Cgi(connection));
+	
+	return response::builder(connection, code::FORBBIDEN);
+}
+
+bool process::hasSlashAtEnd(const std::string &path) {
+
+	return (path.at(path.size() - 1) == '/');
 }

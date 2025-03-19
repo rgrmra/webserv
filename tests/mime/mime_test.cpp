@@ -34,7 +34,6 @@ protected:
 
 	virtual void TearDown()
 	{
-		delete mime;
 		mime = NULL;
 		std::remove(tmpFile.c_str());
 	}

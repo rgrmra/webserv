@@ -8,12 +8,16 @@
 namespace code {
 
 	static const std::string OK = "200";
+	static const std::string CREATED = "201";
+	static const std::string ACCEPTED = "202";
+	static const std::string NO_CONTENT = "204";
 	static const std::string MOVED_PERMANENTLY = "301";
 	static const std::string BAD_REQUEST = "400";
 	static const std::string UNAUTHORIZED = "401";
 	static const std::string FORBBIDEN = "403";
 	static const std::string NOT_FOUND = "404";
 	static const std::string NOT_ALLOWED = "405";
+	static const std::string CONFLICT = "409";
 	static const std::string LENGTH_REQUIRED = "411";
 	static const std::string PAYLOAD_TOO_LARGE = "413";
 	static const std::string URI_TOO_LONG = "414";
