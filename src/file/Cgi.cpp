@@ -84,6 +84,12 @@ Cgi::Cgi(Connection *connection)
 
 void Cgi::populateEnv(Connection *connection) {
 
+	Server &server = connection->getServer();
+	string server_name;
+	if (server.getNames().size())
+		server_name = server.getNames()[0];
+
+	list<string> tmp = parser::split(connection->getId(), ':');
 	//Server side
 	//example for http://example.com/cgi-bin/script.php/extra/path
 	_env.push_back("GATEWAY_INTERFACE=" + response::GATEWAY_INTERFACE);
@@ -92,12 +98,12 @@ void Cgi::populateEnv(Connection *connection) {
 	// _env.push_back("PATH_INFO=");// ex, "/extra/path"
 	// _env.push_back("PATH_TRANSLATED=");// ex, "/var/www/extra/path"
 	_env.push_back("QUERY_STRING=" + connection->getUri()->getQuery());
-	_env.push_back("REMOTE_ADDR=");// Client IP address
-	_env.push_back("REMOTE_HOST=");// Client host name or IP if not Host Name
+	_env.push_back("REMOTE_ADDR=" + connection->getId());// Client IP address
+	_env.push_back("REMOTE_HOST=" + (*connection)[header::HOST]);// Client host name or IP if not Host Name
 	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
 	_env.push_back("SCRIPT_NAME=");//ex, "/cgi-bin/script.php"
-	_env.push_back("SERVER_NAME=");// ex "example.com"
-	_env.push_back("REMOTE_PORT=");// Client port
+	_env.push_back("SERVER_NAME=" + server_name);// ex "example.com"
+	_env.push_back("REMOTE_PORT=" + tmp.back());// Client port
 	_env.push_back("SERVER_PROTOCOL=" + response::PROTOCOL);
 	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
 	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
