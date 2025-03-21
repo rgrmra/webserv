@@ -87,7 +87,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) > 0)
 			return;
-
+		
 		return response::builder(connection, code::OK);
 	}
 
