@@ -8,6 +8,7 @@
 #include <map>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <iostream>
 
 class URLTest : public ::testing::Test {
 protected:
@@ -131,7 +132,13 @@ TEST_F(URLTest, DirectoryAndPermissions) {
     connection->setServer(tmpServer);
     connection->setLocation(tmpLocation);
     
+    connection->setPath("/testdir/index.html");
+    
     URL fileUrl(connection);
+    
+    std::cout << "Absolute path: " << fileUrl.getAbsolutePath() << std::endl;
+    std::cout << "Is file: " << (fileUrl.isFile() ? "true" : "false") << std::endl;
+    std::cout << "Is directory: " << (fileUrl.isDirectory() ? "true" : "false") << std::endl;
     
     system("rm -rf /tmp/testdir");
     
