@@ -17,7 +17,6 @@ public:
     MOCK_METHOD(std::string, getCode, (), (const));
     MOCK_METHOD(std::string, getStatus, (), (const));
     
-    // Additional methods for more comprehensive testing
     MOCK_METHOD(std::string, getHost, (), (const));
     MOCK_METHOD(std::string, getMethod, (), (const));
     MOCK_METHOD(std::string, getPath, (), (const));
@@ -30,4 +29,4 @@ public:
     MOCK_METHOD(void, setTime, ());
 };
 
-#endif // MOCK_CONNECTION_HPP 
+#endif // MOCK_CONNECTION_HPP
