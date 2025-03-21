@@ -1,6 +1,7 @@
 #include "request.hpp"
 #include "Connection.hpp"
 #include "IStream.hpp"
+#include "code.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "parser.hpp"
@@ -87,7 +88,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 		if (parser::toSizeT((*connection)[header::CONTENT_LENGTH]) > 0)
 			return;
 
-		return response::pageOK(connection);
+		return response::builder(connection, code::OK);
 	}
 
 	size_t separator = line.find_first_of(":");
@@ -126,7 +127,7 @@ void request::parseBody(Connection *connection, string &line) {
 	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
 		return response::pagePayloadTooLarge(connection);
 
-	response::pageOK(connection);
+	response::builder(connection, code::OK);
 }
 
 void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
@@ -139,7 +140,7 @@ void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
 	buffer.clear();
 
 	connection->setStep(IStream::BODY);
-	return response::pageOK(connection);
+	return response::builder(connection, code::OK);
 }
 
 void request::parseTransferEncoding(Connection *connection, string &buffer) {
