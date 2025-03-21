@@ -20,7 +20,7 @@ void process::request(Connection *connection) {
 		return response::builder(connection, code::MOVED_PERMANENTLY);
 
 	const string &method = connection->getMethod();
-	if (location.getMethod(method) == "")
+	if (location.getMethod(method).empty())
 		return response::builder(connection, code::NOT_ALLOWED);
 
 	if (method == "GET")
