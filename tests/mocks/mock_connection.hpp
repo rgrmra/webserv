@@ -4,6 +4,8 @@
 #include "Connection.hpp"
 #include "gmock/gmock.h"
 #include "Resource.hpp"
+#include "Location.hpp"
+#include "Server.hpp"
 #include <map>
 
 class MockConnection : public Connection {
@@ -28,6 +30,10 @@ public:
     MOCK_METHOD(void, setHeaders, ((const std::map<std::string, std::string>& headers)));
     MOCK_METHOD(void, addHeader, (std::string key, std::string value));
     MOCK_METHOD(void, setTime, ());
+    MOCK_METHOD(const Location&, getLocation, (), (const));
+    MOCK_METHOD(void, setLocation, (const Location& location));
+    MOCK_METHOD(Server&, getServer, ());
+    MOCK_METHOD(void, setServer, (Server server));
 };
 
 #endif // MOCK_CONNECTION_HPP 
