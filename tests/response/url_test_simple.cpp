@@ -9,10 +9,8 @@
 class URLTestSimple : public ::testing::Test {
 protected:
     void SetUp() override {
-        // Set up the server
         server = new Server();
         
-        // Set up the location
         Location loc;
         loc.setRoot("/var/www");
         loc.setURI("/");
@@ -23,7 +21,6 @@ protected:
         
         server->addLocation(loc);
         
-        // Create a real Connection object for testing
         conn = new Connection(1, "127.0.0.1");
         conn->setHost("localhost:8080");
         
@@ -43,7 +40,6 @@ protected:
     Server* server;
 };
 
-// Basic URL tests that ensure core functionality works
 TEST_F(URLTestSimple, BasicURLParsing) {
     URL url(conn);
     
@@ -55,7 +51,6 @@ TEST_F(URLTestSimple, BasicURLParsing) {
     EXPECT_EQ(url.getExtension(), ".html");
 }
 
-// Test path formatting
 TEST_F(URLTestSimple, PathFormatting) {
     conn->setPath("/path/./to/../file.txt");
     URL url(conn);
@@ -63,7 +58,6 @@ TEST_F(URLTestSimple, PathFormatting) {
     EXPECT_EQ(url.getPath(), "/path/file.txt");
 }
 
-// Test query parameters
 TEST_F(URLTestSimple, QueryParameters) {
     conn->setPath("/search.php?q=test&page=1");
     URL url(conn);
