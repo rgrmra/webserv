@@ -6,6 +6,7 @@ if(BUILD_TESTING)
 	add_subdirectory(response)
 	add_subdirectory(parser)
 	add_subdirectory(utils)
+	add_subdirectory(file)
 
 	# Create test executable with all test files
 	add_executable(webreq
