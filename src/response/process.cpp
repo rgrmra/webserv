@@ -16,6 +16,10 @@ void process::request(Connection *connection) {
 	if (location.empty())
 		return response::builder(connection, code::NOT_FOUND);
 
+	URL *uri = connection->getUri();
+	if (!uri->isFile() && !uri->isDirectory())
+		return response::builder(connection, code::NOT_FOUND);
+
 	if (location.getReturnCode().size())
 		return response::builder(connection, code::MOVED_PERMANENTLY);
 
