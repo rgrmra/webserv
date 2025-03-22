@@ -9,6 +9,7 @@
 #include "process.hpp"
 #include "response.hpp"
 #include "status.hpp"
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -18,18 +19,17 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	connection->setStep(IStream::BODY);
 
-	if (connection->getCode() == code::OK) {
-		logger::info(connection->getHost() + " "
+	string tmp = connection->getHost() + " "
 				+ connection->getMethod() + " "
 				+ connection->getPath() + " "
 				+ connection->getProtocol() + " "
 				+ connection->getCode() + " - "
-				+ connection->getHeaderByKey(header::USER_AGENT));
-	} else {
-		logger::warning(connection->getId() + " "
-			+ connection->getCode() + " "
-			+ connection->getStatus());
-	}
+				+ connection->getHeaderByKey(header::USER_AGENT);
+
+	if (connection->getCode() == code::OK)
+		logger::info(tmp);
+	else
+		logger::warning(tmp);
 
 	string header_connection = (*connection)[header::CONNECTION];
 	string header_location = (*connection)[header::LOCATION];
@@ -56,10 +56,19 @@ static bool checkErrorPages(Connection *connection) {
 
 	connection->setPath(path);
 
-	if (!uri->isFile())
+	if (!uri->isFile()) {
+		delete uri;
 		return false;
+	}
 	
+	URL *old_uri = connection->getUri();
 	connection->setUri(uri);
+
+	connection->setResource(new File(connection));
+	connection->setUri(old_uri);
+
+	delete uri;
+
 	return true;
 }
 
@@ -91,16 +100,16 @@ void response::builder(Connection *connection, string code) {
 
 	map<string, string>::iterator it = responses.find(code);
 	if (it == responses.end())
-		return pageInternalServerError(connection);
+		return builder(connection, code::INTERNAL_SERVER_ERROR);
 
 	connection->setCode(code);
 	connection->setStatus(it->second);
+
 	if (code == code::OK)
 		process::request(connection);
-	else if (checkErrorPages(connection))
-		connection->setResource(new File(connection));
-	else
+	else if (!checkErrorPages(connection))
 		connection->setResource(new Page(connection));
+
 	if (code == connection->getCode())
 		buildHeaderAndBody(connection);
 }
