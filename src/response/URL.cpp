@@ -164,7 +164,7 @@ void URL::processPath(string path) {
 		paths.push_back(path);
 
 		size_t pos = path.find_first_of("/");
-		if (pos == 0) {
+		if (pos == 0 || path == ".") {
 			paths.push_back("/");
 			break;
 		}

@@ -4,6 +4,7 @@
 #include "Resource.hpp"
 #include "URL.hpp"
 #include "WebServ.hpp"
+#include "code.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "request.hpp"
@@ -92,7 +93,7 @@ void Connection::parseRequest(void) {
 	else if (_code.empty() && _host.empty())
 		return response::pageBadRequest(this);
 	else if (_code.empty())
-		return response::pageOK(this);
+		return response::builder(this, code::OK);
 }
 
 void Connection::setHost(string host) {

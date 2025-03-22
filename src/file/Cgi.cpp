@@ -109,7 +109,7 @@ void Cgi::populateEnv(Connection *connection) {
 	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
 	_env.push_back("SCRIPT_FILENAME=" + connection->getUri()->getAbsolutePath());
 	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
-
+	_env.push_back("REDIRECT_STATUS=200");
 
 	//From headers
 	map<string, string> headers = connection->getHeaders();

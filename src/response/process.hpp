@@ -5,6 +5,7 @@
 
 class Connection;
 class Location;
+class URL;
 
 namespace process {
 
