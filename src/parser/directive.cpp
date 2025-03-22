@@ -227,7 +227,7 @@ void directive::setURI(string uri, string &_uri) {
 	if (uri.empty())
 		return;
 
-	if (!directive::isValidAbsoluteURI(uri))
+	if (!directive::isValidAbsolutePath(uri))
 		throw runtime_error("invalid path: " + uri);
 
 	_uri = uri;
