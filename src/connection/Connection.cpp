@@ -40,7 +40,7 @@ Connection &Connection::operator=(const Connection &rhs) {
 
 	_host = rhs._host;
 	_method = rhs._method;
-	_path = rhs._path;
+	_target = rhs._target;
 	_protocol = rhs._protocol;
 	_code = rhs._code;
 	_status = rhs._status;
@@ -135,14 +135,14 @@ URL *Connection::getUri(void) const {
 	return _uri;
 }
 
-void Connection::setPath(string path) {
+void Connection::setTarget(string target) {
 
-	_path = path;
+	_target = target;
 }
 
-string Connection::getPath(void) const {
+string Connection::getTarget(void) const {
 
-	return _path;
+	return _target;
 }
 
 void Connection::setProtocol(string protocol) {
@@ -306,7 +306,7 @@ void Connection::resetConnection(void) {
 
 	_host.clear();
 	_method.clear();
-	_path.clear();
+	_target.clear();
 	_protocol.clear();
 	_code.clear();
 	_status.clear();
@@ -375,7 +375,7 @@ ostream &operator<<(ostream &os, const Connection &src) {
 	os << "hostname: " << src.getHost() << endl;
 	//os << "buffer: " << src.getBuffer() << endl;
 	os << "method: " << src.getMethod() << endl;
-	os << "path: " << src.getPath() << endl;
+	os << "target: " << src.getTarget() << endl;
 	os << "protocol: " << src.getProtocol() << endl;
 	os << "code: " << src.getCode() << endl;
 	os << "status: " << src.getStatus() << endl;

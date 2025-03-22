@@ -7,7 +7,7 @@
 using namespace std;
 
 Resource::Resource(Connection *connection)
-	: AStream(-1, connection->getPath()),
+	: AStream(-1, connection->getTarget()),
 	  _connection(connection) {
 
 }
@@ -38,6 +38,6 @@ string Resource::getMime(void) const {
 
 	if (_type.empty())
 		return Mime::getInstance()->getType(_id);
-	
+
 	return _type;
 }

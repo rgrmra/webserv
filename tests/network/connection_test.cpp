@@ -22,11 +22,11 @@ protected:
 		test_connections.push_back(new Connection(5678, "192.168.1.1"));
 
 		test_connections[0]->setMethod(methods.at(0));
-		test_connections[0]->setPath("/index.html");
+		test_connections[0]->setTarget("/index.html");
 		test_connections[0]->setProtocol("HTTP/1.1");
 
 		test_connections[1]->setMethod(methods.at(1));
-		test_connections[1]->setPath("/api/data");
+		test_connections[1]->setTarget("/api/data");
 		test_connections[1]->setProtocol("HTTP/1.1");
 	}
 
@@ -54,7 +54,7 @@ TEST_F(ConnectionDestructorTest, PopulatedConnectionDestructor)
 		Connection conn(1234, "127.0.0.1");
 
 		conn.setMethod(methods.at(0));
-		conn.setPath("/index.html");
+		conn.setTarget("/index.html");
 		conn.setProtocol("HTTP/1.1");
 		conn.setHost("example.com");
 		conn.setBody("Test body");
@@ -72,7 +72,7 @@ TEST_F(ConnectionDestructorTest, CopyConstructedDestructor)
 	{
 		Connection conn1(1234, "127.0.0.1");
 		conn1.setMethod(methods.at(0));
-		conn1.setPath("/index.html");
+		conn1.setTarget("/index.html");
 
 		Connection conn2(conn1);
 	}
@@ -97,7 +97,7 @@ TEST_F(ConnectionDestructorTest, DestructorAfterReset)
 		Connection conn(1234, "127.0.0.1");
 
 		conn.setMethod(methods.at(0));
-		conn.setPath("/index.html");
+		conn.setTarget("/index.html");
 		conn.setProtocol("HTTP/1.1");
 		conn.resetConnection();
 	}

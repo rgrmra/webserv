@@ -29,7 +29,7 @@ void request::parseRequest(Connection *connection, string &line) {
 
 void request::parseStartLine(Connection *connection, string &line) {
 
-	string method, path, protocol;
+	string method, target, protocol;
 
 	if (line.at(line.size() - 1) != '\r')
 		return response::pageBadRequest(connection);
@@ -41,23 +41,23 @@ void request::parseStartLine(Connection *connection, string &line) {
 		return response::pageBadRequest(connection);
 
 	istringstream startline(line);
-	if (!(startline >> method >> path>> protocol))
+	if (!(startline >> method >> target >> protocol))
 		return response::pageBadRequest(connection);
 
 	if (!directive::validateHttpMethod(method))
 		return response::pageMethodNotAllowed(connection);
 
-	if (path.size() > 2 * parser::KILOBYTE)
+	if (target.size() > 2 * parser::KILOBYTE)
 		return response::pageURITooLong(connection);
 
-	if (!directive::validateURI(path))
+	if (!directive::isValidRequestTarget(target))
 		return response::pageBadRequest(connection);
 
 	if (protocol != response::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
-	connection->setPath(path);
+	connection->setTarget(target);
 	connection->setProtocol(protocol);
 	connection->setStep(IStream::STARTLINE);
 

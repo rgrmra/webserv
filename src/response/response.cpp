@@ -21,7 +21,7 @@ static void buildHeaderAndBody(Connection *connection) {
 
 	string tmp = connection->getHost() + " "
 				+ connection->getMethod() + " "
-				+ connection->getPath() + " "
+				+ connection->getTarget() + " "
 				+ connection->getProtocol() + " "
 				+ connection->getCode() + " - "
 				+ connection->getHeaderByKey(header::USER_AGENT);
@@ -48,13 +48,13 @@ static bool checkErrorPages(Connection *connection) {
 	string page = connection->getLocation().getErrorPageByCode(connection->getCode());
 	if (page == "")
 		return false;
-	
-	string path = connection->getPath();
 
-	connection->setPath(page);
+	string path = connection->getTarget();
+
+	connection->setTarget(page);
 	URL *uri = new URL(connection);
 
-	connection->setPath(path);
+	connection->setTarget(path);
 
 	if (!uri->isFile()) {
 		delete uri;

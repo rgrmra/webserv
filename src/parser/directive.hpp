@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace directive {
-	
+
 	void setAcessLog(std::string access_log, std::string &_access_log);
 	void setErrorLog(std::string error_log, std::string &_error_log);
 	bool validateHttpListen(std::string listen);
@@ -20,7 +20,9 @@ namespace directive {
 	void addListen(std::string listen, std::vector<std::string> &_listen);
 	bool validateName(std::string name);
 	void addName(std::string name, std::vector<std::string> &_name);
-	bool validateURI(std::string uri);
+	bool isValidRequestTarget(const std::string& target);
+	bool isValidAbsolutePath(const std::string& target);
+	bool isValidAbsoluteURI(const std::string& target);
 	void setURI(std::string uri, std::string &_uri);
 	bool validateHttpMethod(std::string method);
 	void addMethod(std::string method, std::set<std::string> &_allow_methods);
