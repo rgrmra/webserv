@@ -16,7 +16,7 @@ URL::URL(Connection *connection)
 	: _connection(connection),
 	  _dac(0) {
 
-	string uri = connection->getPath();
+	string uri = connection->getTarget();
 
 	_scheme = "http";
 

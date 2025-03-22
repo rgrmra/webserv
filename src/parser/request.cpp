@@ -56,7 +56,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
-	connection->setPath(target);
+	connection->setTarget(target);
 	connection->setProtocol(protocol);
 	connection->setStep(IStream::STARTLINE);
 

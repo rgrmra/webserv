@@ -10,23 +10,23 @@ class URLTestSimple : public ::testing::Test {
 protected:
     void SetUp() override {
         server = new Server();
-        
+
         Location loc;
         loc.setRoot("/var/www");
         loc.setURI("/");
-        
+
         std::set<std::string> indexes;
         indexes.insert("index.html");
         loc.setIndexes(indexes);
-        
+
         server->addLocation(loc);
-        
+
         conn = new Connection(1, "127.0.0.1");
         conn->setHost("localhost:8080");
-        
+
         std::string method = "GET";
         conn->setMethod(method);
-        conn->setPath("/test/path.html");
+        conn->setTarget("/test/path.html");
         conn->setServer(*server);
         conn->setLocation(loc);
     }
@@ -35,14 +35,14 @@ protected:
         delete conn;
         delete server;
     }
-    
+
     Connection* conn;
     Server* server;
 };
 
 TEST_F(URLTestSimple, BasicURLParsing) {
     URL url(conn);
-    
+
     EXPECT_EQ(url.getScheme(), "http");
     EXPECT_EQ(url.getHost(), "localhost");
     EXPECT_EQ(url.getPort(), "8080");
@@ -52,16 +52,16 @@ TEST_F(URLTestSimple, BasicURLParsing) {
 }
 
 TEST_F(URLTestSimple, PathFormatting) {
-    conn->setPath("/path/./to/../file.txt");
+    conn->setTarget("/path/./to/../file.txt");
     URL url(conn);
-    
+
     EXPECT_EQ(url.getPath(), "/path/file.txt");
 }
 
 TEST_F(URLTestSimple, QueryParameters) {
-    conn->setPath("/search.php?q=test&page=1");
+    conn->setTarget("/search.php?q=test&page=1");
     URL url(conn);
-    
+
     EXPECT_EQ(url.getPath(), "/search.php");
     EXPECT_EQ(url.getQuery(), "q=test&page=1");
-} 
+}

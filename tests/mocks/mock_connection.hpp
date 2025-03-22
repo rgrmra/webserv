@@ -18,11 +18,11 @@ public:
     MOCK_METHOD(void, buildResponse, ());
     MOCK_METHOD(std::string, getCode, (), (const));
     MOCK_METHOD(std::string, getStatus, (), (const));
-    
+
     // Additional methods for more comprehensive testing
     MOCK_METHOD(std::string, getHost, (), (const));
     MOCK_METHOD(std::string, getMethod, (), (const));
-    MOCK_METHOD(std::string, getPath, (), (const));
+    MOCK_METHOD(std::string, getTarget, (), (const));
     MOCK_METHOD(std::string, getProtocol, (), (const));
     MOCK_METHOD(std::string, getId, (), (const));
     MOCK_METHOD(std::string, getHeaderByKey, (std::string key), (const));
@@ -36,4 +36,4 @@ public:
     MOCK_METHOD(void, setServer, (Server server));
 };
 
-#endif // MOCK_CONNECTION_HPP 
+#endif // MOCK_CONNECTION_HPP

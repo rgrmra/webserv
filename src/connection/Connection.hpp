@@ -17,7 +17,7 @@ class Connection : public AStream {
 	private:
 		std::string _host;
 		std::string _method;
-		std::string _path;
+		std::string _target;
 		std::string _protocol;
 		std::string _code;
 		std::string _status;
@@ -42,8 +42,8 @@ class Connection : public AStream {
 		void processInput(size_t bytes);
 		void setMethod(std::string &method);
 		std::string getMethod(void) const;
-		void setPath(std::string path);
-		std::string getPath(void) const;
+		void setTarget(std::string target);
+		std::string getTarget(void) const;
 		void setProtocol(std::string protocol);
 		std::string getProtocol(void) const;
 		void setCode(std::string code);
