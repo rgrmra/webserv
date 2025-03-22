@@ -182,19 +182,44 @@ void directive::addName(string name, vector<string> &_name) {
 	}
 }
 
-bool directive::validateURI(string uri) {
+bool directive::isValidRequestTarget(const string& target)
+{
+	return isValidAbsolutePath(target) || isValidAbsoluteURI(target);
+}
 
-	if (uri.empty())
+bool directive::isValidAbsolutePath(const string& target)
+{
+	if (target.empty() || target[0] != '/') {
 		return false;
+	}
 
-	size_t pos = uri.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS);
-	if (pos != string::npos)
+	if (target.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS) != string::npos) {
 		return false;
+	}
 
-	if (uri.at(0) == '/' || (uri.at(0) == '.' && uri.at(1) == '/'))
-		return true;
+	return true;
+}
 
-	return false;
+bool directive::isValidAbsoluteURI(const string& target)
+{
+	size_t schemeEnd = target.find("://");
+	if (schemeEnd == string::npos) {
+		return false;
+	}
+
+	for (size_t i = 0; i < schemeEnd; ++i) {
+		char c = target[i];
+		if (!isalpha(c)) {
+			return false;
+		}
+	}
+
+	size_t pathStart = schemeEnd + 3;
+	if (pathStart >= target.size()) {
+		return false;
+	}
+
+	return isValidAbsolutePath(target.substr(pathStart));
 }
 
 void directive::setURI(string uri, string &_uri) {
@@ -202,7 +227,7 @@ void directive::setURI(string uri, string &_uri) {
 	if (uri.empty())
 		return;
 
-	if (!validateURI(uri))
+	if (!directive::isValidAbsoluteURI(uri))
 		throw runtime_error("invalid path: " + uri);
 
 	_uri = uri;

@@ -49,7 +49,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 	if (target.size() > 2 * parser::KILOBYTE)
 		return response::pageURITooLong(connection);
 
-	if (!directive::validateURI(target))
+	if (!directive::isValidRequestTarget(target))
 		return response::pageBadRequest(connection);
 
 	if (protocol != response::PROTOCOL)
