@@ -17,7 +17,7 @@ void process::methodGet(Connection *connection) {
 	
 	if (uri->isDirectory()) {
 
-		if (hasSlashAtEnd(uri->getAbsolutePath() + "/")) {
+		if (hasSlashAtEnd(uri->getAbsolutePath())) {
 
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
