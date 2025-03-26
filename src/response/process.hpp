@@ -18,6 +18,10 @@ namespace process {
     void deleteFile(Connection *connection, URL *uri);
     bool hasSlashAtEnd(const std::string &path);
 	void methodDeleteCgi(Connection *connection);
+	
+	void handleMultipartFormData(Connection *connection);
+	void handleFormSubmission(Connection *connection);
+	void handleFileUpload(Connection *connection);
 };
 
 #endif /* PROCESS_HPP */
