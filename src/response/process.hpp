@@ -22,6 +22,8 @@ namespace process {
 	void handleMultipartFormData(Connection *connection);
 	void handleFormSubmission(Connection *connection);
 	void handleFileUpload(Connection *connection);
+	
+	std::string urlDecode(const std::string& encoded);
 };
 
 #endif /* PROCESS_HPP */
