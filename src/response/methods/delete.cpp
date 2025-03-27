@@ -6,6 +6,7 @@
 #include "code.hpp"
 #include "Cgi.hpp"
 #include "header.hpp"
+#include <cstdio>
 #include <stdlib.h>
 #include <iostream>
 
@@ -38,11 +39,8 @@ void process::deleteDirectory(Connection *connection, URL *uri) {
 
 	if (uri->isDirectory() && uri->isDeletable()) {
 
-		std::string command = "rmdir " + uri->getAbsolutePath();
-		
-		if (system(command.c_str()))
+		if (remove(uri->getAbsolutePath().c_str()))
 			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
-		
 
 		return response::builder(connection, code::NO_CONTENT);
 	}
@@ -54,9 +52,7 @@ void process::deleteFile(Connection *connection, URL *uri) {
 
 	if (uri->isFile() && uri->isDeletable()) {
 
-		std::string command = "rm " + uri->getAbsolutePath();
-
-		if (system(command.c_str()))
+		if (remove(uri->getAbsolutePath().c_str()))
 			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
 
 		return response::builder(connection, code::NO_CONTENT);
