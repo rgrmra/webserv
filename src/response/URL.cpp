@@ -1,6 +1,7 @@
 #include "URL.hpp"
 #include "Connection.hpp"
 #include "Location.hpp"
+#include "method.hpp"
 #include "parser.hpp"
 #include "process.hpp"
 #include <cctype>
@@ -77,7 +78,7 @@ string URL::checkIndex(const Location &location, string &path) {
 
 	const set<string> &indexes = location.getIndexes();
 
-	if (_connection->getMethod() == "DELETE")
+	if (_connection->getMethod() == method::DELETE)
 		return "";
 
 	set<string>::const_iterator it = indexes.begin();
@@ -151,7 +152,7 @@ void URL::formatPath(std::string path) {
 	for (it = new_path.begin(); it != new_path.end(); it++)
 		tmp += "/" + *it;
 
-	_path = tmp + (path.at(path.size() -1) == '/' ? "/" : "");
+	_path = tmp + (parser::lastCharacter(path) == '/' ? "/" : "");
 }
 
 void URL::processPath(string path) {

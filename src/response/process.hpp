@@ -14,9 +14,8 @@ namespace process {
 	void methodPost(Connection *connection);
 	void methodDelete(Connection *connection);
 
-    void deleteDirectory(Connection *connection, URL *uri);
-    void deleteFile(Connection *connection, URL *uri);
-    bool hasSlashAtEnd(const std::string &path);
+	void deleteDirectory(Connection *connection, URL *uri);
+	void deleteFile(Connection *connection, URL *uri);
 	void methodDeleteCgi(Connection *connection);
 };
 

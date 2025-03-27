@@ -46,7 +46,7 @@ static void buildHeaderAndBody(Connection *connection) {
 static bool checkErrorPages(Connection *connection) {
 
 	string page = connection->getLocation().getErrorPageByCode(connection->getCode());
-	if (page == "")
+	if (page.empty())
 		return false;
 
 	string path = connection->getTarget();
