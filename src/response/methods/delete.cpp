@@ -1,3 +1,4 @@
+#include "parser.hpp"
 #include "process.hpp"
 #include "URL.hpp"
 #include "Connection.hpp"
@@ -18,7 +19,7 @@ void process::methodDelete(Connection *connection) {
 	if (!uri->isFile() && !uri->isDirectory())
 		return response::builder(connection, code::NOT_FOUND);
 
-	if (uri->isDirectory() && !hasSlashAtEnd(uri->getAbsolutePath()))
+	if (uri->isDirectory() && parser::lastCharacter(uri->getAbsolutePath()) != '/')
 		return response::builder(connection, code::CONFLICT);
 
 	if (uri->isCgi())

@@ -3,6 +3,7 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "logger.hpp"
+#include "method.hpp"
 #include "parser.hpp"
 #include <iostream>
 #include <iterator>
@@ -46,7 +47,7 @@ bool directive::validateHttpListen(string listen) {
 	if (listen.find_first_not_of(".:0123456789") != string::npos)
 		return false;
 
-	if (listen.at(0) == ':' || listen.at(listen.size() - 1) == ':')
+	if (listen.at(0) == ':' || parser::lastCharacter(listen) == ':')
 		return false;
 
 	if (listen.find("::") != string::npos)
@@ -70,7 +71,7 @@ bool directive::validateHttpHost(string host) {
 	if (host.find("..") != string::npos)
 		return false;
 
-	if (host.at(0) == '.' || host.at(host.size() - 1) == '.')
+	if (host.at(0) == '.' || parser::lastCharacter(host) == '.')
 		return false;
 
 	list<string> octets = parser::split(host, '.');
@@ -146,10 +147,10 @@ bool directive::validateName(string name) {
 	if (name.empty())
 		return false;
 
-	if (name.at(0) == '-' || name.at(name.size() - 1) == '-')
+	if (name.at(0) == '-' || parser::lastCharacter(name) == '-')
 		return false;
 
-	if (name.at(0) == '.' || name.at(name.size() - 1) == '.')
+	if (name.at(0) == '.' || parser::lastCharacter(name) == '.')
 		return false;
 
 	for (string::iterator it = name.begin(); it != name.end(); it++) {
@@ -235,9 +236,9 @@ void directive::setURI(string uri, string &_uri) {
 
 bool directive::validateHttpMethod(string method) {
 
-	list<string> allowed_methods = parser::split(parser::DEFAULT_ALLOW_METHODS, ' ');
+	set<string> &allowed_methods = method::getAllowedMethods();
 
-	list<string>::iterator it = allowed_methods.begin();
+	set<string>::iterator it = allowed_methods.begin();
 	for (; it != allowed_methods.end(); it++)
 		if (*it == method)
 			return true;
@@ -473,6 +474,7 @@ void directive::setHttpDefaultValues(Http &http) {
 }
 
 void directive::setServerDefaultValues(Http &http, Server &server) {
+
 	if (server.getMaxBodySize() == 0)
 		server.setMaxBodySize(parser::toString(http.getMaxBodySize()));
 
@@ -498,6 +500,7 @@ void directive::setServerDefaultValues(Http &http, Server &server) {
 }
 
 void directive::setLocationDefaultValues(Server &server, Location &location) {
+
 	if (location.getRoot().empty())
 		location.setRoot(server.getRoot());
 
@@ -505,7 +508,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 		location.setIndexes(server.getIndexes());
 
 	if (location.getDenyMethods() == false)
-		location.addMethod(parser::DEFAULT_ALLOW_METHODS);
+		location.setMethods(method::getAllowedMethods());
 
 	if (location.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		location.setAutoIndex(server.getAutoIndexBitSet());

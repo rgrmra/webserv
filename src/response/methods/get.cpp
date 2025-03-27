@@ -1,3 +1,4 @@
+#include "parser.hpp"
 #include "process.hpp"
 #include "URL.hpp"
 #include "Connection.hpp"
@@ -17,7 +18,7 @@ void process::methodGet(Connection *connection) {
 	
 	if (uri->isDirectory()) {
 
-		if (hasSlashAtEnd(uri->getAbsolutePath())) {
+		if (parser::lastCharacter(uri->getAbsolutePath()) == '/') {
 
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
@@ -25,7 +26,7 @@ void process::methodGet(Connection *connection) {
 			return response::builder(connection, code::FORBBIDEN);
 		}
 
-		connection->addHeader(header::LOCATION, uri->getLocation() + "/");
+		connection->addHeader(header::LOCATION, uri->getLocation() + '/');
 		return response::builder(connection, code::MOVED_PERMANENTLY);
 	}
 

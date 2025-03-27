@@ -7,6 +7,11 @@
 
 using namespace std;
 
+const char &parser::lastCharacter(const string &text) {
+
+	return text.at(text.size() - 1);
+}
+
 size_t parser::toSizeT(string value) {
 
 	stringstream ss;
