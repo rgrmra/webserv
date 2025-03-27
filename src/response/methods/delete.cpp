@@ -41,7 +41,6 @@ void process::deleteDirectory(Connection *connection, URL *uri) {
 
 		if (remove(uri->getAbsolutePath().c_str()))
 			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
-		
 
 		return response::builder(connection, code::NO_CONTENT);
 	}
