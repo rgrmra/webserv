@@ -99,13 +99,13 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
 
+	URL::decode(value);
+
 	parser::trim(value, " \t\v\r");
 
 	validateHeader(connection, key, value);
 
 	connection->addHeader(key, value);
-
-	return;
 }
 
 void request::parseBody(Connection *connection, string &line) {

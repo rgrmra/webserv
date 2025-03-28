@@ -7,6 +7,7 @@
 #include <cctype>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -95,35 +96,6 @@ string URL::checkIndex(const Location &location, string &path) {
 	return "";
 }
 
-void URL::convertCharacters(string &path) {
-
-	std::string output;
-
-	for (size_t i = 0; i < path.length(); ++i) {
-
-		if (path[i] == '%' && i + 2 < path.length()) {
-
-			string tmp = path.substr(i, i + 2);
-
-			if (tmp.find_first_of("0123456789ABCDEFG") != string::npos) {
-				output += '%';
-				continue;
-			}
-
-			std::istringstream iss(tmp);
-			int value;
-
-			iss >> std::hex >> value;
-			output += static_cast<char>(value);
-
-			i += 2;
-		}
-
-		output += path[i];
-	}
-	path = output;
-}
-
 void URL::formatPath(std::string path) {
 
 	list<string> new_path;
@@ -142,7 +114,7 @@ void URL::formatPath(std::string path) {
 			continue;
 		}
 
-		convertCharacters(*it);
+		decode(*it);
 
 		new_path.push_back(*it);
 	}
@@ -372,6 +344,38 @@ bool URL::isExecutable(void) const {
 bool URL::isDeletable() const {
 
 	return _dac & DELETE;
+}
+
+void URL::decode(std::string &path) {
+
+    std::string output;
+
+    for (size_t i = 0; i < path.length(); i++) {
+
+		if (path.at(i) != '%' || path.length() < i + 2) {
+
+			output += path.at(i);
+			continue;
+		}
+
+		string tmp = path.substr(i + 1, 2);
+
+		if (tmp.find_first_not_of("0123456789ABCDEFabcdef") != string::npos) {
+			
+			output += '%';
+			continue;
+		}
+
+		istringstream iss(tmp);
+		int value;
+
+		iss >> hex >> value;
+		output += static_cast<char>(value);
+
+		i += 2;
+	}
+
+    path = output;
 }
 
 ostream &operator<<(ostream &os, const URL &src) {
