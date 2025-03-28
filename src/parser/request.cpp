@@ -48,13 +48,13 @@ void request::parseStartLine(Connection *connection, string &line) {
 	if (!directive::validateHttpMethod(method))
 		return response::pageMethodNotAllowed(connection);
 
+	if (!directive::isValidRequestTarget(target))
+		return response::pageBadRequest(connection);
+
 	URL::decode(target);
 
 	if (target.size() > 2 * parser::KILOBYTE)
 		return response::pageURITooLong(connection);
-
-	if (!directive::isValidRequestTarget(target))
-		return response::pageBadRequest(connection);
 
 	if (protocol != response::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);

@@ -114,8 +114,6 @@ void URL::formatPath(std::string path) {
 			continue;
 		}
 
-		decode(*it);
-
 		new_path.push_back(*it);
 	}
 
