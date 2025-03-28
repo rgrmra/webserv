@@ -48,11 +48,13 @@ void request::parseStartLine(Connection *connection, string &line) {
 	if (!directive::validateHttpMethod(method))
 		return response::pageMethodNotAllowed(connection);
 
-	if (target.size() > 2 * parser::KILOBYTE)
-		return response::pageURITooLong(connection);
-
 	if (!directive::isValidRequestTarget(target))
 		return response::pageBadRequest(connection);
+
+	URL::decode(target);
+
+	if (target.size() > 2 * parser::KILOBYTE)
+		return response::pageURITooLong(connection);
 
 	if (protocol != response::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);
@@ -99,13 +101,16 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
 
+	URL::decode(value);
+
+	if (value.size() > 8 * parser::KILOBYTE)
+		return response::builder(connection, code::BAD_REQUEST);
+
 	parser::trim(value, " \t\v\r");
 
 	validateHeader(connection, key, value);
 
 	connection->addHeader(key, value);
-
-	return;
 }
 
 void request::parseBody(Connection *connection, string &line) {
