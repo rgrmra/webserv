@@ -48,6 +48,8 @@ void request::parseStartLine(Connection *connection, string &line) {
 	if (!directive::validateHttpMethod(method))
 		return response::pageMethodNotAllowed(connection);
 
+	URL::decode(target);
+
 	if (target.size() > 2 * parser::KILOBYTE)
 		return response::pageURITooLong(connection);
 
@@ -100,6 +102,9 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 	string value = line.substr(separator + 1);
 
 	URL::decode(value);
+
+	if (value.size() > 8 * parser::KILOBYTE)
+		return response::builder(connection, code::BAD_REQUEST);
 
 	parser::trim(value, " \t\v\r");
 
