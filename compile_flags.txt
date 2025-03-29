@@ -1,0 +1,11 @@
+-I./src
+-I./src/response
+-I./src/response/methods
+-I./src/constant
+-I./src/parser
+-I./src/service
+-I./src/service/logger
+-I./src/util
+-I./src/util/color
+-I./src/file
+-I./src/connection
