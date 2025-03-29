@@ -16,29 +16,10 @@ namespace parser {
 		AUTOINDEX_ON = 1
 	};
 
-	static const size_t BYTE = 1;
-	static const size_t KILOBYTE = (1024 * BYTE);
-	static const size_t MEGABYTE = (1024 * KILOBYTE);
-	static const size_t GIGABYTE = (1024 * MEGABYTE);
-
-	static const std::string DEFAULT_ROOT = "./var/www/html";
-	static const std::string DEFAULT_ACCESS_LOG = (DEFAULT_ROOT + "/access.log");
-	static const std::string DEFAULT_ERROR_LOG = (DEFAULT_ROOT + "/error.log");
-	static const std::string DEFAULT_MAX_BODY_SIZE = "10M";
-	static const std::string DEFAULT_INDEXES = "index.htm index.html";
-	static const std::string DEFAULT_HOST = "0.0.0.0";
-	static const std::string DEFAULT_PORT = "8080";
-
-	static const std::string DEFAULT_ALLOWED_CHARACTERS = ""
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-		"0123456789-._~:/?#[]@!$&'()*+,;=%";
-
-	static const std::string DEFAULT_404_ERROR = ("404 " + DEFAULT_ROOT + "/default/404.html");
-	static const std::string DEFAULT_50x_ERROR = ("500 502 503 504 " + DEFAULT_ROOT + "/default/50x.html");
-
 	const char &lastCharacter(const std::string &text);
 	size_t toSizeT(std::string value);
 	std::string toString(std::size_t value);
+	std::string toUpper(std::string text);
 	std::string toLower(std::string text);
 	std::string find(std::string key, std::string &configuration_file, std::string delimiter);
 	bool compare(std::string key, std::string &configuration_file);

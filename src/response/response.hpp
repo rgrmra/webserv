@@ -9,10 +9,6 @@ class Location;
 
 namespace response {
 
-	static const std::string GATEWAY_INTERFACE = "CGI/1.1";
-	static const std::string PROTOCOL = "HTTP/1.1";
-	static const std::string SERVER_SOFTWARE = "webserv/0.1.0";
-	static const std::map<std::string, std::string> EMPTY_HEADER;
 	static std::map<std::string, std::string> responses;
 
 	void builder(Connection * connection, std::string code);

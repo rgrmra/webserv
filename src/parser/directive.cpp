@@ -5,8 +5,8 @@
 #include "logger.hpp"
 #include "method.hpp"
 #include "parser.hpp"
-#include <iostream>
-#include <iterator>
+#include "size.hpp"
+#include "standard.hpp"
 #include <limits>
 #include <list>
 #include <map>
@@ -111,8 +111,8 @@ void directive::addListen(string listen, vector<string> &_listen) {
 	if (listen.empty())
 		return;
 
-	string host = parser::DEFAULT_HOST;
-	string port = parser::DEFAULT_PORT;
+	string host = standard::HOST;
+	string port = standard::PORT;
 
 	if (not directive::validateHttpListen(listen))
 		throw runtime_error("invalid listen: " + listen);
@@ -194,7 +194,7 @@ bool directive::isValidAbsolutePath(const string& target)
 		return false;
 	}
 
-	if (target.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS) != string::npos) {
+	if (target.find_first_not_of(standard::ALLOWED_CHARACTERS) != string::npos) {
 		return false;
 	}
 
@@ -316,13 +316,13 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 		_max_body_size = tmp;
 
 	if (format.empty() || format == "B")
-		_max_body_size *= parser::BYTE;
+		_max_body_size *= size::BYTE;
 	else if (format == "K")
-		_max_body_size *= parser::KILOBYTE;
+		_max_body_size *= size::KILOBYTE;
 	else if (format == "M")
-		_max_body_size *= parser::MEGABYTE;
+		_max_body_size *= size::MEGABYTE;
 	else if (format == "G")
-		_max_body_size *= parser::GIGABYTE;
+		_max_body_size *= size::GIGABYTE;
 	else
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
@@ -425,7 +425,7 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 			for (; newListenIt != newListen.end(); newListenIt++) {
 
 				list<string> tmp2 = parser::split(*newListenIt, ':');
-				if (tmp2.front() != parser::DEFAULT_HOST
+				if (tmp2.front() != standard::HOST
 					&& tmp.front() == tmp2.front()
 					&& tmp.back() == tmp2.back()) {
 
@@ -448,22 +448,22 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 void directive::setHttpDefaultValues(Http &http) {
 
 	if (http.getMaxBodySize() == 0)
-		http.setMaxBodySize(parser::DEFAULT_MAX_BODY_SIZE);
+		http.setMaxBodySize(standard::MAX_BODY_SIZE);
 
 	if (http.getIndexes().size() == 0)
-		http.addIndex(parser::DEFAULT_INDEXES);
+		http.addIndex(standard::DEFAULT_INDEXES);
 
 	if (http.getAccessLog().empty())
-		http.setAccessLog(parser::DEFAULT_ACCESS_LOG);
+		http.setAccessLog(standard::ACCESS_LOG);
 
 	if (http.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		http.setAutoIndex(parser::AUTOINDEX_OFF);
 
 	if (http.getErrorLog().empty())
-		http.setErrorLog(parser::DEFAULT_ERROR_LOG);
+		http.setErrorLog(standard::ERROR_LOG);
 
 	if (http.getRoot().empty())
-		http.setRoot(parser::DEFAULT_ROOT);
+		http.setRoot(standard::ROOT_DIR);
 
 	vector<Server> servers = http.getServers();
 	vector<Server>::iterator it = servers.begin();

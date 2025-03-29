@@ -6,6 +6,8 @@
 #include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"
+#include "standard.hpp"
+#include "size.hpp"
 #include "response.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -53,10 +55,10 @@ void request::parseStartLine(Connection *connection, string &line) {
 
 	URL::decode(target);
 
-	if (target.size() > 2 * parser::KILOBYTE)
+	if (target.size() > 2 * size::KILOBYTE)
 		return response::pageURITooLong(connection);
 
-	if (protocol != response::PROTOCOL)
+	if (protocol != standard::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
@@ -103,7 +105,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 	URL::decode(value);
 
-	if (value.size() > 8 * parser::KILOBYTE)
+	if (value.size() > 8 * size::KILOBYTE)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	parser::trim(value, " \t\v\r");

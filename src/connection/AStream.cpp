@@ -1,5 +1,6 @@
 #include "AStream.hpp"
 #include "WebServ.hpp"
+#include "standard.hpp"
 #include <ctime>
 #include <string>
 
@@ -112,7 +113,7 @@ bool AStream::isTimedOut(void) const {
 
 	size_t elapsed_time = time(NULL) - _time;
 	
-	if (elapsed_time >= WebServ::TIMEOUT)
+	if (elapsed_time >= standard::TIMEOUT)
 		return true;
 
 	return false;

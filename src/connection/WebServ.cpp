@@ -3,12 +3,15 @@
 #include "Http.hpp"
 #include "IStream.hpp"
 #include "WebServ.hpp"
-#include "response.hpp"
 #include "logger.hpp"
+#include "response.hpp"
+#include "standard.hpp"
+#include "parser.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <list>
 #include <map>
 #include <set>
 #include <sstream>
@@ -139,7 +142,7 @@ int WebServ::createSocket(string host) {
 
 	freeaddrinfo(res);
 
-	if (listen(fd, WebServ::MAX_EVENTS) == -1) {
+	if (listen(fd, standard::MAX_EVENTS) == -1) {
 		close(fd);
 		throw runtime_error("listen failed");
 	}
@@ -226,8 +229,8 @@ void WebServ::inputHandler(map<int, IStream *>::iterator it) {
 	int fd = it->first;
 	IStream *stream = it->second;
 
-	vector<char> buffer(BUFFER_SIZE);
-	int bytes_read = recv(fd, buffer.data(), WebServ::BUFFER_SIZE, MSG_NOSIGNAL);
+	vector<char> buffer(standard::BUFFER_SIZE);
+	int bytes_read = recv(fd, buffer.data(), standard::BUFFER_SIZE, MSG_NOSIGNAL);
 	if (bytes_read == -1) {
 		logger::fatal("recv");
 		return closeConnection(fd);
@@ -255,7 +258,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	if (stream->getStep() < IStream::RESPONSE)
 		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	string tmp = stream->getData(WebServ::BUFFER_SIZE);
+	string tmp = stream->getData(standard::BUFFER_SIZE);
 	int status = send(fd, tmp.c_str(), tmp.size(), MSG_NOSIGNAL);
 	if (status == -1) {
 		logger::fatal("client is no longer available to receive messages");
@@ -308,10 +311,10 @@ void WebServ::run(void) {
 		logger::debug("server started, listening on " + it->first);
 	}
 
-	epoll_event events[MAX_EVENTS];
+	epoll_event events[standard::MAX_EVENTS];
 
 	while (_epoll_fd != -1) {
-		int num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, 1000);
+		int num_events = epoll_wait(_epoll_fd, events, standard::MAX_EVENTS, 1000);
 		if (num_events == -1)
 			return logger::fatal("server stoped");
 
