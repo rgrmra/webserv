@@ -1,5 +1,6 @@
 #include "directive.hpp"
 #include "parser.hpp"
+#include "size.hpp"
 #include <gtest/gtest.h>
 #include <set>
 #include <stdexcept>
@@ -278,15 +279,15 @@ TEST(DirectiveTest, setMaxBodySize) {
   EXPECT_NO_THROW(directive::setMaxBodySize("0", maxBodySize));
   EXPECT_EQ(maxBodySize, std::numeric_limits<size_t>::max());
   EXPECT_NO_THROW(directive::setMaxBodySize("1024", maxBodySize));
-  EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+  EXPECT_EQ(maxBodySize, 1024 * size::BYTE);
   EXPECT_NO_THROW(directive::setMaxBodySize("1024B", maxBodySize));
-  EXPECT_EQ(maxBodySize, 1024 * parser::BYTE);
+  EXPECT_EQ(maxBodySize, 1024 * size::BYTE);
   EXPECT_NO_THROW(directive::setMaxBodySize("1K", maxBodySize));
-  EXPECT_EQ(maxBodySize, 1 * parser::KILOBYTE);
+  EXPECT_EQ(maxBodySize, 1 * size::KILOBYTE);
   EXPECT_NO_THROW(directive::setMaxBodySize("1M", maxBodySize));
-  EXPECT_EQ(maxBodySize, 1 * parser::MEGABYTE);
+  EXPECT_EQ(maxBodySize, 1 * size::MEGABYTE);
   EXPECT_NO_THROW(directive::setMaxBodySize("1G", maxBodySize));
-  EXPECT_EQ(maxBodySize, 1 * parser::GIGABYTE);
+  EXPECT_EQ(maxBodySize, 1 * size::GIGABYTE);
   EXPECT_THROW(directive::setMaxBodySize("1T", maxBodySize), std::runtime_error);
   EXPECT_THROW(directive::setMaxBodySize("abc", maxBodySize), std::runtime_error);
 }
