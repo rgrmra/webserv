@@ -1,16 +1,15 @@
 #include "Cgi.hpp"
 #include "Connection.hpp"
-#include "Http.hpp"
 #include "Resource.hpp"
 #include "URL.hpp"
 #include "WebServ.hpp"
 #include "code.hpp"
-#include "directive.hpp"
 #include "header.hpp"
 #include "request.hpp"
 #include "response.hpp"
+#include "parser.hpp"
+#include "standard.hpp"
 #include <iostream>
-#include <list>
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
@@ -324,7 +323,7 @@ void Connection::resetConnection(void) {
 
 bool Connection::isKeepAliveTimedOut(void) const {
 
-	if (_transfers && time(NULL) - _time > WebServ::KEEP_ALIVE_TIMEOUT)
+	if (_transfers && time(NULL) - _time > standard::KEEP_ALIVE_TIMEOUT)
 		return true;
 
 	return false;

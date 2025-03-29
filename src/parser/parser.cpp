@@ -32,6 +32,14 @@ string parser::toString(size_t value) {
 	return ss.str();
 }
 
+string parser::toUpper(string text) {
+
+	for (size_t i = 0; i < text.size(); i++)
+		text.at(i) = toupper(text.at(i));
+
+	return text;
+}
+
 string parser::toLower(string text) {
 
 	for (size_t i = 0; i < text.size(); i++)

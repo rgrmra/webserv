@@ -15,11 +15,12 @@ class Cgi : public Resource {
 		std::vector<std::string> _env;
 
 		std::vector<char *> createVector(std::vector<std::string> &container);
+		void addEnv(std::string key, std::string value);
 		void populateEnv(Connection *connection);
  		void deleteVector(std::vector<char *> &container);
 		void closeSockets(void);
 		void processInput(size_t bytes);
-		void parse(void);
+		void parseCgiResponse(void);
 
 	public:
 		Cgi(Connection *connection);

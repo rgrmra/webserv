@@ -4,6 +4,7 @@
 #include "directive.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
+#include "standard.hpp"
 #include <fstream>
 #include <ostream>
 #include <string>
@@ -64,8 +65,8 @@ void Http::configure(std::string filename) {
 	parser::erase(buffer, " ;", 1);
 	parser::rerase(buffer, "; ", 1);
 
-	addErrorPage(parser::DEFAULT_404_ERROR);
-	addErrorPage(parser::DEFAULT_50x_ERROR);
+	addErrorPage(standard::ERROR_404_PAGE);
+	addErrorPage(standard::ERROR_50X_PAGE);
 
 	parser::http(*this, buffer);
 
