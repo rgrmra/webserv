@@ -33,7 +33,7 @@ TEST(ResponseBuilderManualTest, MapCanBeInitializedCorrectly) {
     response::responses[code::MOVED_PERMANENTLY] = status::MOVED_PERMANENTLY;
     response::responses[code::BAD_REQUEST] = status::BAD_REQUEST;
     response::responses[code::UNAUTHORIZED] = status::UNAUTHORIZED;
-    response::responses[code::FORBBIDEN] = status::FORBBIDEN;
+    response::responses[code::FORBIDDEN] = status::FORBIDDEN;
     response::responses[code::NOT_FOUND] = status::NOT_FOUND;
     response::responses[code::NOT_ALLOWED] = status::NOT_ALLOWED;
     response::responses[code::CONFLICT] = status::CONFLICT;
@@ -65,7 +65,7 @@ TEST(ResponseBuilderManualTest, MapHasAllExpectedCodes) {
     response::responses[code::MOVED_PERMANENTLY] = status::MOVED_PERMANENTLY;
     response::responses[code::BAD_REQUEST] = status::BAD_REQUEST;
     response::responses[code::UNAUTHORIZED] = status::UNAUTHORIZED;
-    response::responses[code::FORBBIDEN] = status::FORBBIDEN;
+    response::responses[code::FORBIDDEN] = status::FORBIDDEN;
     response::responses[code::NOT_FOUND] = status::NOT_FOUND;
     response::responses[code::NOT_ALLOWED] = status::NOT_ALLOWED;
     response::responses[code::CONFLICT] = status::CONFLICT;
@@ -87,7 +87,7 @@ TEST(ResponseBuilderManualTest, MapHasAllExpectedCodes) {
     EXPECT_TRUE(response::responses.find(code::MOVED_PERMANENTLY) != response::responses.end());
     EXPECT_TRUE(response::responses.find(code::BAD_REQUEST) != response::responses.end());
     EXPECT_TRUE(response::responses.find(code::UNAUTHORIZED) != response::responses.end());
-    EXPECT_TRUE(response::responses.find(code::FORBBIDEN) != response::responses.end());
+    EXPECT_TRUE(response::responses.find(code::FORBIDDEN) != response::responses.end());
     EXPECT_TRUE(response::responses.find(code::NOT_FOUND) != response::responses.end());
     EXPECT_TRUE(response::responses.find(code::NOT_ALLOWED) != response::responses.end());
     EXPECT_TRUE(response::responses.find(code::CONFLICT) != response::responses.end());

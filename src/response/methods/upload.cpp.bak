@@ -28,7 +28,7 @@ void process::handleFileUpload(Connection *connection) {
 	
 	// Security: verify path doesn't contain directory traversal
 	if (absolutePath.find("..") != string::npos) {
-		return response::builder(connection, code::FORBBIDEN);
+		return response::builder(connection, code::FORBIDDEN);
 	}
 	
 	// Check if the path exists (for appending) or can be created (for new files)
@@ -58,7 +58,7 @@ void process::handleFileUpload(Connection *connection) {
 	if (!outFile.is_open()) {
 		// Could not open file for writing
 		if (errno == EACCES) {
-			return response::builder(connection, code::FORBBIDEN);
+			return response::builder(connection, code::FORBIDDEN);
 		} else {
 			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
 		}

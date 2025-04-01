@@ -23,7 +23,7 @@ void process::methodGet(Connection *connection) {
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
 
-			return response::builder(connection, code::FORBBIDEN);
+			return response::builder(connection, code::FORBIDDEN);
 		}
 
 		connection->addHeader(header::LOCATION, uri->getLocation() + '/');

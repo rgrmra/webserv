@@ -26,7 +26,7 @@ void process::handleMultipartFormData(Connection *connection) {
 		return response::builder(connection, code::BAD_REQUEST);
 	}
 	
-	string boundary = contentType.substr(boundaryPos + 8);
+	string boundary = contentType.substr(boundaryPos + 9);
 	string delimiter = "--" + boundary;
 	string closeDelimiter = delimiter + "--";
 	

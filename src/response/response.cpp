@@ -82,7 +82,7 @@ void response::builder(Connection *connection, string code) {
 		responses[code::MOVED_PERMANENTLY] = status::MOVED_PERMANENTLY;
 		responses[code::BAD_REQUEST] = status::BAD_REQUEST;
 		responses[code::UNAUTHORIZED] = status::UNAUTHORIZED;
-		responses[code::FORBBIDEN] = status::FORBBIDEN;
+		responses[code::FORBIDDEN] = status::FORBIDDEN;
 		responses[code::NOT_FOUND] = status::NOT_FOUND;
 		responses[code::NOT_ALLOWED] = status::NOT_ALLOWED;
 		responses[code::CONFLICT] = status::CONFLICT;
@@ -159,11 +159,11 @@ void response::pageUnauthorized(Connection *connection) {
 	buildHeaderAndBody(connection);
 }
 
-// deprecated: use response::builder(connection, code::FORBBIDEN)
-void response::pageForbbiden(Connection *connection) {
+// deprecated: use response::builder(connection, code::FORBIDDEN)
+void response::pageFORBIDDEN(Connection *connection) {
 
-	connection->setCode(code::FORBBIDEN);
-	connection->setStatus(status::FORBBIDEN);
+	connection->setCode(code::FORBIDDEN);
+	connection->setStatus(status::FORBIDDEN);
 	connection->setResource(new Page(connection));
 	buildHeaderAndBody(connection);
 }
