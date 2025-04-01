@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include "parser.hpp"
+#include "size.hpp"
 #include <gtest/gtest.h>
 #include <ios>
 #include <limits>
@@ -56,7 +57,7 @@ TEST(Location, setLocationMaxBodySize10ByMethod) {
 }
 
 std::string location_max_body_size_byte = "1B";
-size_t location_max_body_size_byte_result = parser::BYTE;
+size_t location_max_body_size_byte_result = size::BYTE;
 
 TEST(Location, setLocationMaxBodySize1BByBuffer) {
 	std::string buffer = "location /{client_max_body_size " + location_max_body_size_byte + ";}";
@@ -73,7 +74,7 @@ TEST(Location, setLocationMaxBodySize1BByMethod) {
 }
 
 std::string location_max_body_size_kilobyte = "1K";
-size_t location_max_body_size_kilobyte_result = parser::KILOBYTE;
+size_t location_max_body_size_kilobyte_result = size::KILOBYTE;
 
 TEST(Location, setLocationMaxBodySize1KByBuffer) {
 	std::string buffer = "location /{client_max_body_size " + location_max_body_size_kilobyte+ ";}";
@@ -90,7 +91,7 @@ TEST(Location, setLocationMaxBodySize1KByMethod) {
 }
 
 std::string location_max_body_size_megabyte = "1M";
-size_t location_max_body_size_megabyte_result = parser::MEGABYTE;
+size_t location_max_body_size_megabyte_result = size::MEGABYTE;
 
 TEST(Location, setLocationMaxBodySize1MByBuffer) {
 	std::string buffer = "location /{client_max_body_size " + location_max_body_size_megabyte + ";}";
@@ -107,7 +108,7 @@ TEST(Location, setLocationMaxBodySize1MByMethod) {
 }
 
 std::string location_max_body_size_gigabyte = "1G";
-size_t location_max_body_size_gigabyte_result = parser::GIGABYTE;
+size_t location_max_body_size_gigabyte_result = size::GIGABYTE;
 
 TEST(Location, setLocationMaxBodySize1GByBuffer) {
 	std::string buffer = "location /{client_max_body_size " + location_max_body_size_gigabyte + ";}";

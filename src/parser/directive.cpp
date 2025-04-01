@@ -3,9 +3,10 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "logger.hpp"
+#include "method.hpp"
 #include "parser.hpp"
-#include <iostream>
-#include <iterator>
+#include "size.hpp"
+#include "standard.hpp"
 #include <limits>
 #include <list>
 #include <map>
@@ -46,7 +47,7 @@ bool directive::validateHttpListen(string listen) {
 	if (listen.find_first_not_of(".:0123456789") != string::npos)
 		return false;
 
-	if (listen.at(0) == ':' || listen.at(listen.size() - 1) == ':')
+	if (listen.at(0) == ':' || parser::lastCharacter(listen) == ':')
 		return false;
 
 	if (listen.find("::") != string::npos)
@@ -70,7 +71,7 @@ bool directive::validateHttpHost(string host) {
 	if (host.find("..") != string::npos)
 		return false;
 
-	if (host.at(0) == '.' || host.at(host.size() - 1) == '.')
+	if (host.at(0) == '.' || parser::lastCharacter(host) == '.')
 		return false;
 
 	list<string> octets = parser::split(host, '.');
@@ -110,8 +111,8 @@ void directive::addListen(string listen, vector<string> &_listen) {
 	if (listen.empty())
 		return;
 
-	string host = parser::DEFAULT_HOST;
-	string port = parser::DEFAULT_PORT;
+	string host = standard::HOST;
+	string port = standard::PORT;
 
 	if (not directive::validateHttpListen(listen))
 		throw runtime_error("invalid listen: " + listen);
@@ -146,10 +147,10 @@ bool directive::validateName(string name) {
 	if (name.empty())
 		return false;
 
-	if (name.at(0) == '-' || name.at(name.size() - 1) == '-')
+	if (name.at(0) == '-' || parser::lastCharacter(name) == '-')
 		return false;
 
-	if (name.at(0) == '.' || name.at(name.size() - 1) == '.')
+	if (name.at(0) == '.' || parser::lastCharacter(name) == '.')
 		return false;
 
 	for (string::iterator it = name.begin(); it != name.end(); it++) {
@@ -193,7 +194,7 @@ bool directive::isValidAbsolutePath(const string& target)
 		return false;
 	}
 
-	if (target.find_first_not_of(parser::DEFAULT_ALLOWED_CHARACTERS) != string::npos) {
+	if (target.find_first_not_of(standard::ALLOWED_CHARACTERS) != string::npos) {
 		return false;
 	}
 
@@ -235,9 +236,9 @@ void directive::setURI(string uri, string &_uri) {
 
 bool directive::validateHttpMethod(string method) {
 
-	list<string> allowed_methods = parser::split(parser::DEFAULT_ALLOW_METHODS, ' ');
+	set<string> &allowed_methods = method::getAllowedMethods();
 
-	list<string>::iterator it = allowed_methods.begin();
+	set<string>::iterator it = allowed_methods.begin();
 	for (; it != allowed_methods.end(); it++)
 		if (*it == method)
 			return true;
@@ -315,13 +316,13 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size) {
 		_max_body_size = tmp;
 
 	if (format.empty() || format == "B")
-		_max_body_size *= parser::BYTE;
+		_max_body_size *= size::BYTE;
 	else if (format == "K")
-		_max_body_size *= parser::KILOBYTE;
+		_max_body_size *= size::KILOBYTE;
 	else if (format == "M")
-		_max_body_size *= parser::MEGABYTE;
+		_max_body_size *= size::MEGABYTE;
 	else if (format == "G")
-		_max_body_size *= parser::GIGABYTE;
+		_max_body_size *= size::GIGABYTE;
 	else
 		throw runtime_error("invalid value to max_body_size: " + max_body_size);
 }
@@ -424,7 +425,7 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 			for (; newListenIt != newListen.end(); newListenIt++) {
 
 				list<string> tmp2 = parser::split(*newListenIt, ':');
-				if (tmp2.front() != parser::DEFAULT_HOST
+				if (tmp2.front() != standard::HOST
 					&& tmp.front() == tmp2.front()
 					&& tmp.back() == tmp2.back()) {
 
@@ -447,22 +448,22 @@ void directive::addServer(Server server, vector<Server> &_servers) {
 void directive::setHttpDefaultValues(Http &http) {
 
 	if (http.getMaxBodySize() == 0)
-		http.setMaxBodySize(parser::DEFAULT_MAX_BODY_SIZE);
+		http.setMaxBodySize(standard::MAX_BODY_SIZE);
 
 	if (http.getIndexes().size() == 0)
-		http.addIndex(parser::DEFAULT_INDEXES);
+		http.addIndex(standard::DEFAULT_INDEXES);
 
 	if (http.getAccessLog().empty())
-		http.setAccessLog(parser::DEFAULT_ACCESS_LOG);
+		http.setAccessLog(standard::ACCESS_LOG);
 
 	if (http.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		http.setAutoIndex(parser::AUTOINDEX_OFF);
 
 	if (http.getErrorLog().empty())
-		http.setErrorLog(parser::DEFAULT_ERROR_LOG);
+		http.setErrorLog(standard::ERROR_LOG);
 
 	if (http.getRoot().empty())
-		http.setRoot(parser::DEFAULT_ROOT);
+		http.setRoot(standard::ROOT_DIR);
 
 	vector<Server> servers = http.getServers();
 	vector<Server>::iterator it = servers.begin();
@@ -473,6 +474,7 @@ void directive::setHttpDefaultValues(Http &http) {
 }
 
 void directive::setServerDefaultValues(Http &http, Server &server) {
+
 	if (server.getMaxBodySize() == 0)
 		server.setMaxBodySize(parser::toString(http.getMaxBodySize()));
 
@@ -498,6 +500,7 @@ void directive::setServerDefaultValues(Http &http, Server &server) {
 }
 
 void directive::setLocationDefaultValues(Server &server, Location &location) {
+
 	if (location.getRoot().empty())
 		location.setRoot(server.getRoot());
 
@@ -505,7 +508,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 		location.setIndexes(server.getIndexes());
 
 	if (location.getDenyMethods() == false)
-		location.addMethod(parser::DEFAULT_ALLOW_METHODS);
+		location.setMethods(method::getAllowedMethods());
 
 	if (location.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		location.setAutoIndex(server.getAutoIndexBitSet());

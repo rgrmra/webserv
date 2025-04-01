@@ -3,15 +3,14 @@
 #include "Page.hpp"
 #include "WebServ.hpp"
 #include "code.hpp"
+#include "env.hpp"
 #include "header.hpp"
 #include "parser.hpp"
-#include "request.hpp"
 #include "response.hpp"
-#include "status.hpp"
+#include "standard.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -27,8 +26,7 @@ using namespace std;
 Cgi::Cgi(Connection *connection)
 	: Resource(connection) {
 
-	_sock[0] = -1;
-	_sock[1] = -1;
+	std::memset(_sock, -1, 2 * sizeof(int));
 
 	if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, _sock) == -1)
 	 	throw runtime_error("socketpair failed");
@@ -82,6 +80,11 @@ Cgi::Cgi(Connection *connection)
 		webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
 }
 
+void Cgi::addEnv(string key, string value) {
+
+	_env.push_back(key + "=" + value);
+}
+
 void Cgi::populateEnv(Connection *connection) {
 
 	Server &server = connection->getServer();
@@ -92,24 +95,22 @@ void Cgi::populateEnv(Connection *connection) {
 	list<string> tmp = parser::split(connection->getId(), ':');
 	//Server side
 	//example for http://example.com/cgi-bin/script.php/extra/path
-	_env.push_back("GATEWAY_INTERFACE=" + response::GATEWAY_INTERFACE);
+	addEnv(env::GATEWAY_INTERFACE, standard::GATEWAY_INTERFACE);
 	// Só se tiver path info, path info é o que vem depois do script name
 	// ex, "/extra/path" precisa setar PATH_INFO e PATH_TRANSLATED
-	// _env.push_back("PATH_INFO=");// ex, "/extra/path"
-	// _env.push_back("PATH_TRANSLATED=");// ex, "/var/www/extra/path"
-	_env.push_back("QUERY_STRING=" + connection->getUri()->getQuery());
-	_env.push_back("REMOTE_ADDR=" + connection->getId());// Client IP address
-	_env.push_back("REMOTE_HOST=" + (*connection)[header::HOST]);// Client host name or IP if not Host Name
-	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
-	_env.push_back("SCRIPT_NAME=");//ex, "/cgi-bin/script.php"
-	_env.push_back("SERVER_NAME=" + server_name);// ex "example.com"
-	_env.push_back("REMOTE_PORT=" + tmp.back());// Client port
-	_env.push_back("SERVER_PROTOCOL=" + response::PROTOCOL);
-	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
-	_env.push_back("REQUEST_METHOD=" + connection->getMethod());
-	_env.push_back("SCRIPT_FILENAME=" + connection->getUri()->getAbsolutePath());
-	_env.push_back("SERVER_SOFTWARE=" + response::SERVER_SOFTWARE);
-	_env.push_back("REDIRECT_STATUS=200");
+	//addEnv(env::PATH_INFO, ""); // ex, "/extra/path"
+	//addEnv(env::PATH_TRANSLATED, ""); // ex, "/var/www/extra/path"
+	addEnv(env::QUERY_STRING, connection->getUri()->getQuery()); // Query String
+	addEnv(env::REMOTE_ADDR, connection->getId()); // Client IP Adress
+	addEnv(env::REMOTE_HOST, (*connection)[header::HOST]); // Client hostname or Ip if not hostname
+	addEnv(env::REMOTE_PORT, tmp.back()); // Client port
+	addEnv(env::REQUEST_METHOD, connection->getMethod());
+	addEnv(env::SCRIPT_NAME, ""); // Ex: /cgi-bin/srcript.php
+	addEnv(env::SERVER_NAME, server_name); // Ex: "example.com";
+	addEnv(env::SERVER_PROTOCOL, standard::PROTOCOL);
+	addEnv(env::SERVER_SOFTWARE, standard::SERVER_SOFTWARE);
+	addEnv(env::SCRIPT_FILENAME, connection->getUri()->getAbsolutePath());
+	addEnv(env::REDIRECT_STATUS, code::OK);
 
 	//From headers
 	map<string, string> headers = connection->getHeaders();
@@ -117,21 +118,18 @@ void Cgi::populateEnv(Connection *connection) {
 		string key = it->first;
 		string value = it->second;
 
-		string transformed_key;
-		for (size_t i = 0; i < key.size(); ++i) {
-			transformed_key += (key[i] == '-') ? '_' : toupper(key[i]);
-		}
+		string transformed_key = parser::toUpper(key);
+		parser::replace(transformed_key, '-', '_');
 
-		if (transformed_key == "CONTENT_TYPE") {
-			_env.push_back("CONTENT_TYPE=" + value);
-		} else if (transformed_key == "CONTENT_LENGTH") {
-			_env.push_back("CONTENT_LENGTH=" + value);
-		} else if (transformed_key == "AUTHORIZATION") {
+		if (transformed_key == env::CONTENT_TYPE)
+			addEnv(header::CONTENT_TYPE, value);
+		else if (transformed_key == env::CONTENT_LENGTH)
+			addEnv(header::CONTENT_LENGTH, value);
+		else if (transformed_key == env::AUTHORIZATION)
 			// TODO: precisamos verificar se splitamos em AUTH_TYPE e REMOTE_USER
-			_env.push_back("HTTP_AUTHORIZATION=" + value); // or parse it
-		} else {
-			_env.push_back("HTTP_" + transformed_key + "=" + value);
-		}
+			addEnv(env::AUTHORIZATION, value);
+		else
+			addEnv(env::HTTP_PREFIX + transformed_key, value);
 	}
 }
 
@@ -161,7 +159,7 @@ vector<char *> Cgi::createVector(vector<string> &container) {
 	vector<char *> tmp;
 
 	for (size_t i = 0; i < container.size(); i++) {
-		char * env = new char[container[i].size() + 1];
+		char *env = new char[container[i].size() + 1];
 		tmp.push_back(strcpy(env, container[i].c_str()));
 	}
 	tmp.push_back(NULL);
@@ -172,6 +170,7 @@ vector<char *> Cgi::createVector(vector<string> &container) {
 void Cgi::deleteVector(vector<char *> &container) {
 
 	vector<char *>::iterator it = container.begin();
+
 	for (; it != container.end() && *it; ++it) {
 		delete[] *it;
 	}
@@ -187,12 +186,12 @@ void Cgi::closeSockets(void) {
 		close(_sock[1]);
 }
 
-void Cgi::parse(void) {
+void Cgi::parseCgiResponse(void) {
 
 	istringstream iss(_output);
 	string line;
 
-	_connection->setHeaders(response::EMPTY_HEADER);
+	_connection->setHeaders(standard::EMPTY_HEADER);
 
 	while(getline(iss, line) && !line.empty()) {
 
@@ -219,7 +218,7 @@ void Cgi::sendCGI(void) {
 	if (_output.find_first_of("\r\n\r\n") == string::npos)
 		return response::pageInternalServerError(_connection);
 
-	parse();
+	parseCgiResponse();
 
 	if (*_connection == header::STATUS) {
 

@@ -1,7 +1,7 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "parser.hpp"
+#include "size.hpp"
 #include <map>
 #include <netdb.h>
 #include <string>
@@ -31,11 +31,6 @@ class WebServ {
 		void checkTimeOut(void);
 
 	public:
-		static const int BUFFER_SIZE = 128 * parser::KILOBYTE;
-		static const int MAX_EVENTS = 252;
-		static const long KEEP_ALIVE_TIMEOUT = 3;
-		static const long TIMEOUT = 30;
-		
 		static WebServ *getInstance(void);
 
 		virtual ~WebServ(void);

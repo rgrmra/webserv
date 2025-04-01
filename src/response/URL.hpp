@@ -32,7 +32,6 @@ class URL {
 
 		std::string checkIndex(const Location &location, std::string &path);
 
-		void convertCharacters(std::string &path);
 		void formatPath(std::string path);
 		void processPath(std::string path);
 
@@ -72,6 +71,8 @@ class URL {
 		bool isWritable(void) const;
 		bool isExecutable(void) const;
 		bool isDeletable(void) const;
+
+		static void decode(std::string &path);
 
 };
 

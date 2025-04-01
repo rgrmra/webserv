@@ -7,6 +7,11 @@
 
 using namespace std;
 
+const char &parser::lastCharacter(const string &text) {
+
+	return text.at(text.size() - 1);
+}
+
 size_t parser::toSizeT(string value) {
 
 	stringstream ss;
@@ -25,6 +30,14 @@ string parser::toString(size_t value) {
 	ss << value;
 
 	return ss.str();
+}
+
+string parser::toUpper(string text) {
+
+	for (size_t i = 0; i < text.size(); i++)
+		text.at(i) = toupper(text.at(i));
+
+	return text;
 }
 
 string parser::toLower(string text) {

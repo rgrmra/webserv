@@ -8,8 +8,8 @@
 #include "logger.hpp"
 #include "process.hpp"
 #include "response.hpp"
+#include "standard.hpp"
 #include "status.hpp"
-#include <iostream>
 #include <map>
 #include <string>
 
@@ -34,8 +34,8 @@ static void buildHeaderAndBody(Connection *connection) {
 	string header_connection = (*connection)[header::CONNECTION];
 	string header_location = (*connection)[header::LOCATION];
 
-	connection->setProtocol(response::PROTOCOL);
-	connection->setHeaders(response::EMPTY_HEADER);
+	connection->setProtocol(standard::PROTOCOL);
+	connection->setHeaders(standard::EMPTY_HEADER);
 
 	connection->addHeader(header::CONNECTION, header_connection);
 	connection->addHeader(header::LOCATION, header_location);
@@ -46,7 +46,7 @@ static void buildHeaderAndBody(Connection *connection) {
 static bool checkErrorPages(Connection *connection) {
 
 	string page = connection->getLocation().getErrorPageByCode(connection->getCode());
-	if (page == "")
+	if (page.empty())
 		return false;
 
 	string path = connection->getTarget();

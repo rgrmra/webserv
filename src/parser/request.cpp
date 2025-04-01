@@ -4,7 +4,10 @@
 #include "code.hpp"
 #include "directive.hpp"
 #include "header.hpp"
+#include "method.hpp"
 #include "parser.hpp"
+#include "standard.hpp"
+#include "size.hpp"
 #include "response.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -31,7 +34,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 
 	string method, target, protocol;
 
-	if (line.at(line.size() - 1) != '\r')
+	if (parser::lastCharacter(line) != '\r')
 		return response::pageBadRequest(connection);
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
@@ -47,13 +50,15 @@ void request::parseStartLine(Connection *connection, string &line) {
 	if (!directive::validateHttpMethod(method))
 		return response::pageMethodNotAllowed(connection);
 
-	if (target.size() > 2 * parser::KILOBYTE)
-		return response::pageURITooLong(connection);
-
 	if (!directive::isValidRequestTarget(target))
 		return response::pageBadRequest(connection);
 
-	if (protocol != response::PROTOCOL)
+	URL::decode(target);
+
+	if (target.size() > 2 * size::KILOBYTE)
+		return response::pageURITooLong(connection);
+
+	if (protocol != standard::PROTOCOL)
 		return response::pageHttpVersionNotSupported(connection);
 
 	connection->setMethod(method);
@@ -66,7 +71,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 
 void request::parseHeaders(Connection *connection, std::string &line) {
 
-	if (line.at(line.size() - 1) != '\r')
+	if (parser::lastCharacter(line) != '\r')
 		return response::pageBadRequest(connection);
 
 	if (line == "\r") {
@@ -77,7 +82,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 		if (!connection->getHeadersSize())
 			return response::pageBadRequest(connection);
 
-		if (connection->getMethod() == "POST"
+		if (connection->getMethod() == method::POST
 			&& !(*connection == header::CONTENT_LENGTH)
 			&& !(*connection == header::TRANSFER_ENCONDING))
 			return response::pageBadRequest(connection);
@@ -98,13 +103,16 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
 
+	URL::decode(value);
+
+	if (value.size() > 8 * size::KILOBYTE)
+		return response::builder(connection, code::BAD_REQUEST);
+
 	parser::trim(value, " \t\v\r");
 
 	validateHeader(connection, key, value);
 
 	connection->addHeader(key, value);
-
-	return;
 }
 
 void request::parseBody(Connection *connection, string &line) {
@@ -159,7 +167,7 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 
 	size_t chunk_line_length;
 	convertToHex(connection, chunk_size_value, chunk_line_length);
-	if (connection->getCode() != "")
+	if (connection->getCode().size())
 		return;
 
 	string chunk_line_value = buffer.substr(chunk_size_length, chunk_line_length);
@@ -204,7 +212,7 @@ void request::validateHeader(Connection *connection, string &key, string &value)
 
 void request::validateContentLength(Connection *connection, string &value) {
 
-	if (connection->getMethod() != "POST")
+	if (connection->getMethod() != method::POST)
 		return response::pageBadRequest(connection);
 
 	if (value.find_first_not_of("0123456789") != string::npos)
@@ -233,7 +241,7 @@ void request::validateHost(Connection *connection, string &value) {
 
 void request::validateTransferEncoding(Connection *connection, string &value) {
 
-	if (connection->getMethod() != "POST")
+	if (connection->getMethod() != method::POST)
 		return response::pageBadRequest(connection);
 
 	if (value != "chunked")
