@@ -12,7 +12,7 @@ namespace status {
 	static const std::string MOVED_PERMANENTLY = "Moved Permanently";
 	static const std::string BAD_REQUEST = "Bad Request";
 	static const std::string UNAUTHORIZED = "Unauthorized";
-	static const std::string FORBBIDEN = "Forbbiden";
+	static const std::string FORBIDDEN = "FORBIDDEN";
 	static const std::string NOT_FOUND = "Not Found";
 	static const std::string NOT_ALLOWED = "Method Not Allowed";
 	static const std::string CONFLICT = "Conflict";

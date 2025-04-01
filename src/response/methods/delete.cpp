@@ -32,7 +32,7 @@ void process::methodDelete(Connection *connection) {
 	if (uri->isDirectory())
 		return deleteDirectory(connection, uri);
 	
-	return response::builder(connection, code::FORBBIDEN);
+	return response::builder(connection, code::FORBIDDEN);
 }
 
 void process::deleteDirectory(Connection *connection, URL *uri) {
@@ -45,7 +45,7 @@ void process::deleteDirectory(Connection *connection, URL *uri) {
 		return response::builder(connection, code::NO_CONTENT);
 	}
 
-	return response::builder(connection, code::FORBBIDEN);
+	return response::builder(connection, code::FORBIDDEN);
 }
 
 void process::deleteFile(Connection *connection, URL *uri) {
@@ -58,7 +58,7 @@ void process::deleteFile(Connection *connection, URL *uri) {
 		return response::builder(connection, code::NO_CONTENT);
 	}
 
-	return response::builder(connection, code::FORBBIDEN);
+	return response::builder(connection, code::FORBIDDEN);
 }
 
 void process::methodDeleteCgi(Connection *connection) {
@@ -72,5 +72,5 @@ void process::methodDeleteCgi(Connection *connection) {
 	if (uri->isFile())
 		return connection->setResource(new Cgi(connection));
 	
-	return response::builder(connection, code::FORBBIDEN);
+	return response::builder(connection, code::FORBIDDEN);
 }

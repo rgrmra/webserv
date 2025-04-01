@@ -1,0 +1,87 @@
+#include "code.hpp"
+#include "header.hpp"
+#include "Cgi.hpp"
+#include "File.hpp"
+#include "process.hpp"
+#include "Connection.hpp"
+#include "URL.hpp"
+#include "response.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <map>
+#include <cerrno> // For errno
+
+using namespace std;
+
+// Process direct file uploads/creation
+void process::handleFileUpload(Connection *connection) {
+	URL *uri = connection->getUri();
+	string body = connection->getBody();
+	string absolutePath = uri->getAbsolutePath();
+	
+	// Check if we have content
+	if (body.empty()) {
+		return response::builder(connection, code::BAD_REQUEST);
+	}
+	
+	// Security: verify path doesn't contain directory traversal
+	if (absolutePath.find("..") != string::npos) {
+		return response::builder(connection, code::FORBIDDEN);
+	}
+	
+	// Check if the path exists (for appending) or can be created (for new files)
+	bool fileExists = uri->isFile();
+	
+	// Create or open the file
+	ofstream outFile;
+	if (fileExists) {
+		// Append to existing file if the Content-Range header is present
+		string contentRange = connection->getHeaderByKey("Content-Range");
+		if (!contentRange.empty()) {
+			// Parse Content-Range header and append at the right position
+			// Format: bytes start-end/total
+			// Example: bytes 0-1023/10240
+			
+			// For simplicity, we'll just append for now
+			outFile.open(absolutePath.c_str(), ios::binary | ios::app);
+		} else {
+			// Overwrite existing file
+			outFile.open(absolutePath.c_str(), ios::binary | ios::trunc);
+		}
+	} else {
+		// Create new file
+		outFile.open(absolutePath.c_str(), ios::binary);
+	}
+	
+	if (!outFile.is_open()) {
+		// Could not open file for writing
+		if (errno == EACCES) {
+			return response::builder(connection, code::FORBIDDEN);
+		} else {
+			return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	// Write the content
+	outFile.write(body.c_str(), body.size());
+	
+	// Check for write errors
+	if (outFile.fail()) {
+		outFile.close();
+		return response::builder(connection, code::INTERNAL_SERVER_ERROR);
+	}
+	
+	outFile.close();
+	
+	// Set appropriate headers and status code
+	connection->addHeader(header::LOCATION, uri->getLocation());
+	
+	// Return 201 Created for new files, 200 OK for updated files
+	if (!fileExists) {
+		return response::builder(connection, code::CREATED);
+	} else {
+		return response::builder(connection, code::OK);
+	}
+}

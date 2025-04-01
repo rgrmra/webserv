@@ -17,6 +17,7 @@ namespace process {
 	void deleteDirectory(Connection *connection, URL *uri);
 	void deleteFile(Connection *connection, URL *uri);
 	void methodDeleteCgi(Connection *connection);
+	
 };
 
 #endif /* PROCESS_HPP */

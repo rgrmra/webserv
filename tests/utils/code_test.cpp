@@ -34,8 +34,8 @@ TEST(CodeTest, Unauthorized) {
 	EXPECT_EQ(code::UNAUTHORIZED, "401");
 }
 
-TEST(CodeTest, Forbbiden) {
-	EXPECT_EQ(code::FORBBIDEN, "403");
+TEST(CodeTest, FORBIDDEN) {
+	EXPECT_EQ(code::FORBIDDEN, "403");
 }
 
 TEST(CodeTest, NotFound) {

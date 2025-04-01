@@ -18,7 +18,7 @@ namespace response {
 	void pageMovedPermanently(Connection *connection);
 	void pageBadRequest(Connection *connection);
 	void pageUnauthorized(Connection *connection);
-	void pageForbbiden(Connection *connection);
+	void pageFORBIDDEN(Connection *connection);
 	void pageNotFound(Connection *connection);
 	void pageConflict(Connection *connection);
 	void pageMethodNotAllowed(Connection *connection);

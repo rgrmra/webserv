@@ -29,8 +29,8 @@ TEST(StatusTest, Unauthorized) {
 	EXPECT_EQ(status::UNAUTHORIZED, "Unauthorized");
 }
 
-TEST(StatusTest, Forbbiden) {
-	EXPECT_EQ(status::FORBBIDEN, "Forbbiden");
+TEST(StatusTest, FORBIDDEN) {
+	EXPECT_EQ(status::FORBIDDEN, "FORBIDDEN");
 }
 
 TEST(StatusTest, NotFound) {

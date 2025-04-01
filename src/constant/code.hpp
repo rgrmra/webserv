@@ -14,7 +14,7 @@ namespace code {
 	static const std::string MOVED_PERMANENTLY = "301";
 	static const std::string BAD_REQUEST = "400";
 	static const std::string UNAUTHORIZED = "401";
-	static const std::string FORBBIDEN = "403";
+	static const std::string FORBIDDEN = "403";
 	static const std::string NOT_FOUND = "404";
 	static const std::string NOT_ALLOWED = "405";
 	static const std::string CONFLICT = "409";
