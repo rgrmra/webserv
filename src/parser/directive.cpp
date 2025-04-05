@@ -526,6 +526,6 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 	directive::mergeErrorPages(server.getErrorPages(), error_pages);
 	location.setErrorPages(error_pages);
 
-	if (location.getReturnCode().empty() && server.getReturnCode().size())
+	if (server.getReturnCode().size())
 		location.setReturn(server.getReturnCode() + " " + server.getReturnURI());
 }

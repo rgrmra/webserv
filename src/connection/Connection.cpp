@@ -333,6 +333,7 @@ void Connection::sendTimeOut(void) {
 
 	if (_file && dynamic_cast<Cgi *>(_file))
 		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
+	
 	response::pageGatewayTimeOut(this);
 }
 

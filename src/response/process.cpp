@@ -17,6 +17,11 @@ void process::request(Connection *connection) {
 	if (location.empty())
 		return response::builder(connection, code::NOT_FOUND);
 
+	if (location.getReturnCode().size()) {
+		connection->addHeader(header::LOCATION, location.getReturnURI());
+		return response::builder(connection, location.getReturnCode());
+	}
+
 	URL *uri = connection->getUri();
 	if (!uri->isFile() && !uri->isDirectory())
 		return response::builder(connection, code::NOT_FOUND);

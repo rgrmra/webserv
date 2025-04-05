@@ -288,8 +288,13 @@ void WebServ::checkTimeOut(void) {
 		if (!connection)
 			continue;
 
-		if (connection->isTimedOut())
-			return connection->sendTimeOut();
+		if (connection->isTimedOut()) {
+			if (connection->getCode().size())
+				return connection->sendTimeOut();
+
+			closeConnection(it->first);
+			break;
+		}
 
 		if (!connection->isKeepAliveTimedOut())
 			continue;
