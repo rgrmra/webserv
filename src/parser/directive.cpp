@@ -400,6 +400,12 @@ void directive::setReturn(string value, string &_code, string &_uri) {
 	if (tmp.size() < 1 || tmp.size() > 2)
 		throw runtime_error("invalid return: " + value);
 
+	if (tmp.front().at(0) == '2')
+		throw runtime_error("invalid return code: " + tmp.front());
+
+	if (tmp.size() == 2 && tmp.front().at(0) != '3')
+		throw runtime_error("invalid return code: " + tmp.front());
+
 	if (not directive::validateHttpCode(tmp.front()))
 		throw runtime_error("invalid return code: " + tmp.front());
 
@@ -519,4 +525,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location) {
 	map<string, string> error_pages = location.getErrorPages();
 	directive::mergeErrorPages(server.getErrorPages(), error_pages);
 	location.setErrorPages(error_pages);
+
+	if (location.getReturnCode().empty() && server.getReturnCode().size())
+		location.setReturn(server.getReturnCode() + " " + server.getReturnURI());
 }
