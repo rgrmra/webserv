@@ -76,11 +76,18 @@ void Connection::parseRequest(void) {
 			break;
 
 		if (_step < IStream::HEADERS) {
+
+			if (parser::lastCharacter(line) != '\r')
+				return;
+
 			request::parseRequest(this, line);
 
 			size_t pos = _input.find("\r\n");
 			if (pos != string::npos)
 				_input = _input.substr(pos + 2);
+
+			if (_code == code::OK && _input.size())
+				return response::builder(this, code::BAD_REQUEST);
 		} else
 			return request::parseRequest(this, _input);
 	}
@@ -109,7 +116,7 @@ void Connection::processInput(size_t bytes) {
 
 	(void) bytes;
 
-	if (_input.find("\r\n") != string::npos)
+	if (_input.find("\r\n") != string::npos || _step == IStream::HEADERS)
 		parseRequest();
 }
 
