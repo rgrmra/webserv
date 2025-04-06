@@ -1,6 +1,7 @@
 #include "Connection.hpp"
 #include "Location.hpp"
 #include "URL.hpp"
+#include "Text.hpp"
 #include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"
@@ -16,11 +17,6 @@ void process::request(Connection *connection) {
 	Location &location = connection->getLocation();
 	if (location.empty())
 		return response::builder(connection, code::NOT_FOUND);
-
-	if (location.getReturnCode().size()) {
-		connection->addHeader(header::LOCATION, location.getReturnURI());
-		return response::builder(connection, location.getReturnCode());
-	}
 
 	URL *uri = connection->getUri();
 	if (!uri->isFile() && !uri->isDirectory())

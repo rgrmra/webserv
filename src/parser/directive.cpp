@@ -384,8 +384,39 @@ bool directive::validateHttpCode(string code) {
 		return false;
 
 	size_t tmp = parser::toSizeT(code);
-	if (tmp < 100 || tmp > 599)
+	if (tmp < 200 || tmp > 599)
 		return false;
+
+	return true;
+}
+
+static bool validateReturn(string &tmp) {
+
+	if (tmp.empty())
+		return true;
+
+	string quote = string(1, tmp.at(0));
+	if (quote.at(0) != '\'' && quote.at(0) != '\"')
+		return true;
+
+	size_t first = tmp.find_first_of(quote);
+	size_t last = tmp.find_last_of(quote);
+	if (first == string::npos && last == string::npos)
+		return true;
+
+	if (first == string::npos || last == string::npos)
+		return false;
+
+	first++;
+
+	string text = tmp.substr(first, last - first);
+	if (text.size() != tmp.size() - 2)
+		return false;
+
+	if (text.find_first_of(quote) != string::npos)
+		return false;
+
+	tmp = text;
 
 	return true;
 }
@@ -400,19 +431,18 @@ void directive::setReturn(string value, string &_code, string &_uri) {
 	if (tmp.size() < 1 || tmp.size() > 2)
 		throw runtime_error("invalid return: " + value);
 
-	if (tmp.front().at(0) == '2')
-		throw runtime_error("invalid return code: " + tmp.front());
-
-	if (tmp.size() == 2 && tmp.front().at(0) != '3')
-		throw runtime_error("invalid return code: " + tmp.front());
-
 	if (not directive::validateHttpCode(tmp.front()))
 		throw runtime_error("invalid return code: " + tmp.front());
 
 	_code = tmp.front();
 
-	if (tmp.size() == 2)
-		_uri = tmp.back();
+	if (tmp.size() == 1)
+		return _uri.clear();
+
+	if (!validateReturn(tmp.back()))
+		throw runtime_error("invalid return uri/text: " + tmp.back());
+
+	_uri = tmp.back();
 }
 
 void directive::addServer(Server server, vector<Server> &_servers) {

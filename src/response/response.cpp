@@ -2,6 +2,8 @@
 #include <IStream.hpp>
 #include <Page.hpp>
 #include "File.hpp"
+#include "Location.hpp"
+#include "Text.hpp"
 #include "URL.hpp"
 #include "code.hpp"
 #include "header.hpp"
@@ -72,7 +74,39 @@ static bool checkErrorPages(Connection *connection) {
 	return true;
 }
 
-void response::builder(Connection *connection, string code) {
+static bool checkReturn(Connection *connection) {
+
+	Location &location = connection->getLocation();
+	string return_code = location.getReturnCode();
+	string return_uri = location.getReturnURI();
+
+	if (return_code.empty())
+		return false;
+
+	if (return_uri.size())
+		connection->addHeader(header::LOCATION, location.getReturnURI());
+
+	string status = response::getStatusByCode(return_code);
+	if (status.empty()) {
+		return_code = code::INTERNAL_SERVER_ERROR;
+		status = status::INTERNAL_SERVER_ERROR;
+		return_uri.clear();	
+	}
+
+	connection->setCode(return_code);
+	connection->setStatus(status);
+
+	if (return_code.at(0) == '3')
+		connection->setResource(new Page(connection));
+	else if (return_uri.empty() && return_code.at(0) != '2')
+		connection->setResource(new Page(connection));
+	else
+		connection->setResource(new Text(connection));
+
+	return true;
+}
+
+string response::getStatusByCode(const string &code) {
 
 	if (responses.empty()) {
 		responses[code::OK] = status::OK;
@@ -100,187 +134,27 @@ void response::builder(Connection *connection, string code) {
 
 	map<string, string>::iterator it = responses.find(code);
 	if (it == responses.end())
+		return "";
+	
+	return it->second;
+}
+
+void response::builder(Connection *connection, string code) {
+
+	string status = getStatusByCode(code);
+	if (status.empty())
 		return builder(connection, code::INTERNAL_SERVER_ERROR);
 
 	connection->setCode(code);
-	connection->setStatus(it->second);
+	connection->setStatus(status);
 
-	if (code == code::OK)
+	if (checkReturn(connection))
+		code = connection->getCode();
+	else if (code == code::OK)
 		process::request(connection);
 	else if (!checkErrorPages(connection))
 		connection->setResource(new Page(connection));
 
 	if (code == connection->getCode())
 		buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::OK)
-void response::pageOK(Connection *connection) {
-
-	connection->setCode(code::OK);
-	connection->setStatus(status::OK);
-	process::request(connection);
-	if (connection->getCode() == code::OK)
-		buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::NO_CONTENT)
-void response::pageNoContent(Connection *connection) {
-
-	connection->setCode(code::NO_CONTENT);
-	connection->setStatus(status::NO_CONTENT);
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::MOVED_PERMANENTLY)
-void response::pageMovedPermanently(Connection *connection) {
-
-	connection->setCode(code::MOVED_PERMANENTLY);
-	connection->setStatus(status::MOVED_PERMANENTLY);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::BAD_REQUEST)
-void response::pageBadRequest(Connection *connection) {
-
-	connection->setCode(code::BAD_REQUEST);
-	connection->setStatus(status::BAD_REQUEST);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::UNAUTHORIZED)
-void response::pageUnauthorized(Connection *connection) {
-
-	connection->setCode(code::UNAUTHORIZED);
-	connection->setStatus(status::UNAUTHORIZED);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::FORBIDDEN)
-void response::pageFORBIDDEN(Connection *connection) {
-
-	connection->setCode(code::FORBIDDEN);
-	connection->setStatus(status::FORBIDDEN);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::NOT_FOUND)
-void response::pageNotFound(Connection *connection) {
-
-	connection->setCode(code::NOT_FOUND);
-	connection->setStatus(status::NOT_FOUND);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::NOT_ALLOWED)
-void response::pageMethodNotAllowed(Connection *connection) {
-
-	connection->setCode(code::NOT_ALLOWED);
-	connection->setStatus(status::NOT_ALLOWED);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::LENGTH_REQUIRED)
-void response::pageLengthRequired(Connection *connection) {
-
-	connection->setCode(code::LENGTH_REQUIRED);
-	connection->setStatus(status::LENGTH_REQUIRED);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::PAYLOAD_TOO_LARGE)
-void response::pagePayloadTooLarge(Connection *connection) {
-
-	connection->setCode(code::PAYLOAD_TOO_LARGE);
-	connection->setStatus(status::PAYLOAD_TOO_LARGE);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::URI_TOO_LONG)
-void response::pageURITooLong(Connection *connection) {
-
-	connection->setCode(code::URI_TOO_LONG);
-	connection->setStatus(status::URI_TOO_LONG);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::UNSUPPORTED_MEDIA_TYPE)
-void response::pageUnsupportedMediaType(Connection *connection) {
-
-	connection->setCode(code::UNSUPPORTED_MEDIA_TYPE);
-	connection->setStatus(status::UNSUPPORTED_MEDIA_TYPE);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::UNPROCESSABLE_CONTENT)
-void response::pageUnprocessableContent(Connection *connection) {
-
-	connection->setCode(code::UNPROCESSABLE_CONTENT);
-	connection->setStatus(status::UNPROCESSABLE_CONTENT);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::INTERNAL_SERVER_ERROR)
-void response::pageInternalServerError(Connection *connection) {
-
-	connection->setCode(code::INTERNAL_SERVER_ERROR);
-	connection->setStatus(status::INTERNAL_SERVER_ERROR);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::NOT_IMPLEMENTED)
-void response::pageNotImplemented(Connection *connection) {
-
-	connection->setCode(code::NOT_IMPLEMENTED);
-	connection->setStatus(status::NOT_IMPLEMENTED);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::BAD_GATEWAY)
-void response::pageBadGateway(Connection *connection) {
-
-	connection->setCode(code::BAD_GATEWAY);
-	connection->setStatus(status::BAD_GATEWAY);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::GATEWAY_TIMEOUT)
-void response::pageGatewayTimeOut(Connection *connection) {
-
-	connection->setCode(code::GATEWAY_TIMEOUT);
-	connection->setStatus(status::GATEWAY_TIMEOUT);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::HTTP_VERSION_NOT_SUPPORTED)
-void response::pageHttpVersionNotSupported(Connection *connection) {
-
-	connection->setCode(code::HTTP_VERSION_NOT_SUPPORTED);
-	connection->setStatus(status::HTTP_VERSION_NOT_SUPPORTED);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
-}
-
-// deprecated: use response::builder(connection, code::CONFLICT)
-void response::pageConflict(Connection *connection) {
-
-	connection->setCode(code::CONFLICT);
-	connection->setStatus(status::CONFLICT);
-	connection->setResource(new Page(connection));
-	buildHeaderAndBody(connection);
 }

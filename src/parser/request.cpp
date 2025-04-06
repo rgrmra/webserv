@@ -35,31 +35,31 @@ void request::parseStartLine(Connection *connection, string &line) {
 	string method, target, protocol;
 
 	if (parser::lastCharacter(line) != '\r')
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
 		return;
 
 	if (line.find_first_not_of(" \t\v") != 0)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	istringstream startline(line);
 	if (!(startline >> method >> target >> protocol))
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (!directive::validateHttpMethod(method))
-		return response::pageMethodNotAllowed(connection);
+		return response::builder(connection, code::NOT_ALLOWED);
 
 	if (!directive::isValidRequestTarget(target))
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	URL::decode(target);
 
 	if (target.size() > 2 * size::KILOBYTE)
-		return response::pageURITooLong(connection);
+		return response::builder(connection, code::URI_TOO_LONG);
 
 	if (protocol != standard::PROTOCOL)
-		return response::pageHttpVersionNotSupported(connection);
+		return response::builder(connection, code::HTTP_VERSION_NOT_SUPPORTED);
 
 	connection->setMethod(method);
 	connection->setTarget(target);
@@ -72,7 +72,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 void request::parseHeaders(Connection *connection, std::string &line) {
 
 	if (parser::lastCharacter(line) != '\r')
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (line == "\r") {
 		connection->setStep(IStream::HEADERS);
@@ -80,12 +80,12 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 		connection->setUri(new URL(connection));
 
 		if (!connection->getHeadersSize())
-			return response::pageBadRequest(connection);
+			return response::builder(connection, code::BAD_REQUEST);
 
 		if (connection->getMethod() == method::POST
 			&& !(*connection == header::CONTENT_LENGTH)
 			&& !(*connection == header::TRANSFER_ENCONDING))
-			return response::pageBadRequest(connection);
+			return response::builder(connection, code::BAD_REQUEST);
 
 		if (*connection == header::TRANSFER_ENCONDING)
 			return;
@@ -98,7 +98,7 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 	size_t separator = line.find_first_of(":");
 	if (separator == string::npos)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	string key = line.substr(0, separator);
 	string value = line.substr(separator + 1);
@@ -127,13 +127,13 @@ void request::parseBody(Connection *connection, string &line) {
 		return;
 
 	if (body_size > content_length)
-		return response::pagePayloadTooLarge(connection);
+		return response::builder(connection, code::PAYLOAD_TOO_LARGE);
 
 	connection->addBody(line);
 	line.clear();
 
 	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
-		return response::pagePayloadTooLarge(connection);
+		return response::builder(connection, code::PAYLOAD_TOO_LARGE);
 
 	response::builder(connection, code::OK);
 }
@@ -144,7 +144,7 @@ void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
 		return;
 
 	if (!parser::compare("0\r\n\r\n", buffer))
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 	buffer.clear();
 
 	connection->setStep(IStream::BODY);
@@ -160,7 +160,7 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 	size_t chunk_size_length = chunk_size_value.size() + 2;
 
 	if (chunk_size_value.find_first_not_of("0123456789ABCDEF") != string::npos)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (chunk_size_value == "0")
 		return checkTransferEncodingEnd(connection, buffer);
@@ -178,10 +178,10 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 
 	connection->addBody(chunk_line_value);
 	if (connection->getBody().size() > connection->getLocation().getMaxBodySize())
-		return response::pagePayloadTooLarge(connection);
+		return response::builder(connection, code::PAYLOAD_TOO_LARGE);
 
 	if (!parser::compare("\r\n", buffer))
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 	buffer.erase(0, 2);
 
 	return parseTransferEncoding(connection, buffer);
@@ -190,12 +190,12 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 void request::convertToHex(Connection *connection, string &line, size_t &chunck_size) {
 
 	if (line.find_first_not_of("0123456789ABCDEF") != string::npos)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	char *rest;
 	chunck_size = strtoul(line.c_str(), &rest, 16);
 	if (rest[0] != '\0')
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 }
 
 void request::validateHeader(Connection *connection, string &key, string &value) {
@@ -213,13 +213,13 @@ void request::validateHeader(Connection *connection, string &key, string &value)
 void request::validateContentLength(Connection *connection, string &value) {
 
 	if (connection->getMethod() != method::POST)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (value.find_first_not_of("0123456789") != string::npos)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (*connection == header::TRANSFER_ENCONDING)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 }
 
 void request::validateHost(Connection *connection, string &value) {
@@ -233,7 +233,7 @@ void request::validateHost(Connection *connection, string &value) {
 		server = http->getServerByListen(connection->getId());
 
 	if (server.empty())
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	connection->setHost(value);
 	connection->setServer(server);
@@ -242,11 +242,11 @@ void request::validateHost(Connection *connection, string &value) {
 void request::validateTransferEncoding(Connection *connection, string &value) {
 
 	if (connection->getMethod() != method::POST)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 
 	if (value != "chunked")
-		return response::pageNotImplemented(connection);
+		return response::builder(connection, code::NOT_IMPLEMENTED);
 
 	if (*connection == header::CONTENT_LENGTH)
-		return response::pageBadRequest(connection);
+		return response::builder(connection, code::BAD_REQUEST);
 }
