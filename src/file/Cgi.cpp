@@ -202,7 +202,7 @@ void Cgi::parseCgiResponse(void) {
 
 		size_t separator = line.find_first_of(":");
 		if (separator == string::npos)
-			return response::pageInternalServerError(_connection);
+			return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
 
 		string key = line.substr(0, separator);
 		string value = line.substr(separator + 1);
@@ -216,7 +216,7 @@ void Cgi::parseCgiResponse(void) {
 void Cgi::sendCGI(void) {
 
 	if (_output.find_first_of("\r\n\r\n") == string::npos)
-		return response::pageInternalServerError(_connection);
+		return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
 
 	parseCgiResponse();
 

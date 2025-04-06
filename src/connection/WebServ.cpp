@@ -28,19 +28,6 @@ WebServ *WebServ::_instance = NULL;
 WebServ::WebServ(void)
 	: _epoll_fd(-1) {
 
-	vector<Server> servers = Http::getInstance()->getServers();
-	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
-
-		vector<string> listens = it->getListen();
-		vector<string>::iterator itl = listens.begin();
-		for (; itl != listens.end(); itl++) {
-
-			if (isBinded(*itl))
-				continue;
-
-			_binded_sockets[*itl] = createSocket(*itl);
-		}
-	}
 }
 
 WebServ::~WebServ(void) {
@@ -288,8 +275,13 @@ void WebServ::checkTimeOut(void) {
 		if (!connection)
 			continue;
 
-		if (connection->isTimedOut())
-			return connection->sendTimeOut();
+		if (connection->isTimedOut()) {
+			if (connection->getCode().size())
+				return connection->sendTimeOut();
+
+			closeConnection(it->first);
+			break;
+		}
 
 		if (!connection->isKeepAliveTimedOut())
 			continue;
@@ -300,6 +292,20 @@ void WebServ::checkTimeOut(void) {
 }
 
 void WebServ::run(void) {
+
+	vector<Server> servers = Http::getInstance()->getServers();
+	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++) {
+
+		vector<string> listens = it->getListen();
+		vector<string>::iterator itl = listens.begin();
+		for (; itl != listens.end(); itl++) {
+
+			if (isBinded(*itl))
+				continue;
+
+			_binded_sockets[*itl] = createSocket(*itl);
+		}
+	}
 
 	_epoll_fd = epoll_create(1);
 	if (_epoll_fd < 0)
