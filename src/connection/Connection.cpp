@@ -95,9 +95,9 @@ void Connection::parseRequest(void) {
 	if (_step < IStream::BODY)
 		return;
 	else if (_step == IStream::HEADERS && _headers.empty())
-		return response::pageBadRequest(this);
+		return response::builder(this, code::BAD_REQUEST);
 	else if (_code.empty() && _host.empty())
-		return response::pageBadRequest(this);
+		return response::builder(this, code::BAD_REQUEST);
 	else if (_code.empty())
 		return response::builder(this, code::OK);
 }
@@ -340,7 +340,8 @@ void Connection::sendTimeOut(void) {
 
 	if (_file && dynamic_cast<Cgi *>(_file))
 		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
-	response::pageGatewayTimeOut(this);
+	
+	response::builder(this, code::GATEWAY_TIMEOUT);
 }
 
 void Connection::setTime() {

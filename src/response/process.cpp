@@ -1,6 +1,7 @@
 #include "Connection.hpp"
 #include "Location.hpp"
 #include "URL.hpp"
+#include "Text.hpp"
 #include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"

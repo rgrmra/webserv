@@ -36,5 +36,5 @@ void process::methodGet(Connection *connection) {
 	if (uri->isFile())
 		return connection->setResource(new File(connection));
 
-	response::pageNotFound(connection);
+	response::builder(connection, code::NOT_FOUND);
 }
