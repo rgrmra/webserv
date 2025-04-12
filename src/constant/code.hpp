@@ -22,10 +22,12 @@ namespace code {
 	static const std::string PAYLOAD_TOO_LARGE = "413";
 	static const std::string URI_TOO_LONG = "414";
 	static const std::string UNSUPPORTED_MEDIA_TYPE = "415";
+	static const std::string I_AM_A_TEAPOT = "418";
 	static const std::string UNPROCESSABLE_CONTENT = "422";
 	static const std::string INTERNAL_SERVER_ERROR = "500";
 	static const std::string NOT_IMPLEMENTED = "501";
 	static const std::string BAD_GATEWAY= "502";
+	static const std::string SERVICE_UNAVAILABLE = "503";
 	static const std::string GATEWAY_TIMEOUT = "504";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "505";
 

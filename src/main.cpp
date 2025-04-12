@@ -12,9 +12,7 @@ using namespace std;
 
 static void handle_signal(int signal) {
 	
-	(void) signal;
-
-	Http::getInstance()->stop();
+	Http::getInstance()->stop(signal);
 }
 
 int main(int argc, char *argv[]) {
@@ -34,7 +32,7 @@ int main(int argc, char *argv[]) {
 
 		http->configure(file);
 
-		Mime::getInstance()->configure("./src/parser/mimes.json");
+		Mime::getInstance()->configure("./src/parser/mime/mimes.json");
 
 		cout << *http << endl;
 
@@ -44,7 +42,7 @@ int main(int argc, char *argv[]) {
 
 		logger::fatal(exception.what());
 
-		status = EXIT_FAILURE;
+		status = http->getSignal();
 	}
 
 	delete http;

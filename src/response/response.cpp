@@ -1,5 +1,4 @@
 #include <Connection.hpp>
-#include <IStream.hpp>
 #include <Page.hpp>
 #include "File.hpp"
 #include "Location.hpp"
@@ -12,6 +11,7 @@
 #include "response.hpp"
 #include "standard.hpp"
 #include "status.hpp"
+#include "step.hpp"
 #include <map>
 #include <string>
 
@@ -19,7 +19,7 @@ using namespace std;
 
 static void buildHeaderAndBody(Connection *connection) {
 
-	connection->setStep(IStream::BODY);
+	connection->setStep(step::BODY);
 
 	string tmp = connection->getHost() + " "
 				+ connection->getMethod() + " "
@@ -124,10 +124,12 @@ string response::getStatusByCode(const string &code) {
 		responses[code::PAYLOAD_TOO_LARGE] = status::PAYLOAD_TOO_LARGE;
 		responses[code::URI_TOO_LONG] = status::URI_TOO_LONG;
 		responses[code::UNSUPPORTED_MEDIA_TYPE] = status::UNSUPPORTED_MEDIA_TYPE;
+		responses[code::I_AM_A_TEAPOT] = status::I_AM_A_TEAPOT;
 		responses[code::UNPROCESSABLE_CONTENT] = status::UNPROCESSABLE_CONTENT;
 		responses[code::INTERNAL_SERVER_ERROR] = status::INTERNAL_SERVER_ERROR;
 		responses[code::NOT_IMPLEMENTED] = status::NOT_IMPLEMENTED;
 		responses[code::BAD_GATEWAY] = status::BAD_GATEWAY;
+		responses[code::SERVICE_UNAVAILABLE] = status::SERVICE_UNAVAILABLE;
 		responses[code::GATEWAY_TIMEOUT] = status::GATEWAY_TIMEOUT;
 		responses[code::HTTP_VERSION_NOT_SUPPORTED] = status::HTTP_VERSION_NOT_SUPPORTED;
 	}

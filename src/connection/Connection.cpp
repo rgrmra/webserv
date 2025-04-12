@@ -9,6 +9,7 @@
 #include "response.hpp"
 #include "parser.hpp"
 #include "standard.hpp"
+#include "step.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -72,34 +73,29 @@ void Connection::parseRequest(void) {
 
 	while (getline(iss, line) && !line.empty() && _code.empty()) {
 
-		if (_step == IStream::BODY)
-			break;
+		//if (_step == step::BODY)
+		//	break;
 
-		if (_step < IStream::HEADERS) {
-
-			if (parser::lastCharacter(line) != '\r')
-				return;
-
-			request::parseRequest(this, line);
-
-			size_t pos = _input.find("\r\n");
-			if (pos != string::npos)
-				_input = _input.substr(pos + 2);
-
-			if (_code == code::OK && _input.size())
-				return response::builder(this, code::BAD_REQUEST);
-		} else
+		if (_step == step::HEADERS)
 			return request::parseRequest(this, _input);
-	}
 
-	if (_step < IStream::BODY)
+		if (parser::lastCharacter(line) != '\r')
+			return;
+
+		request::parseRequest(this, line);
+
+		size_t pos = _input.find("\r\n");
+		if (pos != string::npos)
+			_input = _input.substr(pos + 2);
+
+		if (_code == code::OK && _input.size())
+			return response::builder(this, code::BAD_REQUEST);
+	}
+	
+	if (_code.empty())
 		return;
-	else if (_step == IStream::HEADERS && _headers.empty())
-		return response::builder(this, code::BAD_REQUEST);
-	else if (_code.empty() && _host.empty())
-		return response::builder(this, code::BAD_REQUEST);
-	else if (_code.empty())
-		return response::builder(this, code::OK);
+
+	_input.clear();
 }
 
 void Connection::setHost(string host) {
@@ -116,8 +112,14 @@ void Connection::processInput(size_t bytes) {
 
 	(void) bytes;
 
-	if (_input.find("\r\n") != string::npos || _step == IStream::HEADERS)
+	if (_input.find("\r\n") != string::npos || _step == step::HEADERS)
 		parseRequest();
+
+	if (_step >= step::HEADERS)
+		return;
+	
+	if (_input.find("\r") != string::npos || _input.find("\n") != string::npos)
+		return response::builder(this, code::BAD_REQUEST);
 }
 
 void Connection::setMethod(string &method) {
@@ -264,7 +266,7 @@ Location &Connection::getLocation(void) {
 
 void Connection::buildResponse(void) {
 
-	if (_file && _file->getStep() < CLOSE)
+	if (_file && _file->getStep() < step::CLOSE)
 		return;
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
@@ -286,7 +288,7 @@ void Connection::buildResponse(void) {
 		oss << it->first + ": " + it->second + "\r\n";
 
 	_output = oss.str() + "\r\n";
-	_step = IStream::RESPONSE;
+	_step = step::RESPONSE;
 	WebServ::getInstance()->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
@@ -297,9 +299,9 @@ void Connection::processOutput(size_t bytes) {
 
 	if (_output.empty()) {
 		if ((*this)[header::CONNECTION] != "keep-alive")
-			_step = IStream::CLOSE;
+			_step = step::CLOSE;
 		else
-			_step = IStream::KEEPALIVE;
+			_step = step::KEEPALIVE;
 	}
 }
 
@@ -308,7 +310,7 @@ void Connection::resetConnection(void) {
 	_input.clear();
 	_output.clear();
 	_size = 0;
-	_step = NONE;
+	_step = step::NONE;
 
 	_host.clear();
 	_method.clear();

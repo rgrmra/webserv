@@ -22,6 +22,7 @@ class Http {
 		std::set<std::string> _indexes;
 		std::map<std::string, std::string> _error_pages;
 		std::vector<Server> _servers;
+		int _signal;
 
 	public:
 		Http(void);
@@ -56,7 +57,8 @@ class Http {
 		std::vector<Server> getServers(void) const;
 		bool empty(void) const;
 		void start(void);
-		void stop(void);
+		void stop(int signal);
+		int getSignal(void);
 };
 
 std::ostream &operator<<(std::ostream &os, const Http &src);

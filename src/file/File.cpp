@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "File.hpp"
+#include "step.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -19,7 +20,7 @@ File::File(Connection *connection)
 	_size = _file.tellg();
 	_file.seekg(0, ios::beg);
 
-	_step = IStream::CLOSE;
+	_step = step::CLOSE;
 }
 
 File::File(const File &src)

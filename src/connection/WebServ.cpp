@@ -1,12 +1,12 @@
 #include "Cgi.hpp"
 #include "Connection.hpp"
 #include "Http.hpp"
-#include "IStream.hpp"
 #include "WebServ.hpp"
 #include "logger.hpp"
+#include "parser.hpp"
 #include "response.hpp"
 #include "standard.hpp"
-#include "parser.hpp"
+#include "step.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -230,7 +230,7 @@ void WebServ::inputHandler(map<int, IStream *>::iterator it) {
 
 	stream->setData(buffer, bytes_read);
 
-	if (stream->getStep() < IStream::BODY)
+	if (stream->getStep() < step::BODY)
 		return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 
 	if (dynamic_cast<Connection *>(stream))
@@ -242,7 +242,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	int fd = it->first;
 	IStream *stream = it->second;
 
-	if (stream->getStep() < IStream::RESPONSE)
+	if (stream->getStep() < step::RESPONSE)
 		return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	string tmp = stream->getData(standard::BUFFER_SIZE);
@@ -253,9 +253,9 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 	} else if (status == 0) {
 		if (dynamic_cast<Cgi *>(stream))
 			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-		if (stream->getStep() == IStream::CLOSE)
+		if (stream->getStep() == step::CLOSE)
 			return closeConnection(fd);
-		if (stream->getStep() == IStream::KEEPALIVE) {
+		if (stream->getStep() == step::KEEPALIVE) {
 			dynamic_cast<Connection *>(stream)->resetConnection();
 			return controlEpoll(fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
 		}
@@ -276,7 +276,7 @@ void WebServ::checkTimeOut(void) {
 			continue;
 
 		if (connection->isTimedOut()) {
-			if (connection->getCode().size())
+			if (connection->getStep() != step::NONE)
 				return connection->sendTimeOut();
 
 			closeConnection(it->first);

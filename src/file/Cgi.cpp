@@ -8,6 +8,7 @@
 #include "parser.hpp"
 #include "response.hpp"
 #include "standard.hpp"
+#include "step.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -70,7 +71,7 @@ Cgi::Cgi(Connection *connection)
 	deleteVector(_envp);
 
 	_output = connection->getBody();
-	_step = IStream::RESPONSE;
+	_step = step::RESPONSE;
 
 	WebServ *webserv = WebServ::getInstance();
 	webserv->addStream(this);
@@ -233,7 +234,7 @@ void Cgi::sendCGI(void) {
 	}
 
 	_size = _output.size();
-	_step = IStream::CLOSE;
+	_step = step::CLOSE;
 	_connection->buildResponse();
 	_pid = -1;
 }
@@ -245,6 +246,6 @@ void Cgi::processInput(size_t bytes) {
 	_output.append(_input);
 	_input.erase();
 
-	if (waitpid(_pid, NULL, WNOHANG))
-		sendCGI();
+	//if (waitpid(_pid, NULL, WNOHANG) == _pid)
+	//	sendCGI();
 }

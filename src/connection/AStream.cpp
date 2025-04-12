@@ -1,6 +1,7 @@
 #include "AStream.hpp"
 #include "WebServ.hpp"
 #include "standard.hpp"
+#include "step.hpp"
 #include <ctime>
 #include <string>
 
@@ -17,7 +18,7 @@ AStream::AStream(int fd, std::string id)
 	  _time(time(NULL)),
 	  _size(0),
 	  _transfers(0),
-	  _step(IStream::NONE) {
+	  _step(step::NONE) {
 
 }
 

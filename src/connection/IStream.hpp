@@ -7,16 +7,6 @@
 class IStream {
 
 	public:
-		enum {
-			NONE = 0,
-			STARTLINE = 1,
-			HEADERS = 2,
-			BODY = 4,
-			RESPONSE = 8,
-			KEEPALIVE = 16,
-			CLOSE = 32
-		};
-
 		virtual ~IStream(void) {};
 
 		virtual int getFd(void) const = 0;

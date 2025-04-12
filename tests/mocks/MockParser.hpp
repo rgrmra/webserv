@@ -2,10 +2,10 @@
 #define MOCK_PARSER_HPP
 
 #include <gmock/gmock.h>
-#include "parser/parser.hpp"
-#include "parser/Http.hpp"
-#include "parser/Server.hpp"
-#include "parser/Location.hpp"
+#include "parser.hpp"
+#include "Http.hpp"
+#include "Server.hpp"
+#include "Location.hpp"
 #include <string>
 #include <list>
 

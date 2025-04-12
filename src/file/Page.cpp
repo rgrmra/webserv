@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "Page.hpp"
+#include "step.hpp"
 #include <sstream>
 #include <string>
 
@@ -24,7 +25,7 @@ Page::Page(Connection *connection)
 
 	_output = oss.str();
 	_size = _output.size();
-	_step = IStream::CLOSE;
+	_step = step::CLOSE;
 }
 
 Page::Page(const Page &src)
