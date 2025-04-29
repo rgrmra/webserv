@@ -27,6 +27,7 @@ class URL {
 		std::string _path;
 		std::string _file;
 		std::string _extension;
+		std::string _path_info;
 		std::string _query;
 		int _dac;
 
@@ -59,6 +60,8 @@ class URL {
 		std::string getPath(void) const;
 		std::string getFile(void) const;
 		std::string getExtension(void) const;
+		std::string getPathInfo(void) const;
+		std::string getPathTranslated(void) const;
 		std::string getQuery(void) const;
 		std::string getAbsolutePath(void) const;
 		std::string getLocation(void) const;
