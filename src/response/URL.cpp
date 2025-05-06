@@ -38,6 +38,21 @@ URL::URL(Connection *connection)
 		_query = "";
 	}
 
+	pos = _path.find_last_of(".");
+	if (pos != string::npos) {
+		_path_info = _path.substr(pos, _path.size());
+		
+		size_t epos = _path_info.find_first_of("/");
+		_extension = _path_info.substr(0, epos);
+		if (epos != string::npos)
+			_path_info = _path_info.substr(epos);
+		else
+			_path_info.clear();
+
+
+		_path = _path.substr(0, pos) + _extension;
+	}
+
 	pos = _path.find_last_of("/");
 	if (pos != string::npos)
 		_file = _path.substr(pos + 1, _path.size());
@@ -292,6 +307,16 @@ string URL::getFile(void) const {
 	return _file;
 }
 
+string URL::getPathInfo(void) const {
+
+	return _path_info;
+}
+
+string URL::getPathTranslated(void) const {
+
+	return _connection->getLocation().getRoot() + _path + _path_info;
+}
+
 string URL::getExtension(void) const {
 
 	return _extension;
@@ -380,9 +405,14 @@ ostream &operator<<(ostream &os, const URL &src) {
 
 	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
 		+ src.getHost() + (src.getPort().size() ? ":" + src.getPort() : "")
-		+ src.getPath() + (src.getQuery().size() ? "?" + src.getQuery() : "") << endl;
+		+ src.getPath() + (src.getPathInfo().size() ? src.getPathInfo() : "")
+		+ (src.getQuery().size() ? "?" + src.getQuery() : "") << endl;
 
-	os << "file: " << src.getFile() << ", extension: " << src.getExtension() << endl;
+	os << "file: " << src.getFile() << endl;
+	os << "extension: " << src.getExtension() << endl;
+	os << "path_info: " << src.getPathInfo() << endl;
+	os << "query string: " << src.getQuery() << endl;
+	os << "path_translated: " << src.getPathTranslated() << std::endl;
 	os << "location: " << src.getLocation() << endl;
 
 	os << "absolute path: " << src.getAbsolutePath() << endl;

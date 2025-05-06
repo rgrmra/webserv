@@ -2,6 +2,7 @@
 
 #include "Connection.hpp"
 #include "Mime.hpp"
+#include "step.hpp"
 
 Text::Text(Connection *connection)
 	: Resource(connection) {
@@ -9,7 +10,7 @@ Text::Text(Connection *connection)
 	_type = Mime::getInstance()->getType(".txt");
 	_output = connection->getLocation().getReturnURI();
 	_size = _output.size();
-	_step = IStream::CLOSE;
+	_step = step::CLOSE;
 }
 
 Text::Text(const Text &src)

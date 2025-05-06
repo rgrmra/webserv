@@ -20,6 +20,9 @@ target_include_directories(webreq_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src/constant
         ${CMAKE_CURRENT_SOURCE_DIR}/src/file
         ${CMAKE_CURRENT_SOURCE_DIR}/src/parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/configuration
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/mime
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/request
         ${CMAKE_CURRENT_SOURCE_DIR}/src/response
         ${CMAKE_CURRENT_SOURCE_DIR}/src/service
         ${CMAKE_CURRENT_SOURCE_DIR}/src/service/logger

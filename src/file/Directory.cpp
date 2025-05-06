@@ -1,6 +1,7 @@
 #include "Directory.hpp"
 #include "Connection.hpp"
 #include "Resource.hpp"
+#include "step.hpp"
 #include <algorithm>
 #include <dirent.h>
 
@@ -48,7 +49,7 @@ Directory::Directory(Connection *connection)
 	}
 	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
 	_size = _output.size();
-	_step = IStream::CLOSE;
+	_step = step::CLOSE;
 }
 
 Directory::Directory(const Directory &src)

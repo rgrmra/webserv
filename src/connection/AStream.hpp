@@ -4,6 +4,7 @@
 #include "IStream.hpp"
 #include <ctime>
 #include <string>
+#include <vector>
 
 class AStream : public IStream {
 	

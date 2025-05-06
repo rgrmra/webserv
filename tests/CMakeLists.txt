@@ -60,7 +60,7 @@ if(BUILD_TESTING)
 			${CMAKE_SOURCE_DIR}/configurations/default.conf
 			${CMAKE_CURRENT_BINARY_DIR}/resources/configurations/
 		COMMAND ${CMAKE_COMMAND} -E copy
-			${CMAKE_SOURCE_DIR}/src/parser/mimes.json
+			${CMAKE_SOURCE_DIR}/src/parser/mime/mimes.json
 			${CMAKE_CURRENT_BINARY_DIR}/resources/src/parser/
 		COMMENT "Copying resource files for tests"
 	)

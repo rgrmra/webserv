@@ -15,7 +15,8 @@ Http *Http::_instance = NULL;
 
 Http::Http(void)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
-	  _max_body_size(0) {
+	  _max_body_size(0),
+	  _signal(0) {
 
 }
 
@@ -256,9 +257,16 @@ void Http::start(void) {
 	WebServ::getInstance()->run();
 }
 
-void Http::stop(void) {
+void Http::stop(int signal) {
+
+	_signal = signal;
 
 	WebServ::getInstance()->stop();
+}
+
+int Http::getSignal(void) {
+
+	return _signal;
 }
 
 ostream &operator<<(ostream &os, const Http &src) {

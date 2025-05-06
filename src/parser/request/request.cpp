@@ -1,13 +1,13 @@
 #include "request.hpp"
 #include "Connection.hpp"
-#include "IStream.hpp"
 #include "code.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"
-#include "standard.hpp"
 #include "size.hpp"
+#include "standard.hpp"
+#include "step.hpp"
 #include "response.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -20,13 +20,13 @@ using namespace std;
 
 void request::parseRequest(Connection *connection, string &line) {
 
-	if (connection->getStep() == IStream::NONE)
+	if (connection->getStep() == step::NONE)
 		return parseStartLine(connection, line);
 
-	if (connection->getStep() == IStream::STARTLINE)
+	if (connection->getStep() == step::STARTLINE)
 		return parseHeaders(connection, line);
 
-	if (connection->getStep() == IStream::HEADERS)
+	if (connection->getStep() == step::HEADERS)
 		return parseBody(connection, line);
 }
 
@@ -61,7 +61,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 	connection->setMethod(method);
 	connection->setTarget(target);
 	connection->setProtocol(protocol);
-	connection->setStep(IStream::STARTLINE);
+	connection->setStep(step::STARTLINE);
 
 	return;
 }
@@ -69,7 +69,7 @@ void request::parseStartLine(Connection *connection, string &line) {
 void request::parseHeaders(Connection *connection, std::string &line) {
 
 	if (line == "\r") {
-		connection->setStep(IStream::HEADERS);
+		connection->setStep(step::HEADERS);
 
 		connection->setUri(new URL(connection));
 
@@ -147,7 +147,7 @@ void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
 		return response::builder(connection, code::BAD_REQUEST);
 	buffer.clear();
 
-	connection->setStep(IStream::BODY);
+	connection->setStep(step::BODY);
 	return response::builder(connection, code::OK);
 }
 

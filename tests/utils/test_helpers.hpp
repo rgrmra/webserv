@@ -11,9 +11,9 @@
 inline std::string getMimesPath() {
     // Try different relative paths that might work
     const char* paths[] = {
-        "resources/src/parser/mimes.json",  // From build dir
-        "../src/parser/mimes.json",         // From project root
-        "../../src/parser/mimes.json"       // From nested build dir
+        "resources/src/parser/mime/mimes.json",  // From build dir
+        "../src/parser/mime/mimes.json",         // From project root
+        "../../src/parser/mime/mimes.json"       // From nested build dir
     };
     
     for (const char* path : paths) {
@@ -25,7 +25,7 @@ inline std::string getMimesPath() {
     }
     
     // If all else fails, return the original path
-    return "../src/parser/mimes.json";
+    return "../src/parser/mime/mimes.json";
 }
 
 /**
