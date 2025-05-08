@@ -1,9 +1,7 @@
 #ifndef CODE_HPP
 #define CODE_HPP
 
-#include <map>
 #include <string>
-#include <utility>
 
 namespace code {
 

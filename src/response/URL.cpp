@@ -270,7 +270,7 @@ void URL::checkDAC(const string &path) {
 	if (_isExecutable(path))
 		_dac |= EXECUTE;
 
-	if (_connection->getLocation().getFastCgi().size())
+	if (_connection->getLocation().isCgi(_extension))
 		_dac |= CGI;
 
 	if (_isDeletable(path))

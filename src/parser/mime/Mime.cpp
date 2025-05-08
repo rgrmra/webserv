@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <exception>
 #include <fstream>
-#include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>

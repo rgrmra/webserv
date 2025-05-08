@@ -349,6 +349,19 @@ void directive::setFastCgi(string fastcgi, string &_fastcgi) {
 	_fastcgi = fastcgi;
 }
 
+void directive::setFastCgiExtension(string extensions, set<string> &_extensions) {
+
+	if (extensions.empty())
+		return;
+
+	_extensions.clear();
+
+	list<string> tmp = parser::split(extensions, ' ');
+
+	for (list<string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+		_extensions.insert((it->at(0) == '.' ? *it : "." + *it));
+}
+
 void directive::addErrorPage(string error_page, map<string, string> &_error_pages) {
 
 	if (error_page.empty())

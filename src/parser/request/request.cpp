@@ -114,9 +114,6 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 
 void request::parseBody(Connection *connection, string &line) {
 
-	if ((*connection)[header::CONTENT_TYPE].find("multipart/form-data") == 0)
-		return parserMultiPartFormData(connection, line);
-
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
 
@@ -185,70 +182,6 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 	buffer.erase(0, 2);
 
 	return parseTransferEncoding(connection, buffer);
-}
-
-// TODO: IMPROVE
-void request::parserMultiPartFormData(Connection *connection, string &line) {
-
-	string content_type = (*connection)[header::CONTENT_TYPE];
-
-	size_t pos = content_type.find("boundary=");
-	if (pos == string::npos)
-		return response::builder(connection, code::BAD_REQUEST);
-
-	string boundary = content_type.erase(0, pos + 9);
-
-	if (line.find("--" + boundary + "--") == string::npos)
-		return;
-
-	cout << line << endl;
-
-	while (line.size()) {
-
-		string tmp = "--" + boundary + "\r\n";
-
-		if (!parser::compare(tmp, line))
-			return response::builder(connection, code::BAD_REQUEST);
-
-		connection->addBody(tmp);
-		line.erase(0, tmp.size());
-
-		while (line.size()) {
-
-			pos = line.find("\r\n");
-			if (pos == string::npos)
-				return response::builder(connection, code::BAD_REQUEST);
-
-			tmp = line.substr(0, pos + 2);
-			if (tmp == "\r\n")
-				break;
-
-			connection->addBody(tmp);
-			line.erase(0, tmp.size());
-		}
-
-		tmp = "--" + boundary;
-
-		pos = line.find(tmp);
-		if (pos == string::npos)
-			return response::builder(connection, code::BAD_REQUEST);
-
-		tmp = line.substr(0, pos);
-
-		connection->addBody(tmp);
-		line.erase(0, tmp.size());
-
-		if (parser::compare("\r\n", line)) {
-			connection->addBody("\r\n");
-			line.erase(0, 2);
-		} else if (parser::compare("--", line)) {
-			connection->addBody("--");
-			line.erase(0, 2);
-			break;
-		}
-	}
-
-	return response::builder(connection, code::NOT_IMPLEMENTED);
 }
 
 void request::convertToHex(Connection *connection, string &line, size_t &chunck_size) {

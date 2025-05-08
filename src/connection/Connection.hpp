@@ -5,7 +5,6 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "URL.hpp"
-#include "header.hpp"
 #include <ctime>
 #include <map>
 #include <string>

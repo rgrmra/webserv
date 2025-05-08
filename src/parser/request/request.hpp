@@ -11,13 +11,11 @@ namespace request {
 	void parseBody(Connection *connection, std::string &line);
 	void checkTransferEncodingEnd(Connection *connection, std::string &buffer);
 	void parseTransferEncoding(Connection *connection, std::string &line);
-	void parserMultiPartFormData(Connection *connection, std::string &line);
 	void convertToHex(Connection *connection, std::string &line, size_t &chunck_size);
 	void validateHeader(Connection *connection, std::string &key, std::string &value);
 	void validateContentLength(Connection *connection, std::string &value);
 	void validateHost(Connection *connection, std::string &value);
 	void validateTransferEncoding(Connection *connection, std::string &value);
-	void validateMultiPartFormData(Connection *connection, std::string &buffer);
 }
 
 #endif /* REQUEST_HPP */

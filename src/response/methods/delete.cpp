@@ -8,7 +8,6 @@
 #include "header.hpp"
 #include <cstdio>
 #include <stdlib.h>
-#include <iostream>
 
 using namespace std;
 

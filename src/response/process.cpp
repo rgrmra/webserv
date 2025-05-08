@@ -1,8 +1,6 @@
 #include "Connection.hpp"
 #include "Location.hpp"
 #include "URL.hpp"
-#include "Text.hpp"
-#include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"
 #include "process.hpp"
@@ -17,6 +15,9 @@ void process::request(Connection *connection) {
 	Location &location = connection->getLocation();
 	if (location.empty())
 		return response::builder(connection, code::NOT_FOUND);
+
+	if (location.getFastCgi().empty() != location.getFastCgiExtension().empty())
+		return response::builder(connection, code::BAD_GATEWAY);
 
 	URL *uri = connection->getUri();
 	if (!uri->isFile() && !uri->isDirectory())

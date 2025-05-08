@@ -106,7 +106,7 @@ void Cgi::populateEnv(Connection *connection) {
 	addEnv(env::SERVER_PROTOCOL, standard::PROTOCOL);
 	addEnv(env::SERVER_SOFTWARE, standard::SERVER_SOFTWARE);
 	addEnv(env::SCRIPT_FILENAME, connection->getUri()->getAbsolutePath());
-	addEnv(env::REDIRECT_STATUS, code::OK);
+	addEnv(env::REDIRECT_STATUS, "TRUE");
 
 	if (url->getPathInfo().size()) {
 		addEnv(env::PATH_INFO, url->getPathInfo());
@@ -122,9 +122,9 @@ void Cgi::populateEnv(Connection *connection) {
 		parser::replace(transformed_key, '-', '_');
 
 		if (transformed_key == env::CONTENT_TYPE)
-			addEnv(header::CONTENT_TYPE, value);
+			addEnv(env::CONTENT_TYPE, value);
 		else if (transformed_key == env::CONTENT_LENGTH)
-			addEnv(header::CONTENT_LENGTH, value);
+			addEnv(env::CONTENT_LENGTH, value);
 		else if (transformed_key == env::AUTHORIZATION)
 			addEnv(env::AUTHORIZATION, value);
 		else
@@ -243,4 +243,7 @@ void Cgi::processInput(size_t bytes) {
 
 	_output.append(_input);
 	_input.erase();
+
+	if (waitpid(_pid, NULL, WNOHANG))
+		sendCGI();
 }
