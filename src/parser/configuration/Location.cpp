@@ -1,6 +1,7 @@
 #include "directive.hpp"
 #include "Location.hpp"
 #include "parser.hpp"
+#include <iostream>
 #include <ostream>
 #include <string>
 
@@ -39,6 +40,7 @@ Location &Location::operator=(const Location &rhs) {
 	_max_body_size = rhs._max_body_size;
 	_indexes = rhs._indexes;
 	_fastcgi = rhs._fastcgi;
+	_extensions = rhs._extensions;
 	_error_pages = rhs._error_pages;
 	_return_code = rhs._return_code;
 	_return_uri = rhs._return_uri;
@@ -158,9 +160,27 @@ void Location::setFastCgi(std::string fastcgi) {
 	directive::setFastCgi(fastcgi, _fastcgi);
 }
 
-std::string Location::getFastCgi(void) const {
+void Location::setFastCgiExtension(std::string extensions) {
+
+	directive::setFastCgiExtension(extensions, _extensions);
+}
+
+string Location::getFastCgi(void) const {
 
 	return _fastcgi;
+}
+
+set<string> Location::getFastCgiExtension(void) const {
+
+	return _extensions;
+}
+
+bool Location::isCgi(string extension) const {
+
+	if (_extensions.find(extension) == _extensions.end())
+		return false;
+
+	return true;
 }
 
 void Location::addErrorPages(string error_page) {
@@ -231,6 +251,12 @@ ostream &operator<<(ostream &os, const Location &src) {
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
 	os << "\t\t\tfastcgi_pass " << src.getFastCgi() << ";" << endl;
+	
+	os << "\t\t\tfastcgi_extension ";
+	set<string> extensions = src.getFastCgiExtension();
+	for(set<string>::iterator it = extensions.begin(); it != extensions.end(); it++)
+		os << *it << " ";
+	os << ";" << endl;
 
 	map<string, string> error_pages = src.getErrorPages();
 	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)

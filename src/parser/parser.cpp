@@ -227,6 +227,7 @@ void parser::location(Location &location, string &buffer) {
 		location.setFastCgi(find("fastcgi_pass ", buffer, ";"));
 		location.addErrorPages(find("error_page ", buffer, ";"));
 		location.setReturn(find("return ", buffer, ";"));
+		location.setFastCgiExtension(find("fastcgi_extension ", buffer, ";"));
 
 		if (parser::compare("limit_except", buffer))
 			parser::limit_except(location, buffer);

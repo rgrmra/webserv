@@ -1,7 +1,7 @@
 #ifndef SIZE_HPP
 #define SIZE_HPP
 
-#include <string>
+#include <cstddef>
 
 namespace size {
 

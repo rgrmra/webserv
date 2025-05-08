@@ -1,8 +1,6 @@
 #ifndef PROCESS_HPP
 #define PROCESS_HPP
 
-#include <string>
-
 class Connection;
 class Location;
 class URL;

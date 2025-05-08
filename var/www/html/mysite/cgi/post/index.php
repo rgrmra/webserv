@@ -6,4 +6,9 @@ $phone_post = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
 
 echo "Hello, $name_post! We will send you an email at $email_post or call you at $phone_post.";
 
+$rawPostData = file_get_contents("php://input");
+parse_str($rawPostData, $post_vars);
+
+echo $rawPostData;
+echo $post_vars;
 ?>
