@@ -1,14 +1,13 @@
-#include "process.hpp"
+#include "Cgi.hpp"
 #include "Connection.hpp"
+#include "process.hpp"
 #include "response.hpp"
 #include "code.hpp"
-#include "Cgi.hpp"
-#include <string>
 
 using namespace std;
 
-void process::methodPost(Connection *connection) {
-	
+void process::methodPost(Connection *connection)
+{
 	if (connection->getUri()->isCgi())
 		return connection->setResource(new Cgi(connection));
 	

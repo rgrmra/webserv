@@ -7,16 +7,15 @@
 
 using namespace std;
 
-Directory::Directory(Connection *connection)
-	: Resource(connection) {
-
+Directory::Directory(Connection *connection) : Resource(connection)
+{
 	_type = "text/html";
 	
 	DIR *dir;
 	struct dirent *ent;
-	string directory = connection->getUri()->getPath();
+	const string &directory = connection->getUri()->getPath();
 
-	_output += std::string(
+	_output = std::string(
 			"<html>\n"
 			"<head>"
 			"<title>Index of " + directory + "</title>"
@@ -30,23 +29,29 @@ Directory::Directory(Connection *connection)
 
 	std::vector<std::string> entries;
 
-	if ((dir = opendir(connection->getUri()->getAbsolutePath().c_str())) != NULL) {
-		while ((ent = readdir(dir)) != NULL) {
+	if ((dir = opendir(connection->getUri()->getAbsolutePath().c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
 			std::string name = ent->d_name;
+
 			if (name == ".")
 				continue;
+
 			entries.push_back(name);
 		}
+
 		closedir(dir);
 	}
 
 	std::sort(entries.begin(), entries.end());
 
-	vector<string>::iterator it;
-	for (it = entries.begin(); it != entries.end(); ++it) {
+	vector<string>::iterator entry = entries.begin();
+	for (; entry != entries.end(); ++entry)
+	{
 		_output += "<a "
-			"href=\"" + directory + *it + "\" "
-			"class=\"text-blue-500 hover:underline text-lg block\">" + *it + "</a>\n";
+			"href=\"" + directory + *entry + "\" "
+			"class=\"text-blue-500 hover:underline text-lg block\">" + *entry + "</a>\n";
 	}
 
 	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
@@ -55,20 +60,17 @@ Directory::Directory(Connection *connection)
 	_step = step::CLOSE;
 }
 
-Directory::Directory(const Directory &src)
-	: Resource(src._connection) {
-
+Directory::Directory(const Directory &src) : Resource(src._connection)
+{
 	*this = src;
 }
 
-Directory &Directory::operator=(const Directory &rhs) {
-
+Directory &Directory::operator=(const Directory &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
 	return *this;
 }
 
-Directory::~Directory(void) {
-
-}
+Directory::~Directory(void) {}

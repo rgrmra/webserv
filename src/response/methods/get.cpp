@@ -9,17 +9,17 @@
 #include "File.hpp"
 #include "Cgi.hpp"
 
-void process::methodGet(Connection *connection) {
-
-	URL *uri = connection->getUri();
-	Location &location = connection->getLocation();
+void process::methodGet(Connection *connection)
+{
+	const URL *uri = connection->getUri();
+	const Location &location = connection->getLocation();
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
-	if (uri->isDirectory()) {
-
-		if (parser::lastCharacter(uri->getAbsolutePath()) == '/') {
-
+	if (uri->isDirectory())
+	{
+		if (parser::lastCharacter(uri->getAbsolutePath()) == '/')
+		{
 			if (location.getAutoIndex())
 				return connection->setResource(new Directory(connection));
 

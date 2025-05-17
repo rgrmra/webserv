@@ -30,7 +30,7 @@ TEST(StatusTest, Unauthorized) {
 }
 
 TEST(StatusTest, FORBIDDEN) {
-	EXPECT_EQ(status::FORBIDDEN, "FORBIDDEN");
+	EXPECT_EQ(status::FORBIDDEN, "Forbidden");
 }
 
 TEST(StatusTest, NotFound) {

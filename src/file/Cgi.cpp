@@ -27,13 +27,15 @@
 
 using namespace std;
 
-Cgi::Cgi(Connection *connection)
-	: Resource(connection) {
-
-	std::memset(_sock, -1, 2 * sizeof(int));
+Cgi::Cgi(Connection *connection) : Resource(connection)
+{
+	std::memset(_sock, EOF, 2 * sizeof(int));
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, _sock) == -1)
-		throw runtime_error("socketpair failed");
+	{
+		response::builder(connection, code::INTERNAL_SERVER_ERROR);
+		return;
+	}
 
 	_fd = _sock[1];
 
@@ -47,16 +49,18 @@ Cgi::Cgi(Connection *connection)
 	vector<char *> _argv = createVector(_args);
 
 	_pid = fork();
-	if (_pid < 0) {
+	if (_pid < 0)
+	{
 		closeSockets();
-		throw runtime_error("fork failed");
-	} else if (_pid == 0) {
-		//int fd = dup(_sock[0]);
+		deleteVector(_argv);
+		deleteVector(_envp);
+		return;
+	}
+	else if (_pid == 0)
+	{
 		dup2(_sock[0], STDOUT_FILENO);
 		dup2(_sock[0], STDIN_FILENO);
-		close(_sock[1]);
-		close(_sock[0]);
-		//close(fd);
+		closeSockets();
 
 		execve(_argv.data()[0], _argv.data(), _envp.data());
 
@@ -81,15 +85,16 @@ Cgi::Cgi(Connection *connection)
 		webserv->controlEpoll(_fd, EPOLLOUT | EPOLLET, EPOLL_CTL_ADD);
 }
 
-void Cgi::addEnv(string key, string value) {
-
+void Cgi::addEnv(const string &key, const string &value)
+{
 	_env.push_back(key + "=" + value);
 }
 
-void Cgi::populateEnv(Connection *connection) {
-
+void Cgi::populateEnv(Connection *connection)
+{
 	URL *url = connection->getUri();
 	Server &server = connection->getServer();
+
 	string server_name;
 	if (server.getNames().size())
 		server_name = server.getNames()[0];
@@ -108,17 +113,20 @@ void Cgi::populateEnv(Connection *connection) {
 	addEnv(env::SERVER_PROTOCOL, standard::PROTOCOL);
 	addEnv(env::SERVER_SOFTWARE, standard::SERVER_SOFTWARE);
 	addEnv(env::SCRIPT_FILENAME, connection->getUri()->getAbsolutePath());
-	addEnv(env::REDIRECT_STATUS, "200");
+	addEnv(env::REDIRECT_STATUS, code::OK);
 
-	if (url->getPathInfo().size()) {
+	if (url->getPathInfo().size())
+	{
 		addEnv(env::PATH_INFO, url->getPathInfo());
 		addEnv(env::PATH_TRANSLATED, url->getPathTranslated());
 	}
 
 	map<string, string> headers = connection->getHeaders();
-	for (map<string, string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-		string key = it->first;
-		string value = it->second;
+	map<string, string>::const_iterator header = headers.begin();
+	for (; header != headers.end(); ++header)
+	{
+		string key = header->first;
+		string value = header->second;
 
 		string transformed_key = parser::toUpper(key);
 		parser::replace(transformed_key, '-', '_');
@@ -127,32 +135,32 @@ void Cgi::populateEnv(Connection *connection) {
 	}
 }
 
-Cgi::Cgi(const Cgi &src)
-	: Resource(src._connection) {
-
+Cgi::Cgi(const Cgi &src) : Resource(src._connection)
+{
 	*this = src;
 }
 
-Cgi &Cgi::operator=(const Cgi &rhs) {
-
+Cgi &Cgi::operator=(const Cgi &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
 	return *this;
 }
 
-Cgi::~Cgi(void) {
-
+Cgi::~Cgi(void)
+{
 	if (_pid != -1)
 		kill(_pid, SIGKILL);
+
 	close(_sock[0]);
 }
 
-vector<char *> Cgi::createVector(vector<string> &container) {
-
+vector<char *> Cgi::createVector(vector<string> &container)
+{
 	vector<char *> tmp;
 
-	for (size_t i = 0; i < container.size(); i++) {
+	for (size_t i = 0; i < container.size(); ++i) {
 		char *env = new char[container[i].size() + 1];
 		tmp.push_back(strcpy(env, container[i].c_str()));
 	}
@@ -161,8 +169,8 @@ vector<char *> Cgi::createVector(vector<string> &container) {
 	return tmp;
 }
 
-void Cgi::deleteVector(vector<char *> &container) {
-
+void Cgi::deleteVector(vector<char *> &container)
+{
 	vector<char *>::iterator it = container.begin();
 
 	for (; it != container.end() && *it; ++it) {
@@ -180,15 +188,15 @@ void Cgi::closeSockets(void) {
 		close(_sock[1]);
 }
 
-void Cgi::parseCgiResponse(void) {
-
+void Cgi::parseCgiResponse(void)
+{
 	istringstream iss(_output);
 	string line;
 
 	_connection->setHeaders(standard::EMPTY_HEADER);
 
-	while(getline(iss, line) && !line.empty()) {
-
+	while(getline(iss, line) && !line.empty())
+	{
 		_output.erase(0, line.size() + 1);
 
 		if (line == "\r")
@@ -207,8 +215,8 @@ void Cgi::parseCgiResponse(void) {
 	}
 }
 
-void Cgi::sendCGI(void) {
-
+void Cgi::sendCGI(void)
+{
 	WebServ *webserv = WebServ::getInstance();
 	webserv->controlEpoll(_fd, 0, EPOLL_CTL_DEL);
 
@@ -217,15 +225,14 @@ void Cgi::sendCGI(void) {
 
 	parseCgiResponse();
 
-	if (*_connection == header::STATUS) {
-
+	if (*_connection == header::STATUS)
+	{
 		string status = (*_connection)[header::STATUS];
 
 		parser::trim(status, " \t\v\r");
 
 		status = status.erase(status.find_first_of(" "));
 
-		cout << "status: " << status << endl;
 		if (status != code::OK)
 			return response::builder(_connection, status);
 	}
@@ -236,8 +243,8 @@ void Cgi::sendCGI(void) {
 	_pid = -1;
 }
 
-void Cgi::processInput(size_t bytes) {
-
+void Cgi::processInput(const size_t &bytes)
+{
 	(void) bytes;
 
 	_output.append(_input);

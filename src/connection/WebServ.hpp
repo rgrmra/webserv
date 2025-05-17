@@ -1,7 +1,6 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-#include "size.hpp"
 #include <map>
 #include <netdb.h>
 #include <string>
@@ -9,25 +8,26 @@
 class IStream;
 class Http;
 
-class WebServ {
+class WebServ
+{
 	private:
 		static WebServ *_instance;
 
 		int _epoll_fd;
-		std::map<std::string, int> _binded_sockets;
-		std::map<int, IStream *> _client_connections;
+		std::map<std::string, int> _sockets;
+		std::map<int, IStream *> _connections;
 
 		WebServ(void);
 
-		void removeBindedPorts(std::string port);
-		bool isBinded(std::string listen);
-		struct addrinfo *getAddrInfo(std::string host);
-		int createSocket(std::string listen);
-		std::string getIpByFileDescriptor(int client_fd);
-		void acceptNewConnection(int client_fd);
-		void closeConnection(int client_fd);
-		void inputHandler(std::map<int, IStream *>::iterator it);
-		void outputHandler(std::map<int, IStream *>::iterator it);
+		void removeBindedPorts(const std::string &port);
+		bool isBinded(const std::string &host);
+		struct addrinfo *getAddrInfo(const std::string &host);
+		int createSocket(const std::string &host);
+		std::string getIpByFileDescriptor(const int &client_fd);
+		void acceptNewConnection(const int &client_fd);
+		void closeConnection(const int &client_fd);
+		void inputHandler(std::map<int, IStream *>::iterator &stream);
+		void outputHandler(std::map<int, IStream *>::iterator &stream);
 		void checkTimeOut(void);
 
 	public:
@@ -36,11 +36,11 @@ class WebServ {
 		virtual ~WebServ(void);
 
 		void addStream(IStream *stream);
-		void delStream(int fd);
-		void controlEpoll(int client_fd, int flag, int option);
+		void delStream(const int &socket_fd);
+		void controlEpoll(const int &client_fd, const int &flag, const int &option);
 
 		void run(void);
 		void stop(void);
 };
 
-#endif /* WEBSERV_HPP */
+#endif // WEBSERV_HPP

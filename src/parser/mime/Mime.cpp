@@ -1,37 +1,31 @@
-#include "logger.hpp"
 #include "Mime.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
-#include <cstdlib>
-#include <exception>
 #include <fstream>
 #include <list>
 #include <map>
-#include <stdexcept>
+#include <string>
 
 using namespace std;
 
 Mime *Mime::_instance = NULL;
 
-Mime::Mime(void)
-	: _default_mime("text/plain") {
+Mime::Mime(void) : _default_mime("text/plain") {}
 
-}
+Mime::~Mime(void) {}
 
-Mime::~Mime(void) {
-
-}
-
-Mime *Mime::getInstance(void) {
-
+Mime *Mime::getInstance(void)
+{
 	if (_instance == NULL)
 		_instance = new Mime();
 
 	return _instance;
 }
 
-void Mime::configure(std::string filename) {
-
-	try {
+void Mime::configure(const std::string &filename)
+{
+	try
+	{
 		_mimes.clear();
 
 		ifstream file(filename.c_str());
@@ -40,8 +34,8 @@ void Mime::configure(std::string filename) {
 
 		string buffer;
 
-		for (string line; getline(file, line); buffer.append(line)) {
-
+		for (string line; getline(file, line); buffer.append(line))
+		{
 			if (line.find("#") != string::npos)
 				line = line.substr(0, line.find_first_of("#"));
 
@@ -65,29 +59,32 @@ void Mime::configure(std::string filename) {
 		parser::rerase(buffer, ", ", 1);
 
 		parseMimes(buffer);
-	} catch (exception &e) {
+	}
+	catch (exception &e)
+	{
 		throw runtime_error(string("failed to parse json at: ") + e.what());
 	}
 
 	logger::info("mimes json file parsed: " + filename);
 }
 
-void Mime::addMime(string &key, string &values) {
+void Mime::addMime(const string &key, const string &values) {
 
-	list<string> tmp = parser::split(values, ',');
+	list<string> extensions = parser::split(values, ',');
 
-	for (list<string>::iterator it = tmp.begin(); it != tmp.end(); it++) {
-		
-		string value = parser::find("\"", *it, "\"");
-		if (value.empty() || it->size())
+	list<string>::iterator extension = extensions.begin();
+	for (; extension != extensions.end(); ++extension)
+	{
+		string value = parser::find("\"", *extension, "\"");
+		if (value.empty() || extension->size())
 			throw runtime_error("empty value at key: \"" + key + "\"");
 
 		_mimes[value] = key;
 	}
 }
 
-void Mime::parseMimes(string &buffer) {
-
+void Mime::parseMimes(string &buffer)
+{
 	if (parser::compare("{", buffer))
 		buffer.erase(0, 1);
 	else
@@ -104,7 +101,8 @@ void Mime::parseMimes(string &buffer) {
 	
 	string key, value;
 
-	for (size_t i = buffer.size(); i > 0; i--) {
+	for (size_t i = buffer.size(); i > 0; --i)
+	{
 
 		key = parser::find("\"", buffer, "\"");
 		if (key.empty())
@@ -117,30 +115,31 @@ void Mime::parseMimes(string &buffer) {
 		value = parser::find("[", buffer, "]");
 		if (value.empty())
 			throw runtime_error("empty value at key: \"" + key + "\"");
-		if (buffer.empty() || buffer.at(0) == ',') {
+		if (buffer.empty() || buffer.at(0) == ',')
+		{
 			addMime(key, value);
 
 			if (buffer.empty())
 				return;
 
 			buffer.erase(0, 1);
-		} else {
-			throw runtime_error("missing \",\" at: " + buffer);
+			continue;
 		}
+		throw runtime_error("missing \",\" at: " + buffer);
 	}
 }
 
-string Mime::getType(string extension) const {
-
+string Mime::getType(string extension) const
+{
 	size_t pos = extension.find_last_of(".");
 	if (pos == string::npos)
 		return _default_mime;
 
 	extension.erase(0, pos + 1);
 
-	map<string, string>::const_iterator it = _mimes.find(extension);
-	if (it == _mimes.end())
+	map<string, string>::const_iterator mime = _mimes.find(extension);
+	if (mime == _mimes.end())
 		return _default_mime;
 
-	return it->second;
+	return mime->second;
 }

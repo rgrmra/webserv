@@ -3,8 +3,8 @@
 
 #include "Connection.hpp"
 
-namespace request {
-
+namespace request
+{
 	void parseRequest(Connection *connection, std::string &line);
 	void parseStartLine(Connection *connection, std::string &line);
 	void parseHeaders(Connection *connection, std::string &line);
@@ -18,4 +18,4 @@ namespace request {
 	void validateTransferEncoding(Connection *connection, std::string &value);
 }
 
-#endif /* REQUEST_HPP */
+#endif // REQUEST_HPP

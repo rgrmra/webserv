@@ -18,8 +18,8 @@
 
 using namespace std;
 
-void request::parseRequest(Connection *connection, string &line) {
-
+void request::parseRequest(Connection *connection, string &line)
+{
 	if (connection->getStep() == step::NONE)
 		return parseStartLine(connection, line);
 
@@ -30,8 +30,8 @@ void request::parseRequest(Connection *connection, string &line) {
 		return parseBody(connection, line);
 }
 
-void request::parseStartLine(Connection *connection, string &line) {
-
+void request::parseStartLine(Connection *connection, string &line)
+{
 	string method, target, protocol;
 
 	if (line.find_first_not_of(" \t\v\r") == string::npos)
@@ -62,13 +62,12 @@ void request::parseStartLine(Connection *connection, string &line) {
 	connection->setTarget(target);
 	connection->setProtocol(protocol);
 	connection->setStep(step::STARTLINE);
-
-	return;
 }
 
-void request::parseHeaders(Connection *connection, std::string &line) {
-
-	if (line == "\r") {
+void request::parseHeaders(Connection *connection, std::string &line)
+{
+	if (line == "\r")
+	{
 		connection->setStep(step::HEADERS);
 
 		connection->setUri(new URL(connection));
@@ -112,16 +111,13 @@ void request::parseHeaders(Connection *connection, std::string &line) {
 	connection->addHeader(key, value);
 }
 
-void request::parseBody(Connection *connection, string &line) {
-
+void request::parseBody(Connection *connection, string &line)
+{
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
 
 	size_t body_size = line.size() ;
 	size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
-
-	//if (content_length > 100 * size::MEGABYTE)
-		//return response::builder(connection, code::INSUFFICIENT_STORAGE);
 
 	if (body_size < content_length)
 		return;
@@ -138,8 +134,8 @@ void request::parseBody(Connection *connection, string &line) {
 	response::builder(connection, code::OK);
 }
 
-void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
-
+void request::checkTransferEncodingEnd(Connection *connection, string &buffer)
+{
 	if (buffer.size() < 4)
 		return;
 
@@ -151,15 +147,15 @@ void request::checkTransferEncodingEnd(Connection *connection, string &buffer) {
 	return response::builder(connection, code::OK);
 }
 
-void request::parseTransferEncoding(Connection *connection, string &buffer) {
-
+void request::parseTransferEncoding(Connection *connection, string &buffer)
+{
 	if (buffer.empty())
 		return;
 
 	string chunk_size_value = buffer.substr(0, buffer.find("\r\n"));
 	size_t chunk_size_length = chunk_size_value.size() + 2;
 
-	if (chunk_size_value.find_first_not_of("0123456789ABCDEF") != string::npos)
+	if (chunk_size_value.find_first_not_of(standard::HEXADECIMAL) != string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	if (chunk_size_value == "0")
@@ -187,9 +183,9 @@ void request::parseTransferEncoding(Connection *connection, string &buffer) {
 	return parseTransferEncoding(connection, buffer);
 }
 
-void request::convertToHex(Connection *connection, string &line, size_t &chunck_size) {
-
-	if (line.find_first_not_of("0123456789ABCDEF") != string::npos)
+void request::convertToHex(Connection *connection, string &line, size_t &chunck_size)
+{
+	if (line.find_first_not_of(standard::HEXADECIMAL) != string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	char *rest;
@@ -198,8 +194,8 @@ void request::convertToHex(Connection *connection, string &line, size_t &chunck_
 		return response::builder(connection, code::BAD_REQUEST);
 }
 
-void request::validateHeader(Connection *connection, string &key, string &value) {
-
+void request::validateHeader(Connection *connection, string &key, string &value)
+{
 	if (key == header::CONTENT_LENGTH)
 		return validateContentLength(connection, value);
 
@@ -210,20 +206,20 @@ void request::validateHeader(Connection *connection, string &key, string &value)
 		return validateTransferEncoding(connection, value);
 }
 
-void request::validateContentLength(Connection *connection, string &value) {
-
+void request::validateContentLength(Connection *connection, string &value)
+{
 	if (connection->getMethod() != method::POST)
 		return response::builder(connection, code::BAD_REQUEST);
 
-	if (value.find_first_not_of("0123456789") != string::npos)
+	if (value.find_first_not_of(standard::DECIMAL) != string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	if (*connection == header::TRANSFER_ENCONDING)
 		return response::builder(connection, code::BAD_REQUEST);
 }
 
-void request::validateHost(Connection *connection, string &value) {
-
+void request::validateHost(Connection *connection, string &value)
+{
 	Http *http = Http::getInstance();
 	Server server = http->getServerByListen(value);
 	if (server.empty())
@@ -239,8 +235,8 @@ void request::validateHost(Connection *connection, string &value) {
 	connection->setServer(server);
 }
 
-void request::validateTransferEncoding(Connection *connection, string &value) {
-
+void request::validateTransferEncoding(Connection *connection, string &value)
+{
 	if (connection->getMethod() != method::POST)
 		return response::builder(connection, code::BAD_REQUEST);
 

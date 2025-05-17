@@ -6,13 +6,12 @@
 
 using namespace std;
 
-Page::Page(Connection *connection)
-	: Resource(connection) {
-
+Page::Page(Connection *connection) : Resource(connection)
+{
 	_type = "text/html";
 
-	string code = connection->getCode();
-	string status = connection->getStatus();
+	const string &code = connection->getCode();
+	const string &status = connection->getStatus();
 
 	ostringstream oss;
 	oss << "<html>\n"
@@ -28,20 +27,17 @@ Page::Page(Connection *connection)
 	_step = step::CLOSE;
 }
 
-Page::Page(const Page &src)
-	: Resource(src._connection) {
-
+Page::Page(const Page &src) : Resource(src._connection)
+{
 	*this = src;
 }
 
-Page &Page::operator=(const Page &rhs) {
-
+Page &Page::operator=(const Page &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
 	return *this;
 }
 
-Page::~Page(void) {
-
-}
+Page::~Page(void) {}

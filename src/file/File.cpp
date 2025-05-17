@@ -7,9 +7,8 @@
 
 using namespace std;
 
-File::File(Connection *connection)
-	: Resource(connection) {
-
+File::File(Connection *connection) : Resource(connection)
+{
 	_id = connection->getUri()->getAbsolutePath();
 
 	_file.open(_id.c_str(), ios::binary);
@@ -23,36 +22,36 @@ File::File(Connection *connection)
 	_step = step::CLOSE;
 }
 
-File::File(const File &src)
-	: Resource(src._connection){
-
+File::File(const File &src) : Resource(src._connection)
+{
 	*this = src;
 }
 
-File &File::operator=(const File &rhs) {
-
+File &File::operator=(const File &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
 	return *this;
 }
 
-File::~File(void) {
-
+File::~File(void)
+{
+	_file.close();
 }
 
-void File::processOutput(size_t bytes) {
-
+void File::processOutput(const size_t &bytes)
+{
 	if (!_file.is_open())
 		return;
 
 	vector<char> buffer(bytes);
 	_file.read(buffer.data(), bytes);
 
-	string tmp = "";
-	vector<char>::iterator it = buffer.begin();
-	for (; it != buffer.begin() + _file.gcount(); it++)
-		tmp += *it;
+	string data = "";
+	vector<char>::iterator character = buffer.begin();
+	for (; character != buffer.begin() + _file.gcount(); ++character)
+		data += *character;
 
-	_output.append(tmp);
+	_output.append(data);
 }

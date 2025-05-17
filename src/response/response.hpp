@@ -7,13 +7,12 @@
 class Connection;
 class Location;
 
-namespace response {
-
+namespace response
+{
 	static std::map<std::string, std::string> responses;
 
 	std::string getStatusByCode(const std::string &code);
-	void builder(Connection * connection, std::string code);
-
+	void builder(Connection *connection, std::string code);
 }
 
-#endif /* RESPONSE_HPP */
+#endif // RESPONSE_HPP

@@ -5,16 +5,15 @@
 
 #ifndef LOGGER_DEBUG
 #define LOGGER_DEBUG true
-#endif /* LOGGER_DEBUG */
+#endif // LOGGER_DEBUG
 
-namespace logger {
-
-	void debug(std::string message);
-	void info(std::string message);
-	void warning(std::string message);
-	void error(std::string message);
-	void fatal(std::string message);
-
+namespace logger
+{
+	void debug(const std::string &message);
+	void info(const std::string &message);
+	void warning(const std::string &message);
+	void error(const std::string &message);
+	void fatal(const std::string &message);
 }
 
-#endif /* LOGGER_HPP */
+#endif // LOGGER_HPP

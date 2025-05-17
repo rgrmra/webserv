@@ -4,6 +4,7 @@
 #include "method.hpp"
 #include "parser.hpp"
 #include "process.hpp"
+#include "standard.hpp"
 #include <cctype>
 #include <iostream>
 #include <sstream>
@@ -14,32 +15,34 @@
 
 using namespace std;
 
-URL::URL(Connection *connection)
-	: _connection(connection),
-	  _dac(0) {
-
+URL::URL(Connection *connection) : _connection(connection), _dac(0)
+{
 	string uri = connection->getTarget();
 
 	_scheme = "http";
 
-	list<string> tmp = parser::split(connection->getHost(), ':');
-	if (tmp.size())
-		_host = tmp.front();
+	list<string> host = parser::split(connection->getHost(), ':');
+	if (host.size())
+		_host = host.front();
 
-	if (tmp.size() > 1)
-		_port = tmp.back();
+	if (host.size() > 1)
+		_port = host.back();
 
 	size_t pos = uri.find_first_of("?");
-	if (pos != string::npos) {
+	if (pos != string::npos)
+	{
 		_path = uri.substr(0, pos);
 		_query = uri.substr(pos + 1);
-	} else {
+	}
+	else
+	{
 		_path = uri;
 		_query = "";
 	}
 
 	pos = _path.find_last_of(".");
-	if (pos != string::npos) {
+	if (pos != string::npos)
+	{
 		_path_info = _path.substr(pos, _path.size());
 		
 		size_t epos = _path_info.find_first_of("/");
@@ -48,7 +51,6 @@ URL::URL(Connection *connection)
 			_path_info = _path_info.substr(epos);
 		else
 			_path_info.clear();
-
 
 		_path = _path.substr(0, pos) + _extension;
 	}
@@ -64,13 +66,13 @@ URL::URL(Connection *connection)
 		_extension = _file.substr(pos, _file.size());
 }
 
-URL::URL(const URL &src) {
-
+URL::URL(const URL &src)
+{
 	*this = src;
 }
 
-URL &URL::operator=(const URL &rhs) {
-
+URL &URL::operator=(const URL &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
@@ -86,82 +88,84 @@ URL &URL::operator=(const URL &rhs) {
 	return *this;
 }
 
-URL::~URL(void) {
+URL::~URL(void) {}
 
-}
-
-string URL::checkIndex(const Location &location, string &path) {
-
+string URL::checkIndex(const Location &location, string &path)
+{
 	const set<string> &indexes = location.getIndexes();
 
 	if (_connection->getMethod() == method::DELETE)
 		return "";
 
-	set<string>::const_iterator it = indexes.begin();
-	for (; it != indexes.end(); it++) {
+	set<string>::const_iterator index = indexes.begin();
+	for (; index != indexes.end(); ++index) {
 
-		cout << location.getRoot() + path + *it << endl;
+		cout << location.getRoot() + path + *index << endl;
 
-		if (!_isFile(location.getRoot() + path + *it))
+		if (!_isFile(location.getRoot() + path + *index))
 			continue;
 
-		path.append(*it);
-		return *it;
+		path.append(*index);
+		return *index;
 	}
 	return "";
 }
 
-void URL::formatPath(std::string path) {
+void URL::formatPath(std::string path)
+{
+	list<string> new_files;
+	list<string> files = parser::split(path, '/');
 
-	list<string> new_path;
-	list<string> splited_path = parser::split(path, '/');
+	list<string>::iterator file = files.begin();
+	for (; file != files.end(); ++file) {
 
-	list<string>::iterator it = splited_path.begin();
-	for (; it != splited_path.end(); it ++) {
-
-		if (*it == ".")
+		if (*file == ".")
 			continue;
 
-		if (*it == "..") {
-			if (new_path.size())
-				new_path.pop_back();
+		if (*file == "..") {
+			if (new_files.size())
+				new_files.pop_back();
 
 			continue;
 		}
 
-		new_path.push_back(*it);
+		new_files.push_back(*file);
 	}
 
-	string tmp;
+	string new_path;
 
-	for (it = new_path.begin(); it != new_path.end(); it++)
-		tmp += "/" + *it;
+	for (file = new_files.begin(); file != new_files.end(); ++file)
+		new_path += "/" + *file;
 
-	_path = tmp + (parser::lastCharacter(path) == '/' ? "/" : "");
+	_path = new_path + (parser::lastCharacter(path) == '/' ? "/" : "");
 }
 
-void URL::processPath(string path) {
-
+void URL::processPath(string requested_path)
+{
 	Server server = _connection->getServer();
-	formatPath(path);
+	formatPath(requested_path);
 
 	list<string> paths;
-	while (path.size()) {
-		paths.push_back(path);
+	while (requested_path.size())
+	{
+		paths.push_back(requested_path);
 
-		size_t pos = path.find_first_of("/");
-		if (pos == 0 || path == ".") {
+		size_t pos = requested_path.find_first_of("/");
+		if (pos == 0 || requested_path == ".")
+		{
 			paths.push_back("/");
 			break;
 		}
 
-		path = path.substr(0, pos);
+		requested_path = requested_path.substr(0, pos);
 	}
 
 	Location location;
 
-	for (list<string>::iterator it = paths.begin(); it != paths.end(); it++) {
-		location = server.getLocationByURI(*it);
+	list<string>::iterator path = paths.begin();
+	for (; path != paths.end(); path++)
+	{
+		location = server.getLocationByURI(*path);
 		if (!location.empty())
 			break;
 	}
@@ -174,8 +178,8 @@ void URL::processPath(string path) {
 	checkDAC(location.getRoot() + _path);
 }
 
-bool URL::_isDirectory(const string &path) {
-
+bool URL::_isDirectory(const string &path)
+{
 	struct stat info;
 
 	if (stat(path.c_str(), &info) == 0)
@@ -184,8 +188,8 @@ bool URL::_isDirectory(const string &path) {
 	return false;
 }
 
-bool URL::_isFile(const string &path) {
-
+bool URL::_isFile(const string &path)
+{
 	struct stat info;
 
 	if (stat(path.c_str(), &info) == 0)
@@ -194,40 +198,40 @@ bool URL::_isFile(const string &path) {
 	return false;
 }
 
-bool URL::_isReadable(const string &path) {
-
+bool URL::_isReadable(const string &path)
+{
 	if (access(path.c_str(), R_OK) == 0)
 		return true;
 
 	return false;
 }
 
-bool URL::_isWritable(const string &path) {
-
+bool URL::_isWritable(const string &path)
+{
 	if (access(path.c_str(), W_OK) == 0)
 		return true;
 
 	return false;
 }
 
-bool URL::_isExecutable(const string &path) {
-
+bool URL::_isExecutable(const string &path)
+{
 	if (access(path.c_str(), X_OK) == 0)
 		return true;
 
 	return false;
 }
 
-bool URL::_isDirectoryEmpty(const std::string &path) {
-
+bool URL::_isDirectoryEmpty(const std::string &path)
+{
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
 		return false;
 
-	for (struct dirent *entry = readdir(dir); entry; entry = readdir(dir)) {
-
-		string tmp = entry->d_name;
-		if (tmp == "." || tmp == "..")
+	for (struct dirent *entry = readdir(dir); entry; entry = readdir(dir))
+	{
+		const string &name = entry->d_name;
+		if (name == "." || name == "..")
 			continue;
 
 		closedir(dir);
@@ -238,11 +242,11 @@ bool URL::_isDirectoryEmpty(const std::string &path) {
 	return true;
 }
 
-bool URL::_isDeletable(const string &path) {
+bool URL::_isDeletable(const string &path)
+{
+	const string &parent_directory = path.substr(0, path.size() - _file.size());
 
-	string tmp = path.substr(0, path.size() - _file.size());
-
-	if (!_isWritable(tmp))
+	if (!_isWritable(parent_directory))
 		return false;
 
 	if (isDirectory() && _isDirectoryEmpty(path))
@@ -254,8 +258,8 @@ bool URL::_isDeletable(const string &path) {
 	return false;
 }
 
-void URL::checkDAC(const string &path) {
-
+void URL::checkDAC(const string &path)
+{
 	if (_isFile(path))
 		_dac |= FILE;
 	else if (_isDirectory(path))
@@ -277,119 +281,119 @@ void URL::checkDAC(const string &path) {
 		_dac |= DELETE;
 }
 
-string URL::getScheme(void) const {
-
+string URL::getScheme(void) const
+{
 	return _scheme;
 }
 
-string URL::getHost(void) const {
-
+string URL::getHost(void) const
+{
 	return _host;
 }
 
-string URL::getPort(void) const {
-
+string URL::getPort(void) const
+{
 	return _port;
 }
 
-string URL::getPath(void) const {
-
+string URL::getPath(void) const
+{
 	return _path;
 }
 
-string URL::getQuery(void) const {
-
+string URL::getQuery(void) const
+{
 	return _query;
 }
 
-string URL::getFile(void) const {
-
+string URL::getFile(void) const
+{
 	return _file;
 }
 
-string URL::getPathInfo(void) const {
-
+string URL::getPathInfo(void) const
+{
 	return _path_info;
 }
 
-string URL::getPathTranslated(void) const {
-
+string URL::getPathTranslated(void) const
+{
 	return _connection->getLocation().getRoot() + _path + _path_info;
 }
 
-string URL::getExtension(void) const {
-
+string URL::getExtension(void) const
+{
 	return _extension;
 }
 
-std::string URL::getAbsolutePath(void) const {
-
+std::string URL::getAbsolutePath(void) const
+{
 	return _connection->getLocation().getRoot() + _path;
 }
 
-std::string URL::getLocation(void) const {
-
+std::string URL::getLocation(void) const
+{
 	return (_scheme.size() ? _scheme : "http") + "://"
 		+ _host + (_port.size() ? ":" + _port : "")
 		+ _path.substr(0, _path.size() - _file.size());
 }
 
-bool URL::isDirectory(void) const {
-
+bool URL::isDirectory(void) const
+{
 	return _dac & DIRECTORY;
 }
 
-bool URL::isFile(void) const {
-
+bool URL::isFile(void) const
+{
 	return _dac & FILE;
 }
 
-bool URL::isCgi(void) const {
-
+bool URL::isCgi(void) const
+{
 	return _dac & CGI;
 }
 
-bool URL::isReadable(void) const {
-
+bool URL::isReadable(void) const
+{
 	return _dac & READ;
 }
 
-bool URL::isWritable(void) const {
-
+bool URL::isWritable(void) const
+{
 	return _dac & WRITE;
 }
 
-bool URL::isExecutable(void) const {
-
+bool URL::isExecutable(void) const
+{
 	return _dac & EXECUTE;
 }
 
-bool URL::isDeletable() const {
-
+bool URL::isDeletable() const
+{
 	return _dac & DELETE;
 }
 
-void URL::decode(std::string &path) {
-
+void URL::decode(std::string &path)
+{
     std::string output;
 
-    for (size_t i = 0; i < path.length(); i++) {
-
-		if (path.at(i) != '%' || path.length() < i + 2) {
-
+    for (size_t i = 0; i < path.length(); i++)
+	{
+		if (path.at(i) != '%' || path.length() < i + 2)
+		{
 			output += path.at(i);
 			continue;
 		}
 
-		string tmp = path.substr(i + 1, 2);
+		const string &encoding = path.substr(i + 1, 2);
 
-		if (tmp.find_first_not_of("0123456789ABCDEFabcdef") != string::npos) {
-			
+		if (encoding.find_first_not_of(standard::HEXADECIMAL) != string::npos)
+		{
 			output += '%';
 			continue;
 		}
 
-		istringstream iss(tmp);
+		istringstream iss(encoding);
 		int value;
 
 		iss >> hex >> value;
@@ -401,8 +405,8 @@ void URL::decode(std::string &path) {
     path = output;
 }
 
-ostream &operator<<(ostream &os, const URL &src) {
-
+ostream &operator<<(ostream &os, const URL &src)
+{
 	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
 		+ src.getHost() + (src.getPort().size() ? ":" + src.getPort() : "")
 		+ src.getPath() + (src.getPathInfo().size() ? src.getPathInfo() : "")
