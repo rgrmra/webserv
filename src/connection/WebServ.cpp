@@ -8,6 +8,7 @@
 #include "standard.hpp"
 #include "step.hpp"
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -196,11 +197,9 @@ void WebServ::closeConnection(int client_fd) {
 	if (it == _client_connections.end())
 		return;
 
-	if (!dynamic_cast<Connection *>(it->second)) {
-		if (dynamic_cast<Cgi *>(it->second))
-			return dynamic_cast<Cgi *>(it->second)->sendCGI();
+	if (dynamic_cast<Cgi *>(it->second)){
 		_client_connections.erase(it);
-		return;
+		return dynamic_cast<Cgi *>(it->second)->sendCGI();
 	}
 
 	controlEpoll(client_fd, 0, EPOLL_CTL_DEL);
@@ -261,7 +260,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator it) {
 		}
 	}
 
-	return controlEpoll(fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
+	return controlEpoll(fd, EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
 void WebServ::checkTimeOut(void) {

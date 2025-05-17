@@ -22,10 +22,11 @@ namespace standard {
 	static const std::string SERVER_SOFTWARE = "webserv/0.1.0";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
 
-	static const int BUFFER_SIZE = 128 * size::KILOBYTE;
+	static const int BUFFER_SIZE = 1 * size::GIGABYTE;
+	//static const int BUFFER_SIZE = 128 * size::MEGABYTE;
 	static const int MAX_EVENTS = 252;
 	static const long KEEP_ALIVE_TIMEOUT = 3;
-	static const long TIMEOUT = 30;
+	static const long TIMEOUT = 15;
 		
 	static const std::string ALLOWED_CHARACTERS = ""
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

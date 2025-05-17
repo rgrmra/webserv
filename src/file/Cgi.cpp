@@ -12,6 +12,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -21,6 +23,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -29,12 +32,10 @@ Cgi::Cgi(Connection *connection)
 
 	std::memset(_sock, -1, 2 * sizeof(int));
 
-	if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, _sock) == -1)
-	 	throw runtime_error("socketpair failed");
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, _sock) == -1)
+		throw runtime_error("socketpair failed");
 
-	_fd = _sock[0];
-
-	URL *uri = _connection->getUri();
+	_fd = _sock[1];
 
 	populateEnv(connection);
 
@@ -42,7 +43,6 @@ Cgi::Cgi(Connection *connection)
 
 	vector<string> _args;
 	_args.push_back(connection->getLocation().getFastCgi());
-	_args.push_back(uri->getAbsolutePath());
 
 	vector<char *> _argv = createVector(_args);
 
@@ -51,12 +51,12 @@ Cgi::Cgi(Connection *connection)
 		closeSockets();
 		throw runtime_error("fork failed");
 	} else if (_pid == 0) {
-		close(_sock[0]);
-		int fd = dup(_sock[1]);
-		dup2(_sock[1], STDOUT_FILENO);
-		dup2(fd, STDIN_FILENO);
+		//int fd = dup(_sock[0]);
+		dup2(_sock[0], STDOUT_FILENO);
+		dup2(_sock[0], STDIN_FILENO);
 		close(_sock[1]);
-		close(fd);
+		close(_sock[0]);
+		//close(fd);
 
 		execve(_argv.data()[0], _argv.data(), _envp.data());
 
@@ -64,12 +64,12 @@ Cgi::Cgi(Connection *connection)
 		deleteVector(_envp);
 		throw runtime_error("execve failed");
 	}
-	close(_sock[1]);
-	_sock[1] = -1;
+	close(_sock[0]);
+	_sock[0] = -1;
 
 	deleteVector(_argv);
 	deleteVector(_envp);
-
+	
 	_output = connection->getBody();
 	_step = step::RESPONSE;
 
@@ -95,6 +95,8 @@ void Cgi::populateEnv(Connection *connection) {
 		server_name = server.getNames()[0];
 
 	list<string> tmp = parser::split(connection->getId(), ':');
+	addEnv(env::CONTENT_LENGTH, (*connection)[header::CONTENT_LENGTH]);
+	addEnv(env::CONTENT_TYPE, (*connection)[header::CONTENT_TYPE]);
 	addEnv(env::GATEWAY_INTERFACE, standard::GATEWAY_INTERFACE);
 	addEnv(env::QUERY_STRING, connection->getUri()->getQuery());
 	addEnv(env::REMOTE_ADDR, connection->getId());
@@ -106,7 +108,7 @@ void Cgi::populateEnv(Connection *connection) {
 	addEnv(env::SERVER_PROTOCOL, standard::PROTOCOL);
 	addEnv(env::SERVER_SOFTWARE, standard::SERVER_SOFTWARE);
 	addEnv(env::SCRIPT_FILENAME, connection->getUri()->getAbsolutePath());
-	addEnv(env::REDIRECT_STATUS, "TRUE");
+	addEnv(env::REDIRECT_STATUS, "200");
 
 	if (url->getPathInfo().size()) {
 		addEnv(env::PATH_INFO, url->getPathInfo());
@@ -121,14 +123,7 @@ void Cgi::populateEnv(Connection *connection) {
 		string transformed_key = parser::toUpper(key);
 		parser::replace(transformed_key, '-', '_');
 
-		if (transformed_key == env::CONTENT_TYPE)
-			addEnv(env::CONTENT_TYPE, value);
-		else if (transformed_key == env::CONTENT_LENGTH)
-			addEnv(env::CONTENT_LENGTH, value);
-		else if (transformed_key == env::AUTHORIZATION)
-			addEnv(env::AUTHORIZATION, value);
-		else
-			addEnv(env::HTTP_PREFIX + transformed_key, value);
+		addEnv(env::HTTP_PREFIX + transformed_key, value);
 	}
 }
 
@@ -214,6 +209,9 @@ void Cgi::parseCgiResponse(void) {
 
 void Cgi::sendCGI(void) {
 
+	WebServ *webserv = WebServ::getInstance();
+	webserv->controlEpoll(_fd, 0, EPOLL_CTL_DEL);
+
 	if (_output.find_first_of("\r\n\r\n") == string::npos)
 		return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
 
@@ -227,6 +225,7 @@ void Cgi::sendCGI(void) {
 
 		status = status.erase(status.find_first_of(" "));
 
+		cout << "status: " << status << endl;
 		if (status != code::OK)
 			return response::builder(_connection, status);
 	}

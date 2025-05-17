@@ -14,16 +14,19 @@ Directory::Directory(Connection *connection)
 	
 	DIR *dir;
 	struct dirent *ent;
-	Location location = connection->getLocation();
+	string directory = connection->getUri()->getPath();
 
-	_output += std::string("<html>\n<head><title>Index of</title>"
-		"<script src=\"https://cdn.tailwindcss.com\"></script>"
-		"</head>\n"
-		"<body class=\"bg-gray-100 text-gray-900 min-h-screen\">\n"
-		"<div class=\"container mx-auto p-4\">\n"
-		"<div class=\"bg-white text-gray-900 rounded-lg shadow-lg p-8 max-w-3xl w-full mx-auto mt-8\">\n"
-		"<h1 class=\"text-3xl font-bold mb-4\">Index of</h1>\n"
-		"<div class=\"space-y-2\">\n");
+	_output += std::string(
+			"<html>\n"
+			"<head>"
+			"<title>Index of " + directory + "</title>"
+			"<script src=\"https://cdn.tailwindcss.com\"></script>"
+			"</head>\n"
+			"<body class=\"bg-gray-100 text-gray-900 min-h-screen\">\n"
+			"<div class=\"container mx-auto p-4\">\n"
+			"<div class=\"bg-white text-gray-900 rounded-lg shadow-lg p-8 max-w-3xl w-full mx-auto mt-8\">\n"
+			"<h1 class=\"text-3xl font-bold mb-4\">Index of " + directory + "</h1>\n"
+			"<div class=\"space-y-2\">\n");
 
 	std::vector<std::string> entries;
 
@@ -35,19 +38,19 @@ Directory::Directory(Connection *connection)
 			entries.push_back(name);
 		}
 		closedir(dir);
-	} else {
-		_output += "<p>Unable to open directory</p>\n";
 	}
 
 	std::sort(entries.begin(), entries.end());
 
-	typedef std::vector<std::string>::iterator vector_iterator;
-	for (vector_iterator it = entries.begin(); it != entries.end(); ++it) {
-		_output += "<a href=\"./" + *it + "\" class=\"text-blue-500 hover:underline text-lg block\">" 
-			+ *it 
-			+ "</a>\n";
+	vector<string>::iterator it;
+	for (it = entries.begin(); it != entries.end(); ++it) {
+		_output += "<a "
+			"href=\"" + directory + *it + "\" "
+			"class=\"text-blue-500 hover:underline text-lg block\">" + *it + "</a>\n";
 	}
+
 	_output += "</div>\n</div>\n</div>\n</body>\n</html>\n";
+
 	_size = _output.size();
 	_step = step::CLOSE;
 }

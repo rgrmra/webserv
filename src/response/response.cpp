@@ -12,6 +12,7 @@
 #include "standard.hpp"
 #include "status.hpp"
 #include "step.hpp"
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -132,6 +133,7 @@ string response::getStatusByCode(const string &code) {
 		responses[code::SERVICE_UNAVAILABLE] = status::SERVICE_UNAVAILABLE;
 		responses[code::GATEWAY_TIMEOUT] = status::GATEWAY_TIMEOUT;
 		responses[code::HTTP_VERSION_NOT_SUPPORTED] = status::HTTP_VERSION_NOT_SUPPORTED;
+		responses[code::INSUFFICIENT_STORAGE] = status::INSUFFICIENT_STORAGE;
 	}
 
 	map<string, string>::iterator it = responses.find(code);

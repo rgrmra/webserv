@@ -120,6 +120,9 @@ void request::parseBody(Connection *connection, string &line) {
 	size_t body_size = line.size() ;
 	size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
+	//if (content_length > 100 * size::MEGABYTE)
+		//return response::builder(connection, code::INSUFFICIENT_STORAGE);
+
 	if (body_size < content_length)
 		return;
 

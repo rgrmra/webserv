@@ -28,6 +28,7 @@ namespace code {
 	static const std::string SERVICE_UNAVAILABLE = "503";
 	static const std::string GATEWAY_TIMEOUT = "504";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "505";
+	static const std::string INSUFFICIENT_STORAGE = "507";
 
 }
 

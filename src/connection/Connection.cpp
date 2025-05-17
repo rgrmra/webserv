@@ -276,7 +276,8 @@ void Connection::buildResponse(void) {
 
 	if (_file) {
 		_headers[header::CONTENT_LENGTH] = parser::toString(_file->getSize());
-		_headers[header::CONTENT_TYPE] = _file->getMime();
+		if (!dynamic_cast<Cgi *>(_file))
+			_headers[header::CONTENT_TYPE] = _file->getMime();
 	}
 	_headers[header::SERVER] = "webserv/0.1.0";
 

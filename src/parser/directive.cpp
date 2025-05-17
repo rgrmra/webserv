@@ -372,6 +372,9 @@ void directive::addErrorPage(string error_page, map<string, string> &_error_page
 	if (tmp.size() < 2)
 		throw runtime_error("invalid error page: " + error_page);
 
+	if (tmp.back().at(0) != '.' && tmp.back().at(0) != '/')
+		tmp.back() = "./" + tmp.back();
+
 	string path = tmp.back();
 	tmp.pop_back();
 
