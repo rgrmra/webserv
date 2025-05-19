@@ -54,6 +54,7 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 
 		vector<char *> argv;
 		argv.push_back(const_cast<char *>(fastcgi.c_str()));
+//		argv.push_back(const_cast<char *>(connection->)
 		argv.push_back(NULL);
 
 		Environment envp(connection);
