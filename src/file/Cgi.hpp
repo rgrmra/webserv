@@ -7,29 +7,29 @@
 
 class Connection;
 
-class Cgi : public Resource {
-
+class Cgi : public Resource
+{
 	private:
 		int _sock[2];
+		int _status;
 		pid_t _pid;
-		std::vector<std::string> _env;
+//		std::vector<std::string> _env;
 
 		std::vector<char *> createVector(std::vector<std::string> &container);
-		void addEnv(std::string key, std::string value);
+		void addEnv(const std::string &key, const std::string &value);
 		void populateEnv(Connection *connection);
  		void deleteVector(std::vector<char *> &container);
 		void closeSockets(void);
-		void processInput(size_t bytes);
+		void processInput(const size_t &bytes);
 		void parseCgiResponse(void);
 
 	public:
 		Cgi(Connection *connection);
 		Cgi(const Cgi &src);
 		Cgi &operator=(const Cgi &rhs);
-		virtual ~Cgi(void);
+		~Cgi(void);
 
 		void sendCGI(void);
-
 };
 
-#endif /* CGI_HPP */
+#endif // CGI_HPP

@@ -5,14 +5,13 @@
 
 class Connection;
 
-class Page : public Resource {
-
+class Page : public Resource
+{
 	public:
 		Page(Connection *Connection);
 		Page(const Page &src);
 		Page &operator=(const Page &rhs);
 		~Page(void);
-
 };
 
-#endif /* PAGE_HPP */
+#endif // PAGE_HPP

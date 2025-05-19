@@ -1,6 +1,6 @@
+#include "parser.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
-#include "parser.hpp"
 #include "Server.hpp"
 #include <sstream>
 #include <string>
@@ -8,12 +8,10 @@
 using namespace std;
 
 const char &parser::lastCharacter(const string &text) {
-
 	return text.at(text.size() - 1);
 }
 
-size_t parser::toSizeT(string value) {
-
+size_t parser::toSizeT(const string &value) {
 	stringstream ss;
 	size_t tmp = 0;
 
@@ -23,8 +21,7 @@ size_t parser::toSizeT(string value) {
 	return tmp;
 }
 
-string parser::toString(size_t value) {
-
+string parser::toString(const size_t &value) {
 	stringstream ss;
 
 	ss << value;
@@ -33,7 +30,6 @@ string parser::toString(size_t value) {
 }
 
 string parser::toUpper(string text) {
-
 	for (size_t i = 0; i < text.size(); i++)
 		text.at(i) = toupper(text.at(i));
 
@@ -41,22 +37,19 @@ string parser::toUpper(string text) {
 }
 
 string parser::toLower(string text) {
-
 	for (size_t i = 0; i < text.size(); i++)
 		text.at(i) = tolower(text.at(i));
 
 	return text;
 }
 
-void parser::replace(string &buffer, char from, char to) {
-
+void parser::replace(string &buffer, const char &from, const char &to) {
 	for (size_t i = 0; i < buffer.length(); i++)
 		if (buffer.at(i) == from)
 			buffer.at(i) = to;
 }
 
-void parser::erase(string &buffer, string text, size_t quantity) {
-
+void parser::erase(string &buffer, const string &text, const size_t &quantity) {
 	size_t pos = buffer.find(text);
 
 	while (pos != string::npos) {
@@ -66,8 +59,8 @@ void parser::erase(string &buffer, string text, size_t quantity) {
 	}
 }
 
-void parser::rerase(string &buffer, string text, size_t quantity) {
-
+void parser::rerase(string &buffer, const string &text,
+										const size_t &quantity) {
 	size_t pos = buffer.find(text);
 
 	while (pos != string::npos) {
@@ -77,19 +70,15 @@ void parser::rerase(string &buffer, string text, size_t quantity) {
 	}
 }
 
-void parser::trim(string &buffer, string set) {
-
-	if (buffer.find_first_not_of(set) == string::npos) {
-		buffer = "";
-		return;
-	}
+void parser::trim(string &buffer, const string &set) {
+	if (buffer.find_first_not_of(set) == string::npos)
+		return buffer.clear();
 
 	buffer = buffer.substr(buffer.find_first_not_of(set), buffer.size());
 	buffer = buffer.substr(0, buffer.find_last_not_of(set) + 1);
 }
 
-bool parser::compare(string key, string &buffer) {
-
+bool parser::compare(const string &key, string &buffer) {
 	if (buffer.empty())
 		return false;
 
@@ -99,14 +88,14 @@ bool parser::compare(string key, string &buffer) {
 	return false;
 }
 
-string parser::find(string key, string &buffer, string delimiter) {
-
+string parser::find(const string &key, string &buffer, const string &delimiter)
+{
 	if (buffer.empty())
 		return "";
 
 	if (not parser::compare(key, buffer))
 		return "";
-	
+
 	buffer.erase(0, key.size());
 
 	size_t pos = buffer.find(delimiter);
@@ -116,24 +105,26 @@ string parser::find(string key, string &buffer, string delimiter) {
 
 	string tmp = buffer.substr(0, pos);
 	buffer.erase(0, pos + 1);
-		
+
 	return tmp;
 }
 
-list<string> parser::split(std::string text, char delimiter) {
-
+list<string> parser::split(string text, const char &delimiter)
+{
 	list<string> tmp;
 
-	while (text.size()) {
-		
+	while (text.size())
+	{
 		parser::trim(text, string(1, delimiter));
 		size_t pos = text.find_first_of(string(1, delimiter));
 
-		if (not text.empty() && pos == string::npos) {
+		if (not text.empty() && pos == string::npos)
+		{
 			tmp.push_back(text.substr(0, text.size()));
 			text.erase(0, text.size());
 		}
-		else if (not text.empty() && pos != string::npos) {
+		else if (not text.empty() && pos != string::npos)
+		{
 			tmp.push_back(text.substr(0, pos));
 			text.erase(0, pos);
 		}
@@ -142,8 +133,8 @@ list<string> parser::split(std::string text, char delimiter) {
 	return tmp;
 }
 
-string parser::basename(string text) {
-
+string parser::basename(const string &text)
+{
 	if (text.empty())
 		return "";
 
@@ -155,18 +146,19 @@ string parser::basename(string text) {
 	return text.substr(pos, text.size() - pos);
 }
 
-void parser::http(Http &http, string &buffer) {
-
-	if (parser::compare("http{", buffer)) {
+void parser::http(Http &http, string &buffer)
+{
+	if (parser::compare("http{", buffer))
+	{
 		buffer.erase(0, 5);
 
 		size_t npos = buffer.find_last_of("}");
 		if (npos != string::npos)
 			buffer.erase(npos, 1);
 	}
-	
-	for (size_t i = buffer.size(); i > 0; i--) {
 
+	for (size_t i = buffer.size(); i > 0; --i)
+	{
 		http.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
 		http.setAccessLog(find("access_log ", buffer, ";"));
 		http.setErrorLog(find("error_log ", buffer, ";"));
@@ -178,7 +170,8 @@ void parser::http(Http &http, string &buffer) {
 		if (parser::compare("server{", buffer))
 			http.addServer(Server(buffer));
 
-		if (buffer.empty()) {
+		if (buffer.empty())
+		{
 			buffer.erase(0, 1);
 			return;
 		}
@@ -187,12 +180,12 @@ void parser::http(Http &http, string &buffer) {
 	throw runtime_error("failed to parse http at: " + buffer);
 }
 
-void parser::server(Server &server, string &buffer) {
-
+void parser::server(Server &server, string &buffer)
+{
 	buffer.erase(0, 7);
-	
-	for (size_t i = buffer.size(); i > 0; i--) {
 
+	for (size_t i = buffer.size(); i > 0; --i)
+	{
 		server.addListen(parser::find("listen ", buffer, ";"));
 		server.addName(parser::find("server_name ", buffer, ";"));
 		server.setRoot(parser::find("root ", buffer, ";"));
@@ -205,7 +198,8 @@ void parser::server(Server &server, string &buffer) {
 		if (parser::compare("location ", buffer))
 			server.addLocation(Location(buffer));
 
-		if (parser::compare("}", buffer)) {
+		if (parser::compare("}", buffer))
+		{
 			buffer.erase(0, 1);
 			return;
 		}
@@ -214,12 +208,12 @@ void parser::server(Server &server, string &buffer) {
 	throw runtime_error("failed to parser server at: " + buffer);
 }
 
-void parser::location(Location &location, string &buffer) {
-
+void parser::location(Location &location, string &buffer)
+{
 	location.setURI(find("location ", buffer, "{"));
 
-	for (size_t i = buffer.size(); i > 0; i--) {
-
+	for (size_t i = buffer.size(); i > 0; --i)
+	{
 		location.addIndex(find("index ", buffer, ";"));
 		location.setRoot(find("root ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
@@ -232,18 +226,19 @@ void parser::location(Location &location, string &buffer) {
 		if (parser::compare("limit_except", buffer))
 			parser::limit_except(location, buffer);
 
-		if (parser::compare("}", buffer)) {
+		if (parser::compare("}", buffer))
+		{
 			buffer.erase(0, 1);
-			return ;
+			return;
 		}
 	}
 
 	throw runtime_error("failed to parse location at: " + buffer);
 }
-void parser::limit_except(Location &location, string &buffer) {
-
-	for (size_t i = buffer.size(); i > 0; i--) {
-
+void parser::limit_except(Location &location, string &buffer)
+{
+	for (size_t i = buffer.size(); i > 0; --i)
+	{
 		if (parser::compare("limit_except{", buffer))
 			buffer.erase(0, 13);
 		else if (parser::compare("limit_except ", buffer))
@@ -251,9 +246,10 @@ void parser::limit_except(Location &location, string &buffer) {
 
 		location.setDenyMethods(find("deny ", buffer, ";"));
 
-		if (parser::compare("}", buffer)) {
+		if (parser::compare("}", buffer))
+		{
 			buffer.erase(0, 1);
-			return ;
+			return;
 		}
 	}
 

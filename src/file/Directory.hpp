@@ -5,14 +5,13 @@
 
 class Connection;
 
-class Directory : public Resource {
-
+class Directory : public Resource
+{
 	public:
 		Directory(Connection *connection);
 		Directory(const Directory &src);
 		Directory &operator=(const Directory &rhs);
 		~Directory(void);
-
 };
 
-#endif /* DIRECTORY_HPP */
+#endif // DIRECTORY_HPP

@@ -8,6 +8,7 @@
 #include <ctime>
 #include <map>
 #include <string>
+#include <vector>
 
 class Resource;
 class Http;
@@ -31,52 +32,52 @@ class Connection : public AStream {
 		void parseRequest(void);
 
 	public:
-		Connection(int fd, std::string _ip);
+		Connection(const int &fd, const std::string &ip);
 		Connection(const Connection &src);
 		Connection &operator=(const Connection &rhs);
 		virtual ~Connection(void);
 
-		void setHost(std::string host);
+		void setHost(const std::string &host);
 		std::string getHost(void) const;
-		void processInput(size_t bytes);
-		void setMethod(std::string &method);
+		void processInput(const size_t &bytes);
+		void setMethod(const std::string &method);
 		std::string getMethod(void) const;
-		void setTarget(std::string target);
+		void setTarget(const std::string &target);
 		std::string getTarget(void) const;
-		void setProtocol(std::string protocol);
+		void setProtocol(const std::string &protocol);
 		std::string getProtocol(void) const;
-		void setCode(std::string code);
+		void setCode(const std::string &code);
 		std::string getCode(void) const;
-		void setStatus(std::string status);
+		void setStatus(const std::string &status);
 		std::string getStatus(void) const;
 		void setTime(void);
-		void addHeader(std::string key, std::string value);
-		void addHeader(std::string key, size_t value);
-		void setHeaders(std::map<std::string, std::string> headers);
-		std::string getHeaderByKey(std::string key) const;
+		void addHeader(const std::string &key, const std::string &value);
+		void addHeader(const std::string &key, const size_t &value);
+		void setHeaders(const std::map<std::string, std::string> &headers);
+		std::string getHeaderByKey(const std::string &key) const;
 		std::map<std::string, std::string> getHeaders(void) const;
 		std::size_t getHeadersSize(void) const;
-		void addBody(std::string body);
-		void setBody(std::string body);
+		void addBody(const std::string &body);
+		void setBody(const std::string &body);
 		std::string getBody(void) const;
 		void setUri(URL *uri);
 		URL *getUri(void) const;
 		void setResource(Resource *file);
-		void setServer(Server server);
+		void setServer(const Server &server);
 		Server &getServer(void);
-		void setLocation(Location location);
+		void setLocation(const Location &location);
 		Location &getLocation(void);
 		void buildResponse(void);
-		void processOutput(size_t bytes);
+		void processOutput(const size_t &bytes);
 		void resetConnection(void);
 		bool isKeepAliveTimedOut(void) const;
 		void sendTimeOut(void);
 
-		std::string operator[](std::string key);
-		bool operator==(std::string key);
+		std::string operator[](const std::string &key);
+		bool operator==(const std::string &key);
 
 };
 
 std::ostream &operator<<(std::ostream &os, const Connection &src);
 
-#endif /* CONNECTION_HPP */
+#endif // CONNECTION_HPP

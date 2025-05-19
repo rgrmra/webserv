@@ -4,10 +4,9 @@
 #include "IStream.hpp"
 #include <ctime>
 #include <string>
-#include <vector>
 
-class AStream : public IStream {
-	
+class AStream : public IStream
+{
 	protected:
 		int _fd;
 		std::string _id;
@@ -18,12 +17,12 @@ class AStream : public IStream {
 		size_t _transfers;
 		int _step;
 
-		AStream(int fd, std::string id);
+		AStream(const int &fd, const std::string &id);
 		AStream(const AStream &src);
 		AStream &opeartor(const AStream &rhs);
 
-		virtual void processInput(size_t bytes);
-		virtual void processOutput(size_t bytes);
+		virtual void processInput(const size_t &bytes);
+		virtual void processOutput(const size_t &bytes);
 		
 	public:
 		virtual ~AStream(void);
@@ -31,13 +30,12 @@ class AStream : public IStream {
 		int getFd(void) const;
 		std::string getId(void) const;
 
-		virtual void setData(std::vector<char> &buffer, size_t bytes);
-		virtual std::string getData(size_t bytes);
+		virtual void setData(std::vector<char> &buffer, const size_t &bytes);
+		virtual std::string getData(const size_t &bytes);
 		virtual size_t getSize(void) const;
-		virtual void setStep(int step);
+		virtual void setStep(const int &step);
 		virtual int getStep(void) const;
 		virtual bool isTimedOut(void) const;
-
 };
 
-#endif /* ASTREAM_HPP */
+#endif // ASTREAM_HPP

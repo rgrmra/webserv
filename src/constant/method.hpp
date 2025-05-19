@@ -4,8 +4,8 @@
 #include <set>
 #include <string>
 
-namespace method {
-
+namespace method
+{
 	static const std::string CONNECT = "CONNECT";
 	static const std::string DELETE = "DELETE";
 	static const std::string GET = "GET";
@@ -17,7 +17,6 @@ namespace method {
 	static const std::string TRACE = "TRACE";
 
 	std::set<std::string> &getAllowedMethods(void);
-
 }
 
-#endif /* METHOD_HPP */
+#endif // METHOD_HPP

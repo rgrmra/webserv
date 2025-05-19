@@ -3,8 +3,8 @@
 
 #include <string>
 
-namespace env {
-
+namespace env
+{
 	static const std::string AUTHORIZATION = "AUTHORIZATION";
 	static const std::string CONTENT_LENGTH = "CONTENT_LENGTH";
 	static const std::string CONTENT_TYPE = "CONTENT_TYPE";
@@ -23,7 +23,6 @@ namespace env {
 	static const std::string SERVER_NAME = "SERVER_NAME";
 	static const std::string SERVER_PROTOCOL= "SERVER_PROTOCOL";
 	static const std::string SERVER_SOFTWARE = "SERVER_SOFTWARE";
-
 }
 
-#endif /* ENV */
+#endif // ENV

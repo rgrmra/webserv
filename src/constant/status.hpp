@@ -3,8 +3,8 @@
 
 #include <string>
 
-namespace status {
-
+namespace status
+{
 	static const std::string OK = "OK";
 	static const std::string CREATED = "Created";
 	static const std::string ACCEPTED = "Accepted";
@@ -12,7 +12,7 @@ namespace status {
 	static const std::string MOVED_PERMANENTLY = "Moved Permanently";
 	static const std::string BAD_REQUEST = "Bad Request";
 	static const std::string UNAUTHORIZED = "Unauthorized";
-	static const std::string FORBIDDEN = "FORBIDDEN";
+	static const std::string FORBIDDEN = "Forbidden";
 	static const std::string NOT_FOUND = "Not Found";
 	static const std::string NOT_ALLOWED = "Method Not Allowed";
 	static const std::string CONFLICT = "Conflict";
@@ -28,6 +28,7 @@ namespace status {
 	static const std::string SERVICE_UNAVAILABLE = "Service Unavailable";
 	static const std::string GATEWAY_TIMEOUT = "Gateway Timeout";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "HTTP Version Not Supported";
+	static const std::string INSUFFICIENT_STORAGE = "Insufficient Storage";
 }
 
-#endif /* STATUS_HPP */
+#endif // STATUS_HPP

@@ -17,24 +17,24 @@
 
 using namespace std;
 
-static void buildHeaderAndBody(Connection *connection) {
-
+static void buildHeaderAndBody(Connection *connection)
+{
 	connection->setStep(step::BODY);
 
 	string tmp = connection->getHost() + " "
-				+ connection->getMethod() + " "
-				+ connection->getTarget() + " "
-				+ connection->getProtocol() + " "
-				+ connection->getCode() + " - "
-				+ connection->getHeaderByKey(header::USER_AGENT);
+		+ connection->getMethod() + " "
+		+ connection->getTarget() + " "
+		+ connection->getProtocol() + " "
+		+ connection->getCode() + " - "
+		+ connection->getHeaderByKey(header::USER_AGENT);
 
 	if (connection->getCode() == code::OK)
 		logger::info(tmp);
 	else
 		logger::warning(tmp);
 
-	string header_connection = (*connection)[header::CONNECTION];
-	string header_location = (*connection)[header::LOCATION];
+	const string &header_connection = (*connection)[header::CONNECTION];
+	const string &header_location = (*connection)[header::LOCATION];
 
 	connection->setProtocol(standard::PROTOCOL);
 	connection->setHeaders(standard::EMPTY_HEADER);
@@ -42,16 +42,18 @@ static void buildHeaderAndBody(Connection *connection) {
 	connection->addHeader(header::CONNECTION, header_connection);
 	connection->addHeader(header::LOCATION, header_location);
 	connection->setTime();
+
 	connection->buildResponse();
 }
 
-static bool checkErrorPages(Connection *connection) {
-
-	string page = connection->getLocation().getErrorPageByCode(connection->getCode());
+static bool checkErrorPages(Connection *connection)
+{
+	const string &code = connection->getCode();
+	const string &page = connection->getLocation().getErrorPageByCode(code);
 	if (page.empty())
 		return false;
 
-	string path = connection->getTarget();
+	const string &path = connection->getTarget();
 
 	connection->setTarget(page);
 	URL *uri = new URL(connection);
@@ -74,9 +76,9 @@ static bool checkErrorPages(Connection *connection) {
 	return true;
 }
 
-static bool checkReturn(Connection *connection) {
-
-	Location &location = connection->getLocation();
+static bool checkReturn(Connection *connection)
+{
+	const Location &location = connection->getLocation();
 	string return_code = location.getReturnCode();
 	string return_uri = location.getReturnURI();
 
@@ -87,7 +89,8 @@ static bool checkReturn(Connection *connection) {
 		connection->addHeader(header::LOCATION, location.getReturnURI());
 
 	string status = response::getStatusByCode(return_code);
-	if (status.empty()) {
+	if (status.empty())
+	{
 		return_code = code::INTERNAL_SERVER_ERROR;
 		status = status::INTERNAL_SERVER_ERROR;
 		return_uri.clear();	
@@ -106,9 +109,10 @@ static bool checkReturn(Connection *connection) {
 	return true;
 }
 
-string response::getStatusByCode(const string &code) {
-
-	if (responses.empty()) {
+string response::getStatusByCode(const string &code)
+{
+	if (responses.empty())
+	{
 		responses[code::OK] = status::OK;
 		responses[code::CREATED] = status::CREATED;
 		responses[code::ACCEPTED] = status::ACCEPTED;
@@ -132,17 +136,18 @@ string response::getStatusByCode(const string &code) {
 		responses[code::SERVICE_UNAVAILABLE] = status::SERVICE_UNAVAILABLE;
 		responses[code::GATEWAY_TIMEOUT] = status::GATEWAY_TIMEOUT;
 		responses[code::HTTP_VERSION_NOT_SUPPORTED] = status::HTTP_VERSION_NOT_SUPPORTED;
+		responses[code::INSUFFICIENT_STORAGE] = status::INSUFFICIENT_STORAGE;
 	}
 
-	map<string, string>::iterator it = responses.find(code);
-	if (it == responses.end())
+	map<string, string>::iterator response = responses.find(code);
+	if (response == responses.end())
 		return "";
 	
-	return it->second;
+	return response->second;
 }
 
-void response::builder(Connection *connection, string code) {
-
+void response::builder(Connection *connection, string code)
+{
 	string status = getStatusByCode(code);
 	if (status.empty())
 		return builder(connection, code::INTERNAL_SERVER_ERROR);

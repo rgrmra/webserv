@@ -10,16 +10,16 @@
 
 using namespace std;
 
-void process::request(Connection *connection) {
-
-	Location &location = connection->getLocation();
+void process::request(Connection *connection)
+{
+	const Location &location = connection->getLocation();
 	if (location.empty())
 		return response::builder(connection, code::NOT_FOUND);
 
 	if (location.getFastCgi().empty() != location.getFastCgiExtension().empty())
 		return response::builder(connection, code::BAD_GATEWAY);
 
-	URL *uri = connection->getUri();
+	const URL *uri = connection->getUri();
 	if (!uri->isFile() && !uri->isDirectory())
 		return response::builder(connection, code::NOT_FOUND);
 

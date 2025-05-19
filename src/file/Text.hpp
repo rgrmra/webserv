@@ -3,16 +3,13 @@
 
 #include "Resource.hpp"
 
-class Text : public Resource {
-	
-	private:
-
+class Text : public Resource
+{
 	public:
 		Text(Connection *connection);
 		Text(const Text &src);
 		Text &operator=(const Text &rhs);
 		~Text(void);
-
 };
 
-#endif /* TEXT_HPP */
+#endif // TEXT_HPP

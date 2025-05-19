@@ -3,21 +3,19 @@
 
 #include <string>
 
-
-namespace color {
-
+namespace color
+{
 	std::string red(void);
-	std::string red(std::string message);
+	std::string red(const std::string &message);
 	std::string green(void);
-	std::string green(std::string message);
+	std::string green(const std::string &message);
 	std::string yellow(void);
-	std::string yellow(std::string message);
+	std::string yellow(const std::string &message);
 	std::string blue(void);
-	std::string blue(std::string message);
+	std::string blue(const std::string &message);
 	std::string magenta(void);
-	std::string magenta(std::string message);
+	std::string magenta(const std::string &message);
 	std::string reset(void);
-
 }
 
-#endif /* COLOR_HPP */
+#endif // COLOR_HPP

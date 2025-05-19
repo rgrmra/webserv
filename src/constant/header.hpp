@@ -3,8 +3,8 @@
 
 #include <string>
 
-namespace header {
-
+namespace header
+{
 	static const std::string ACCEPT = "Accept";
 	static const std::string AUTHORIZATION = "Authorization";
 	static const std::string COOKIE = "Cookie";
@@ -20,7 +20,6 @@ namespace header {
 	static const std::string STATUS = "Status";
 	static const std::string USER_AGENT = "User-Agent";
 	static const std::string TRANSFER_ENCONDING = "Transfer-Encoding";
-
 }
 
-#endif /* HEADER_HPP */
+#endif // HEADER_HPP

@@ -6,8 +6,8 @@
 
 class Connection;
 
-class Resource : public AStream {
-
+class Resource : public AStream
+{
 	protected:
 		std::string _type;
 		Connection *_connection;
@@ -20,7 +20,6 @@ class Resource : public AStream {
 		virtual ~Resource(void);
 
 		virtual std::string getMime(void) const;
-
 };
 
-#endif /* RESOURCE_HPP */
+#endif // RESOURCE_HPP

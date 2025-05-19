@@ -6,19 +6,18 @@
 
 class Connection;
 
-class File : public Resource {
-
+class File : public Resource
+{
 	private:
 		std::ifstream _file;
 
-		void processOutput(size_t bytes);
+		void processOutput(const size_t &bytes);
 
 	public:
 		File(Connection *connection);
 		File(const File &src);
 		File &operator=(const File &rhs);
 		~File(void);
-
 };
 
-#endif /* FILE_HPP */
+#endif // FILE_HPP

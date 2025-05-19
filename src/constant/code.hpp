@@ -3,8 +3,8 @@
 
 #include <string>
 
-namespace code {
-
+namespace code
+{
 	static const std::string OK = "200";
 	static const std::string CREATED = "201";
 	static const std::string ACCEPTED = "202";
@@ -28,7 +28,7 @@ namespace code {
 	static const std::string SERVICE_UNAVAILABLE = "503";
 	static const std::string GATEWAY_TIMEOUT = "504";
 	static const std::string HTTP_VERSION_NOT_SUPPORTED = "505";
-
+	static const std::string INSUFFICIENT_STORAGE = "507";
 }
 
-#endif /* CODE_HPP */
+#endif // CODE_HPP

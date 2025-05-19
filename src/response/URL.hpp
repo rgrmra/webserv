@@ -7,9 +7,9 @@
 class Connection;
 class Location;
 
-class URL {
+class URL
+{
 	private:
-
 		enum {
 			READ = 1,
 			WRITE = 2,
@@ -76,9 +76,8 @@ class URL {
 		bool isDeletable(void) const;
 
 		static void decode(std::string &path);
-
 };
 
 std::ostream &operator<<(std::ostream &os, const URL &src);
 
-#endif /* URL_HPP */
+#endif // URL_HPP

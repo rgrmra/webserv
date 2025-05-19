@@ -2,6 +2,10 @@
 webserv
 .cache/
 build/
+var/www/html/cgi/uploads/*
+
+# Ignorar arquivos :Zone.Identifier
+**/*.Identifier
 
 # Prerequisites
 *.d

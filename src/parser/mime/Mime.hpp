@@ -4,14 +4,15 @@
 #include <map>
 #include <string>
 
-class Mime {
+class Mime
+{
 	private:
 		static Mime *_instance;
 
-		const std::string _default_mime;
+		std::string _default_mime;
 		std::map<std::string, std::string> _mimes;
 
-		void addMime(std::string &key, std::string &value);
+		void addMime(const std::string &key, const std::string &value);
 		void parseMimes(std::string &buffer);
 
 	public:
@@ -20,8 +21,8 @@ class Mime {
 
 		static Mime *getInstance(void);
 
-		void configure(std::string filename);
+		void configure(const std::string &filename);
 		std::string getType(std::string extension) const;
 };
 
-#endif /* MIME_HPP */
+#endif // MIME_HPP

@@ -11,23 +11,21 @@ std::time_t _time;
 
 using namespace std;
 
-AStream::AStream(int fd, std::string id)
+AStream::AStream(const int &fd, const std::string &id)
 	: _fd(fd),
 	  _id(id),
 	  _time(time(NULL)),
 	  _size(0),
 	  _transfers(0),
-	  _step(step::NONE) {
+	  _step(step::NONE) {}
 
-}
-
-AStream::AStream(const AStream &src) {
-
+AStream::AStream(const AStream &src)
+{
 	*this = src;
 }
 
-AStream &AStream::opeartor(const AStream &rhs) {
-
+AStream &AStream::opeartor(const AStream &rhs)
+{
 	if (this == &rhs)
 		return *this;
 
@@ -43,27 +41,25 @@ AStream &AStream::opeartor(const AStream &rhs) {
 	return *this;
 }
 		
-AStream::~AStream(void) {
+AStream::~AStream(void) {}
 
-}
-
-int AStream::getFd(void) const {
-
+int AStream::getFd(void) const
+{
 	return _fd;
 }
 
-std::string AStream::getId(void) const {
-
+std::string AStream::getId(void) const
+{
 	return _id;
 }
 
-void AStream::processInput(size_t bytes) {
-
+void AStream::processInput(const size_t &bytes)
+{
 	(void) bytes;
 }
 
-void AStream::setData(std::vector<char> &buffer, size_t bytes) {
-
+void AStream::setData(std::vector<char> &buffer, const size_t &bytes)
+{
 	if (!bytes || buffer.empty())
 		return processInput(bytes);
 
@@ -74,43 +70,43 @@ void AStream::setData(std::vector<char> &buffer, size_t bytes) {
 	_time = time(NULL);
 }
 
-void AStream::processOutput(size_t bytes) {
-
+void AStream::processOutput(const size_t &bytes)
+{
 	(void) bytes;
 }
 
-std::string AStream::getData(size_t bytes) {
-
+std::string AStream::getData(const size_t &bytes)
+{
 	processOutput(bytes);
 
 	if (_output.empty())
 		return "";
 
-	string tmp = _output.substr(0, bytes);
+	const string data = _output.substr(0, bytes);
 	_output.erase(0, bytes);
 
 	_time = time(NULL);
 
-	return tmp;
+	return data;
 }
 
-size_t AStream::getSize(void) const {
-
+size_t AStream::getSize(void) const
+{
 	return _size;
 }
 
-void AStream::setStep(int step) {
-
+void AStream::setStep(const int &step)
+{
 	_step = step;
 }
 
-int AStream::getStep(void) const {
-
+int AStream::getStep(void) const
+{
 	return _step;
 }
 
-bool AStream::isTimedOut(void) const {
-
+bool AStream::isTimedOut(void) const
+{
 	size_t elapsed_time = time(NULL) - _time;
 	
 	if (elapsed_time >= standard::TIMEOUT)

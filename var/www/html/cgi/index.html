@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { border: 1px solid #ccc; padding: 20px; margin: 20px 0; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Server Functionality Tests</h1>
+    
+    <div class="test-section">
+        <h2>1. CGI Test</h2>
+        <a href="cgi_test.php?name=CGITest">Test CGI GET Request</a>
+    </div>
+
+    <div class="test-section">
+        <h2>2. File Upload Test</h2>
+        <form action="upload_handler.php" method="POST" enctype="multipart/form-data">
+			<input type="file" name="fileToUpload" required />
+            <input type="submit" value="Upload File" />
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Form Submission Test</h2>
+        <form action="form_handler.php" method="post">
+            <label>Name: <input type="text" name="username" required></label><br>
+            <label>Email: <input type="email" name="email" required></label><br>
+            <input type="submit" value="Submit Form">
+        </form>
+    </div>
+
+</body>
+</html>
