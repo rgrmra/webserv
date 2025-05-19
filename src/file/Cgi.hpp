@@ -11,8 +11,9 @@ class Cgi : public Resource
 {
 	private:
 		int _sock[2];
+		int _status;
 		pid_t _pid;
-		std::vector<std::string> _env;
+//		std::vector<std::string> _env;
 
 		std::vector<char *> createVector(std::vector<std::string> &container);
 		void addEnv(const std::string &key, const std::string &value);

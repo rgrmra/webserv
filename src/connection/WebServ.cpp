@@ -24,8 +24,7 @@ using namespace std;
 
 WebServ *WebServ::_instance = NULL;
 
-WebServ::WebServ(void) : _epoll_fd(-1) {
-}
+WebServ::WebServ(void) : _epoll_fd(-1) {}
 
 WebServ::~WebServ(void)
 {
@@ -37,7 +36,8 @@ WebServ::~WebServ(void)
 
 	map<string, int>::iterator socket = _sockets.begin();
 	for (; socket != _sockets.end(); ++socket)
-		close(socket->second);
+		if (socket->second != -1)
+			close(socket->second);
 
 	if (_epoll_fd != -1)
 		close(_epoll_fd);
@@ -63,7 +63,8 @@ void WebServ::removeBindedPorts(const string &port)
 		if (port != tmp2.back())
 			continue;
 
-		close(socket->second);
+		if (socket->second != -1)
+			close(socket->second);
 		sockets_to_remove.insert(socket->first);
 	}
 
@@ -169,7 +170,7 @@ int WebServ::createSocket(const string &host)
 
 void WebServ::controlEpoll(const int &socket_fd, const int &flag, const int &option)
 {
-	if (_epoll_fd == -1)
+	if (_epoll_fd == -1 || socket_fd == -1)
 		return;
 
 	struct epoll_event event = (struct epoll_event){};
@@ -252,7 +253,8 @@ void WebServ::closeConnection(const int &socket_fd)
 		controlEpoll(socket_fd, 0, EPOLL_CTL_DEL);
 		logger::debug(connection->second->getId() + " connection closed");
 
-		close(connection->first);
+		if (connection->first != -1)
+			close(connection->first);
 		delete dynamic_cast<Connection *>(connection->second);
 	}
 	else if (dynamic_cast<Cgi *>(connection->second))

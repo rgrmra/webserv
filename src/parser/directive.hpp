@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-namespace directive {
-
+namespace directive
+{
 	void setAcessLog(std::string access_log, std::string &_access_log);
 	void setErrorLog(std::string error_log, std::string &_error_log);
 	bool validateHttpListen(std::string listen);
@@ -41,7 +41,6 @@ namespace directive {
 	void setHttpDefaultValues(Http &http);
 	void setServerDefaultValues(Http &http, Server &server);
 	void setLocationDefaultValues(Server &server, Location &location);
-
 }
 
-#endif /* DIRECTIVE_HPP */
+#endif // DIRECTIVE_HPP
