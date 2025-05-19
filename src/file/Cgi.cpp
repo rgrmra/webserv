@@ -51,10 +51,11 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 		closeSockets();
 
 		string fastcgi = connection->getLocation().getFastCgi().c_str();
+		string script = connection->getUri()->getAbsolutePath();
 
 		vector<char *> argv;
 		argv.push_back(const_cast<char *>(fastcgi.c_str()));
-//		argv.push_back(const_cast<char *>(connection->)
+		argv.push_back(const_cast<char *>(script.c_str()));
 		argv.push_back(NULL);
 
 		Environment envp(connection);
