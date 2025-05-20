@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdio>
 #include "Mime.hpp"
+#include "standard.hpp"
 #include <stdexcept>
 #include <string>
 
@@ -54,13 +55,13 @@ TEST_F(MimeTest, GetTypeHtmlReturnsTextHtml)
 TEST_F(MimeTest, GetTypeNoExtensionReturnsDefault)
 {
 	std::string result = mime->getType("filename");
-	EXPECT_EQ("text/plain", result);
+	EXPECT_EQ(standard::MIME, result);
 }
 
 TEST_F(MimeTest, GetTypeUnknownExtensionReturnsDefault)
 {
 	std::string result = mime->getType("image.jpeg");
-	EXPECT_EQ("text/plain", result);
+	EXPECT_EQ(standard::MIME, result);
 }
 
 TEST_F(MimeTest, GetTypeJsReturnsApplicationJavascript)
