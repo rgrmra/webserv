@@ -97,10 +97,8 @@ string URL::checkIndex(const Location &location, string &path)
 		return "";
 
 	set<string>::const_iterator index = indexes.begin();
-	for (; index != indexes.end(); ++index) {
-
-		cout << location.getRoot() + path + *index << endl;
-
+	for (; index != indexes.end(); ++index)
+	{
 		if (!_isFile(location.getRoot() + path + *index))
 			continue;
 
