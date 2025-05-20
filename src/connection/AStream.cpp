@@ -31,6 +31,7 @@ AStream &AStream::opeartor(const AStream &rhs)
 
 	_fd = rhs._fd;
 	_id = rhs._id;
+	_ip = rhs._ip;
 	_input = rhs._input;
 	_output = rhs._output;
 	_time = rhs._time;
@@ -51,6 +52,16 @@ int AStream::getFd(void) const
 std::string AStream::getId(void) const
 {
 	return _id;
+}
+
+void AStream::setIp(const std::string &ip)
+{
+	_ip = ip;
+}
+
+std::string AStream::getIp(void) const
+{
+	return _ip;
 }
 
 void AStream::processInput(const size_t &bytes)

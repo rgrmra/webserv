@@ -2,6 +2,7 @@
 #include "Connection.hpp"
 #include "Http.hpp"
 #include "WebServ.hpp"
+#include "IStream.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
 #include "standard.hpp"
@@ -155,10 +156,7 @@ int WebServ::createSocket(const string &host)
 
 	freeaddrinfo(addrinfo_result);
 
-	const int listen_result = listen(
-		socket_fd,
-		standard::MAX_EVENTS
-	);
+	const int listen_result = listen(socket_fd, standard::MAX_EVENTS);
 	if (listen_result == -1)
 	{
 		close(socket_fd);
@@ -193,14 +191,28 @@ void WebServ::controlEpoll(const int &socket_fd, const int &flag, const int &opt
 	logger::error(ss.str());
 }
 
+static string getIpByAddr(struct sockaddr_in &addr)
+{
+	const int ip = htonl(addr.sin_addr.s_addr);
+
+	stringstream ss;
+	ss << ((ip & 0xFF000000) >> 24) << ".";
+	ss << ((ip & 0x00FF0000) >> 16) << ".";
+	ss << ((ip & 0x0000FF00) >> 8) << ".";
+	ss << (ip & 0x000000FF) << ":";
+	ss << htons(addr.sin_port);
+
+	return ss.str();
+}
+
 string WebServ::getIpByFileDescriptor(const int &socket_fd)
 {
-	struct sockaddr_in addr;
+	struct sockaddr_in addr = (sockaddr_in){};
 	socklen_t addr_len = sizeof(addr);
 
 	const int getsockname_status = getsockname(
 		socket_fd,
-		(sockaddr *) &addr,
+		(struct sockaddr *) &addr,
 		&addr_len
 	);
 	if (getsockname_status == -1)
@@ -211,35 +223,33 @@ string WebServ::getIpByFileDescriptor(const int &socket_fd)
 		logger::error(ss.str());
 	}
 
-	const int ip = htonl(addr.sin_addr.s_addr);
-	const size_t port = htons(addr.sin_port);
-
-	stringstream ss;
-	ss << ((ip & 0xFF000000) >> 24) << ".";
-	ss << ((ip & 0x00FF0000) >> 16) << ".";
-	ss << ((ip & 0x0000FF00) >> 8) << ".";
-	ss << (ip & 0x000000FF);
-
-	return ss.str() + ":" + parser::toString(port);
+	return getIpByAddr(addr);
 }
 
-// UNDERSTAND: EAGAIN AND EWOULDBLOCK
 void WebServ::acceptNewConnection(const int &socket_fd)
 {
-	const int client_socket_fd = accept(socket_fd, NULL, NULL);
-	if (client_socket_fd == -1) {
-		if (not (errno == EAGAIN || errno == EWOULDBLOCK)) {
-			logger::fatal("accept failed");
-		}
-		return;
-	}
+	struct sockaddr_in client_addr = (sockaddr_in){};
+	socklen_t client_len = sizeof(client_addr);
 
-	string host = getIpByFileDescriptor(client_socket_fd);
+	const int client_socket_fd = accept(
+		socket_fd,
+		(struct sockaddr *)&client_addr,
+		&client_len
+	);
+	if (client_socket_fd == -1)
+		return logger::fatal("accept failed");
 
-	logger::debug(host + " connection accepted");
+	const string host_ip = getIpByFileDescriptor(client_socket_fd);
+	const string client_ip = getIpByAddr(client_addr);
+
+	logger::debug(client_ip + " connection accepted");
 	
 	controlEpoll(client_socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
-	_connections[client_socket_fd] = new Connection(client_socket_fd, host);
+
+	Connection *connection = new Connection(client_socket_fd, host_ip);
+	connection->setIp(client_ip);
+
+	_connections[client_socket_fd] = connection;
 }
 
 void WebServ::closeConnection(const int &socket_fd)
@@ -252,7 +262,7 @@ void WebServ::closeConnection(const int &socket_fd)
 	if (dynamic_cast<Connection *>(connection->second))
 	{
 		controlEpoll(socket_fd, 0, EPOLL_CTL_DEL);
-		logger::debug(connection->second->getId() + " connection closed");
+		logger::debug(connection->second->getIp() + " connection closed");
 
 		if (connection->first != -1)
 			close(connection->first);
@@ -262,6 +272,24 @@ void WebServ::closeConnection(const int &socket_fd)
 		dynamic_cast<Cgi *>(connection->second)->sendCGI();
 
 	_connections.erase(connection);
+}
+
+void WebServ::readFailed(IStream *connection)
+{
+	if (dynamic_cast<Connection *>(connection))
+		logger::error("failed to read from client: " + connection->getId());
+
+	closeConnection(connection->getFd());
+}
+
+void WebServ::readNoBytes(IStream *connection)
+{
+	Cgi *cgi = dynamic_cast<Cgi *>(connection);
+	if (cgi != NULL)
+		return cgi->sendCGI();
+
+	logger::warning(connection->getId() + " disconected");
+	closeConnection(connection->getFd());
 }
 
 void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
@@ -278,20 +306,11 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 		MSG_NOSIGNAL
 	);
 	if (bytes_read == -1)
-	{
-		if (dynamic_cast<Connection *>(connection))
-			logger::error("failed to read from client: " + connection->getId());
-
-		return closeConnection(socket_fd);
-	}
+		return readFailed(connection);
 	else if (bytes_read == 0)
-	{
-		if (dynamic_cast<Cgi *>(connection))
-			return dynamic_cast<Cgi *>(connection)->sendCGI();
-
-		logger::warning(connection->getId() + " disconected");
+		return readNoBytes(connection);
+	else if (buffer.at(0) == EOF && connection->getStep() < step::BODY)
 		return closeConnection(socket_fd);
-	}
 
 	connection->setData(buffer, bytes_read);
 
@@ -302,9 +321,33 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 		return controlEpoll(socket_fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
 
+void WebServ::sendFailed(IStream *connection)
+{
+	if (dynamic_cast<Connection *>(connection))
+		logger::fatal("client is no longer available to receive messages");
+
+	closeConnection(connection->getFd());
+}
+
+void WebServ::sendNoBytes(IStream *connection)
+{
+	const size_t socket_fd = connection->getFd();
+
+	if (dynamic_cast<Cgi *>(connection))
+		return controlEpoll(socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+
+	if (connection->getStep() == step::CLOSE)
+		return closeConnection(socket_fd);
+
+	if (connection->getStep() == step::KEEPALIVE)
+	{
+		dynamic_cast<Connection *>(connection)->resetConnection();
+		return controlEpoll(socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
+	}
+}
+
 void WebServ::outputHandler(map<int, IStream *>::iterator &stream)
 {
-
 	const int socket_fd = stream->first;
 	IStream *connection = stream->second;
 
@@ -312,28 +355,12 @@ void WebServ::outputHandler(map<int, IStream *>::iterator &stream)
 		return controlEpoll(socket_fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
 	const string data = connection->getData(standard::BUFFER_SIZE);
+
 	int bytes_send = send(socket_fd, data.c_str(), data.size(), MSG_NOSIGNAL);
 	if (bytes_send == -1)
-	{
-		if (dynamic_cast<Connection *>(connection))
-			logger::fatal("client is no longer available to receive messages");
-
-		return closeConnection(socket_fd);
-	}
+		return sendFailed(connection);
 	else if (bytes_send == 0)
-	{
-		if (dynamic_cast<Cgi *>(connection))
-			return controlEpoll(socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-
-		if (connection->getStep() == step::CLOSE)
-			return closeConnection(socket_fd);
-
-		if (connection->getStep() == step::KEEPALIVE)
-		{
-			dynamic_cast<Connection *>(connection)->resetConnection();
-			return controlEpoll(socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_MOD);
-		}
-	}
+		return sendNoBytes(connection);
 
 	return controlEpoll(socket_fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 }
@@ -369,7 +396,7 @@ void WebServ::checkTimeOut(void)
 	}
 }
 
-void WebServ::run(void)
+void WebServ::connectHosts(void)
 {
 	vector<Server> servers = Http::getInstance()->getServers();
 
@@ -386,7 +413,10 @@ void WebServ::run(void)
 			_sockets[*host] = createSocket(*host);
 		}
 	}
+}
 
+void WebServ::createEpoll(void)
+{
 	_epoll_fd = epoll_create(1);
 	if (_epoll_fd < 0)
 		throw runtime_error("failed to create an epoll");
@@ -397,10 +427,41 @@ void WebServ::run(void)
 		controlEpoll(socket->second, EPOLLIN, EPOLL_CTL_ADD);
 		logger::debug("server started, listening on " + socket->first);
 	}
+}
+
+void WebServ::checkEvents(const int &num_events, epoll_event *events)
+{
+	for (int i = 0; i < num_events; ++i)
+	{
+		int socket_fd = events[i].data.fd;
+
+		try
+		{
+			map<int, IStream *>::iterator stream = _connections.find(socket_fd);
+			if (stream == _connections.end())
+				acceptNewConnection(socket_fd);
+			else if (events[i].events & (EPOLLIN | EPOLLET))
+				inputHandler(stream);
+			else if (events[i].events & (EPOLLOUT | EPOLLET))
+				outputHandler(stream);
+		}
+		catch (exception &e)
+		{
+			string error = "disconecting client by: ";
+			logger::error(error + e.what());
+			closeConnection(socket_fd);
+		}
+	}
+}
+
+void WebServ::run(void)
+{
+	connectHosts();
+	createEpoll();
 
 	epoll_event events[standard::MAX_EVENTS];
 
-	while (_epoll_fd != -1)
+	while (true)
 	{
 		int num_events = epoll_wait(
 			_epoll_fd,
@@ -411,25 +472,7 @@ void WebServ::run(void)
 		if (num_events == -1)
 			return logger::fatal("server was shooting down");
 
-		for (int i = 0; i < num_events; ++i)
-		{
-			int socket_fd = events[i].data.fd;
-
-			try {
-				map<int, IStream *>::iterator stream = _connections.find(socket_fd);
-				if (stream == _connections.end())
-					acceptNewConnection(socket_fd);
-				else if (events[i].events & (EPOLLIN | EPOLLET))
-					inputHandler(stream);
-				else if (events[i].events & (EPOLLOUT | EPOLLET))
-					outputHandler(stream);
-			} catch (exception &e) {
-				string error = "disconecting client by: ";
-				logger::error(error + e.what());
-				closeConnection(socket_fd);
-			}
-		}
-
+		checkEvents(num_events, events);
 		checkTimeOut();
 	}
 }

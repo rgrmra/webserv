@@ -33,7 +33,6 @@ class URL
 
 		std::string checkIndex(const Location &location, std::string &path);
 
-		void formatPath(std::string path);
 		void processPath(std::string path);
 
 		bool _isDirectory(const std::string &path);

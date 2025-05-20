@@ -11,6 +11,8 @@ class IStream
 
 		virtual int getFd(void) const = 0;
 		virtual std::string getId(void) const = 0;
+		virtual void setIp(const std::string &ip) = 0;
+		virtual std::string getIp(void) const = 0;
 
 		virtual void setData(std::vector<char> &buffer, const size_t &bytes) = 0;
 		virtual std::string getData(const size_t &bytes) = 0;

@@ -11,6 +11,7 @@ namespace response
 {
 	static std::map<std::string, std::string> responses;
 
+	void printLog(Connection *connection);
 	std::string getStatusByCode(const std::string &code);
 	void builder(Connection *connection, std::string code);
 }
