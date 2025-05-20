@@ -10,6 +10,7 @@ namespace code
 	static const std::string ACCEPTED = "202";
 	static const std::string NO_CONTENT = "204";
 	static const std::string MOVED_PERMANENTLY = "301";
+	static const std::string FOUND = "302";
 	static const std::string BAD_REQUEST = "400";
 	static const std::string UNAUTHORIZED = "401";
 	static const std::string FORBIDDEN = "403";

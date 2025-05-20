@@ -1,6 +1,7 @@
 #include "Mime.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
+#include "standard.hpp"
 #include <fstream>
 #include <list>
 #include <map>
@@ -10,7 +11,7 @@ using namespace std;
 
 Mime *Mime::_instance = NULL;
 
-Mime::Mime(void) : _default_mime("text/plain") {}
+Mime::Mime(void) : _default_mime(standard::MIME) {}
 
 Mime::~Mime(void) {}
 

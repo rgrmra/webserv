@@ -27,6 +27,8 @@ namespace standard
 	static const long KEEP_ALIVE_TIMEOUT = 3;
 	static const size_t TIMEOUT = 15;
 
+	static const std::string MIME = "application/octet-stream";
+
 	static const std::string DECIMAL = "0123456789";
 	static const std::string HEXADECIMAL = "0123456789ABCDEFabcdef";
 		
