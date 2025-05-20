@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "logger.hpp"
 using namespace std;
 
 Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
@@ -162,10 +163,13 @@ void Cgi::sendCGI(void)
 		}
 	}
 
+	if (_connection->getCode().empty())
+		_connection->setCode(code::OK);
 	_size = _output.size();
 	_step = step::CLOSE;
 	_connection->buildResponse();
 	_pid = -1;
+
 }
 
 void Cgi::processInput(const size_t &bytes)

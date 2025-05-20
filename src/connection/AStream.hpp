@@ -10,6 +10,7 @@ class AStream : public IStream
 	protected:
 		int _fd;
 		std::string _id;
+		std::string _ip;
 		std::string _input;
 		std::string _output;
 		std::time_t _time;
@@ -19,7 +20,7 @@ class AStream : public IStream
 
 		AStream(const int &fd, const std::string &id);
 		AStream(const AStream &src);
-		AStream &opeartor(const AStream &rhs);
+		AStream &operator=(const AStream &rhs);
 
 		virtual void processInput(const size_t &bytes);
 		virtual void processOutput(const size_t &bytes);
@@ -29,6 +30,8 @@ class AStream : public IStream
 		
 		int getFd(void) const;
 		std::string getId(void) const;
+		void setIp(const std::string &ip);
+		std::string getIp(void) const;
 
 		virtual void setData(std::vector<char> &buffer, const size_t &bytes);
 		virtual std::string getData(const size_t &bytes);

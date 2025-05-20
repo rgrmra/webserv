@@ -203,7 +203,7 @@ TEST(DirectiveTest, SetURI) {
   EXPECT_THROW(directive::setURI("invalid uri", result), runtime_error);
 
   directive::setURI("/valid/path", result);
-  EXPECT_EQ(result, "/valid/path");
+  EXPECT_EQ(result, "/valid/path/");
 
 }
 

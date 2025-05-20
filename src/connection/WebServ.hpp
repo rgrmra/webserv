@@ -4,6 +4,7 @@
 #include <map>
 #include <netdb.h>
 #include <string>
+#include <sys/epoll.h>
 
 class IStream;
 class Http;
@@ -26,9 +27,16 @@ class WebServ
 		std::string getIpByFileDescriptor(const int &client_fd);
 		void acceptNewConnection(const int &client_fd);
 		void closeConnection(const int &client_fd);
+		void readFailed(IStream *stream);
+		void readNoBytes(IStream *stream);
 		void inputHandler(std::map<int, IStream *>::iterator &stream);
+		void sendFailed(IStream *stream);
+		void sendNoBytes(IStream *stream);
 		void outputHandler(std::map<int, IStream *>::iterator &stream);
 		void checkTimeOut(void);
+		void connectHosts(void);
+		void createEpoll(void);
+		void checkEvents(const int &num_events, epoll_event *events);
 
 	public:
 		static WebServ *getInstance(void);

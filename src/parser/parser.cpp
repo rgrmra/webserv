@@ -146,6 +146,35 @@ string parser::basename(const string &text)
 	return text.substr(pos, text.size() - pos);
 }
 
+string parser::formatPath(const string &path)
+{
+	list<string> new_files;
+	list<string> files = parser::split(path, '/');
+
+	list<string>::iterator file = files.begin();
+	for (; file != files.end(); ++file) {
+
+		if (*file == ".")
+			continue;
+
+		if (*file == "..") {
+			if (new_files.size())
+				new_files.pop_back();
+
+			continue;
+		}
+
+		new_files.push_back(*file);
+	}
+
+	string new_path;
+
+	for (file = new_files.begin(); file != new_files.end(); ++file)
+		new_path += "/" + *file;
+
+	return new_path + (parser::lastCharacter(path) == '/' ? "/" : "");
+}
+
 void parser::http(Http &http, string &buffer)
 {
 	if (parser::compare("http{", buffer))

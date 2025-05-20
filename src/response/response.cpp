@@ -17,21 +17,23 @@
 
 using namespace std;
 
+void response::printLog(Connection *connection)
+{
+	string message = connection->getIp() + " ["
+		+ connection->getCode() + "]: "
+		+ connection->getMethod() + " "
+		+ connection->getTarget() + " - "
+		+ connection->getStatus();
+
+	if (connection->getCode() < code::BAD_REQUEST)
+		logger::info(message);
+	else
+		logger::warning(message);
+}
+
 static void buildHeaderAndBody(Connection *connection)
 {
 	connection->setStep(step::BODY);
-
-	string tmp = connection->getHost() + " "
-		+ connection->getMethod() + " "
-		+ connection->getTarget() + " "
-		+ connection->getProtocol() + " "
-		+ connection->getCode() + " - "
-		+ connection->getHeaderByKey(header::USER_AGENT);
-
-	if (connection->getCode() == code::OK)
-		logger::info(tmp);
-	else
-		logger::warning(tmp);
 
 	const string &header_connection = (*connection)[header::CONNECTION];
 	const string &header_location = (*connection)[header::LOCATION];

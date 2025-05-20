@@ -5,6 +5,7 @@
 #include "WebServ.hpp"
 #include "code.hpp"
 #include "header.hpp"
+#include "logger.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "parser.hpp"
@@ -264,6 +265,8 @@ void Connection::buildResponse(void)
 {
 	if (_file && _file->getStep() < step::CLOSE)
 		return;
+
+	response::printLog(this);
 
 	if (getHeaderByKey(header::CONNECTION) != "keep-alive")
 		_headers[header::CONNECTION] = "close";

@@ -24,11 +24,12 @@ namespace parser
 	std::string find(const std::string &key, std::string &configuration_file, const std::string &delimiter);
 	bool compare(const std::string &key, std::string &configuration_file);
 	std::list<std::string> split(std::string text, const char &delimiter);
+	std::string basename(const std::string &text);
+	std::string formatPath(const std::string &path);
 	void erase(std::string &buffer, const std::string &text, const size_t &quantity);
 	void rerase(std::string &buffer, const std::string &text, const size_t &quantity);
 	void replace(std::string &buffer, const char &from, const char &to);
 	void trim(std::string &buffer, const std::string &set);
-	std::string basename(const std::string &text);
 	void http(Http &http, std::string &configuration_file);
 	void server(Server &server, std::string &configuration_file);
 	void location(Location &location, std::string &configuration_file);

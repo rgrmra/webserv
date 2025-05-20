@@ -88,16 +88,17 @@ URL::~URL(void) {}
 
 string URL::checkIndex(const Location &location, string &path)
 {
+	if (parser::lastCharacter(path) != '/')
+		return "";
+
 	const set<string> &indexes = location.getIndexes();
 
 	if (_connection->getMethod() == method::DELETE)
 		return "";
 
 	set<string>::const_iterator index = indexes.begin();
-	for (; index != indexes.end(); ++index) {
-
-		cout << location.getRoot() + path + *index << endl;
-
+	for (; index != indexes.end(); ++index)
+	{
 		if (!_isFile(location.getRoot() + path + *index))
 			continue;
 
@@ -107,39 +108,10 @@ string URL::checkIndex(const Location &location, string &path)
 	return "";
 }
 
-void URL::formatPath(std::string path)
-{
-	list<string> new_files;
-	list<string> files = parser::split(path, '/');
-
-	list<string>::iterator file = files.begin();
-	for (; file != files.end(); ++file) {
-
-		if (*file == ".")
-			continue;
-
-		if (*file == "..") {
-			if (new_files.size())
-				new_files.pop_back();
-
-			continue;
-		}
-
-		new_files.push_back(*file);
-	}
-
-	string new_path;
-
-	for (file = new_files.begin(); file != new_files.end(); ++file)
-		new_path += "/" + *file;
-
-	_path = new_path + (parser::lastCharacter(path) == '/' ? "/" : "");
-}
-
 void URL::processPath(string requested_path)
 {
 	Server server = _connection->getServer();
-	formatPath(requested_path);
+	_path = parser::formatPath(requested_path);
 
 	list<string> paths;
 	while (requested_path.size())
