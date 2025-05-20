@@ -156,13 +156,12 @@ void Cgi::sendCGI(void)
 
 		size_t pos = status.find_first_of(" ");
 		if (pos != string::npos)
-			status = status.erase(status.find_first_of(" "));
-
-		if (status != code::OK)
-			return response::builder(_connection, status);
+		{
+			_connection->setCode(status.substr(0, pos));
+			_connection->setStatus(status.substr(pos + 1));
+		}
 	}
 
-	_connection->setCode(code::OK);
 	_size = _output.size();
 	_step = step::CLOSE;
 	_connection->buildResponse();

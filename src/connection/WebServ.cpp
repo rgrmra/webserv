@@ -8,6 +8,7 @@
 #include "step.hpp"
 #include <cerrno>
 #include <cstdio>
+#include <exception>
 #include <list>
 #include <map>
 #include <netdb.h>
@@ -414,13 +415,19 @@ void WebServ::run(void)
 		{
 			int socket_fd = events[i].data.fd;
 
-			map<int, IStream *>::iterator stream = _connections.find(socket_fd);
-			if (stream == _connections.end())
-				acceptNewConnection(socket_fd);
-			else if (events[i].events & (EPOLLIN | EPOLLET))
-				inputHandler(stream);
-			else if (events[i].events & (EPOLLOUT | EPOLLET))
-				outputHandler(stream);
+			try {
+				map<int, IStream *>::iterator stream = _connections.find(socket_fd);
+				if (stream == _connections.end())
+					acceptNewConnection(socket_fd);
+				else if (events[i].events & (EPOLLIN | EPOLLET))
+					inputHandler(stream);
+				else if (events[i].events & (EPOLLOUT | EPOLLET))
+					outputHandler(stream);
+			} catch (exception &e) {
+				string error = "disconecting client by: ";
+				logger::error(error + e.what());
+				closeConnection(socket_fd);
+			}
 		}
 
 		checkTimeOut();

@@ -60,10 +60,6 @@ URL::URL(Connection *connection) : _connection(connection), _dac(0)
 		_file = _path.substr(pos + 1, _path.size());
 
 	processPath(_path);
-
-	pos = _file.find_last_of(".");
-	if (pos != string::npos)
-		_extension = _file.substr(pos, _file.size());
 }
 
 URL::URL(const URL &src)
@@ -173,6 +169,10 @@ void URL::processPath(string requested_path)
 	if (_isDirectory(location.getRoot() + _path))
 		_file = checkIndex(location, _path);
 
+	size_t pos = _file.find_last_of(".");
+	if (pos != string::npos)
+		_extension = _file.substr(pos, _file.size());
+
 	_connection->setLocation(location);
 
 	checkDAC(location.getRoot() + _path);
@@ -253,6 +253,9 @@ bool URL::_isDeletable(const string &path)
 		return true;
 
 	if (isFile())
+		return true;
+
+	if (_connection->getMethod() == method::POST)
 		return true;
 
 	return false;
