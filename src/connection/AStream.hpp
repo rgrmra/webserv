@@ -20,7 +20,7 @@ class AStream : public IStream
 
 		AStream(const int &fd, const std::string &id);
 		AStream(const AStream &src);
-		AStream &opeartor(const AStream &rhs);
+		AStream &operator=(const AStream &rhs);
 
 		virtual void processInput(const size_t &bytes);
 		virtual void processOutput(const size_t &bytes);

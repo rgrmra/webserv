@@ -24,7 +24,7 @@ AStream::AStream(const AStream &src)
 	*this = src;
 }
 
-AStream &AStream::opeartor(const AStream &rhs)
+AStream &AStream::operator=(const AStream &rhs)
 {
 	if (this == &rhs)
 		return *this;

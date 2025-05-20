@@ -111,7 +111,7 @@ string URL::checkIndex(const Location &location, string &path)
 void URL::processPath(string requested_path)
 {
 	Server server = _connection->getServer();
-	requested_path = parser::formatPath(requested_path);
+	_path = parser::formatPath(requested_path);
 
 	list<string> paths;
 	while (requested_path.size())
