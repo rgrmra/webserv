@@ -1,14 +1,10 @@
 #include "Connection.hpp"
 #include "Location.hpp"
-#include "URL.hpp"
+#include "code.hpp"
 #include "method.hpp"
-#include "parser.hpp"
 #include "process.hpp"
 #include "response.hpp"
-#include "code.hpp"
 #include <string>
-
-using namespace std;
 
 void process::request(Connection *connection)
 {
@@ -22,7 +18,7 @@ void process::request(Connection *connection)
 	if (location.getReturnCode().size())
 		return response::builder(connection, code::MOVED_PERMANENTLY);
 
-	const string &method = connection->getMethod();
+	const std::string &method = connection->getMethod();
 	if (location.getMethod(method).empty())
 		return response::builder(connection, code::NOT_ALLOWED);
 

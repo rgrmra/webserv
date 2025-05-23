@@ -16,6 +16,12 @@ namespace parser
 		AUTOINDEX_ON = 1
 	};
 
+	enum {
+		WEB_DAV_NOT_SET = -1,
+		WEB_DAV_OFF = 0,
+		WEB_DAV_ON = 1
+	};
+
 	const char &lastCharacter(const std::string &text);
 	size_t toSizeT(const std::string &value);
 	std::string toString(const std::size_t &value);

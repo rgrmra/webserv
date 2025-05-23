@@ -11,12 +11,14 @@ using namespace std;
 
 Server::Server(void)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
+	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {
 
 }
 
 Server::Server(string &configuration_file) 
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
+	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {
 
 	parser::server(*this, configuration_file);
@@ -39,6 +41,7 @@ Server &Server::operator=(const Server &rhs) {
 	_names = rhs._names;
 	_root = rhs._root;
 	_autoindex = rhs._autoindex;
+	_webdav = rhs._webdav;
 	_max_body_size = rhs._max_body_size;
 	_indexes = rhs._indexes;
 	_error_pages = rhs._error_pages;
@@ -114,6 +117,26 @@ bitset<2> Server::getAutoIndexBitSet(void) const {
 bool Server::getAutoIndex(void) const {
 
 	return _autoindex == parser::AUTOINDEX_ON ? true : false;
+}
+
+void Server::setWebDav(string webdav) {
+
+	directive::setWebDav(webdav, _webdav);
+}
+
+void Server::setWebDav(bitset<2> webdav) {
+
+	_webdav = webdav;
+}
+
+bitset<2> Server::getWebDavBitSet(void) const {
+
+	return _webdav;
+}
+
+bool Server::getWebDav() const {
+
+	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
 void Server::setMaxBodySize(string max_body_size) {
@@ -233,8 +256,8 @@ ostream &operator<<(ostream &os, const Server &src) {
 	os << ";" << endl;
 
 	os << "\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
-
 	os << "\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
+	os << "\t\twebdav " << (src.getWebDav() ? "on" : "off") << ";" << endl;
 
 	map<string, string> error_pages = src.getErrorPages();
 	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)

@@ -295,6 +295,19 @@ void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex)
 		throw runtime_error("invalid autoindex: " + autoindex);
 }
 
+void directive::setWebDav(string webdav, bitset<2> &_webdav)
+{
+	if (webdav.empty())
+		return;
+
+	if (webdav== "on")
+		_webdav= parser::WEB_DAV_ON;
+	else if (webdav == "off")
+		_webdav= parser::WEB_DAV_OFF;
+	else
+		throw runtime_error("invalid webdav: " + webdav);
+}
+
 void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size)
 {
 	if (max_body_size.empty())
@@ -509,6 +522,9 @@ void directive::setHttpDefaultValues(Http &http)
 	if (http.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		http.setAutoIndex(parser::AUTOINDEX_OFF);
 
+	if (http.getWebDavBitSet() == parser::WEB_DAV_NOT_SET)
+		http.setWebDav(parser::WEB_DAV_OFF);
+
 	if (http.getErrorLog().empty())
 		http.setErrorLog(standard::ERROR_LOG);
 
@@ -537,6 +553,9 @@ void directive::setServerDefaultValues(Http &http, Server &server)
 	if (server.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		server.setAutoIndex(http.getAutoIndexBitSet());
 
+	if (server.getWebDavBitSet() == parser::WEB_DAV_NOT_SET)
+		server.setWebDav(http.getWebDavBitSet());
+
 	map<string, string> error_pages = server.getErrorPages();
 	directive::mergeErrorPages(http.getErrorPages(), error_pages);
 	server.setErrorPages(error_pages);
@@ -562,6 +581,9 @@ void directive::setLocationDefaultValues(Server &server, Location &location)
 
 	if (location.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		location.setAutoIndex(server.getAutoIndexBitSet());
+
+	if (location.getWebDavBitSet() == parser::WEB_DAV_NOT_SET)
+		location.setWebDav(server.getWebDavBitSet());
 
 	if (location.getMaxBodySize() == 0)
 		location.setMaxBodySize(parser::toString(server.getMaxBodySize()));

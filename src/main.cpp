@@ -10,21 +10,21 @@
 
 using namespace std;
 
-static void handle_signal(int signal) {
-	
+static void handle_signal(int signal)
+{
 	Http::getInstance()->stop(signal);
 }
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char *argv[])
+{
 	signal(SIGINT, handle_signal);
 
 	int status = EXIT_SUCCESS;
 
 	Http *http = Http::getInstance();
 
-	try {
-
+	try
+	{
 		if (argc > 2)
 			throw std::runtime_error("too many configuration files");
 
@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
 
 		http->start();
 
-	} catch (std::exception &exception) {
-
+	}
+	catch (std::exception &exception)
+	{
 		logger::fatal(exception.what());
-
 		status = http->getSignal();
 	}
 

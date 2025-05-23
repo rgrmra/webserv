@@ -18,6 +18,7 @@ class Http {
 		std::string _error_log;
 		std::string _root;
 		std::bitset<2> _autoindex;
+		std::bitset<2> _webdav;
 		std::size_t _max_body_size;
 		std::set<std::string> _indexes;
 		std::map<std::string, std::string> _error_pages;
@@ -41,6 +42,10 @@ class Http {
 		void setAutoIndex(std::bitset<2> autoindex);
 		std::bitset<2> getAutoIndexBitSet(void) const;
 		bool getAutoIndex(void) const;
+		void setWebDav(std::string webdav);
+		void setWebDav(std::bitset<2> webdav);
+		std::bitset<2> getWebDavBitSet(void) const;
+		bool getWebDav(void) const;
 		void setMaxBodySize(std::string max_body_size);
 		std::size_t getMaxBodySize(void) const;
 		void addIndex(std::string index);

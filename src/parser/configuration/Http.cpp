@@ -15,6 +15,7 @@ Http *Http::_instance = NULL;
 
 Http::Http(void)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
+	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0),
 	  _signal(0) {
 
@@ -127,6 +128,26 @@ bitset<2> Http::getAutoIndexBitSet(void) const {
 bool Http::getAutoIndex() const {
 
 	return _autoindex == parser::AUTOINDEX_ON ? true : false;
+}
+
+void Http::setWebDav(string webdav) {
+
+	directive::setWebDav(webdav, _webdav);
+}
+
+void Http::setWebDav(bitset<2> webdav) {
+
+	_webdav = webdav;
+}
+
+bitset<2> Http::getWebDavBitSet(void) const {
+
+	return _webdav;
+}
+
+bool Http::getWebDav() const {
+
+	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
 void Http::setMaxBodySize(string max_body_size) {
@@ -275,6 +296,7 @@ ostream &operator<<(ostream &os, const Http &src) {
 	os << "\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\troot " << src.getRoot() << ";" << endl;
 	os << "\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
+	os << "\twebdav " << (src.getWebDav() ? "on" : "off") << ";" << endl;
 	os << "\taccess_log " << src.getAccessLog() << ";" << endl;
 	os << "\terror_log " << src.getErrorLog() << ";" << endl;
 	

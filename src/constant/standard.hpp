@@ -22,7 +22,7 @@ namespace standard
 	static const std::string SERVER_SOFTWARE = "webserv/0.1.0";
 	static const std::map<std::string, std::string> EMPTY_HEADER;
 
-	static const int BUFFER_SIZE = 128 * size::MEGABYTE;
+	static const int BUFFER_SIZE = 8 * size::KILOBYTE;
 	static const int MAX_EVENTS = 252;
 	static const long KEEP_ALIVE_TIMEOUT = 3;
 	static const size_t TIMEOUT = 15;

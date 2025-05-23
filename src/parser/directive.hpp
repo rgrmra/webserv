@@ -29,6 +29,7 @@ namespace directive
 	void setDenyMethods(std::string deny_methods, bool &_deny_methods);
 	void setRoot(std::string root, std::string &_root);
 	void setAutoIndex(std::string autoindex, std::bitset<2> &_autoindex);
+	void setWebDav(std::string webdav, std::bitset<2> &_webdav);
 	void setMaxBodySize(std::string max_body_size, std::size_t &_max_body_size);
 	void addIndex(std::string index, std::set<std::string> &_index);
 	void setFastCgi(std::string fastcgi, std::string &_fastcgi);
