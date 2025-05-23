@@ -1,9 +1,7 @@
-#include <Connection.hpp>
-#include <Page.hpp>
+#include "Connection.hpp"
 #include "File.hpp"
-#include "Location.hpp"
+#include "Page.hpp"
 #include "Text.hpp"
-#include "URL.hpp"
 #include "code.hpp"
 #include "header.hpp"
 #include "logger.hpp"
@@ -19,7 +17,7 @@ using namespace std;
 
 void response::printLog(Connection *connection)
 {
-	string message = connection->getIp() + " ["
+	const string &message = connection->getIp() + " ["
 		+ connection->getCode() + "]: "
 		+ connection->getMethod() + " "
 		+ connection->getTarget() + " - "
@@ -61,8 +59,8 @@ static bool checkErrorPages(Connection *connection)
 	URL *uri = new URL(connection);
 
 	connection->setTarget(path);
-
-	if (!uri->isFile()) {
+	if (!uri->isFile())
+	{
 		delete uri;
 		return false;
 	}

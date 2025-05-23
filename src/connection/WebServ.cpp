@@ -288,7 +288,13 @@ void WebServ::readNoBytes(IStream *connection)
 	if (cgi != NULL)
 		return cgi->sendCGI();
 
-	logger::warning(connection->getId() + " disconected");
+	logger::warning(connection->getIp() + " disconected");
+	closeConnection(connection->getFd());
+}
+
+void WebServ::readUnexpectedEOF(IStream *connection)
+{
+	logger::warning(connection->getIp() + " interrupted");
 	closeConnection(connection->getFd());
 }
 
@@ -310,7 +316,7 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 	else if (bytes_read == 0)
 		return readNoBytes(connection);
 	else if (buffer.at(0) == EOF && connection->getStep() < step::BODY)
-		return closeConnection(socket_fd);
+		return readUnexpectedEOF(connection);
 
 	connection->setData(buffer, bytes_read);
 
@@ -324,7 +330,7 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 void WebServ::sendFailed(IStream *connection)
 {
 	if (dynamic_cast<Connection *>(connection))
-		logger::fatal("client is no longer available to receive messages");
+		logger::fatal(connection->getIp() + "client is no longer available to receive messages");
 
 	closeConnection(connection->getFd());
 }

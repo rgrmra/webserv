@@ -10,6 +10,7 @@ using namespace std;
 Location::Location(void)
 	: _deny_methods(false),
 	  _autoindex(parser::AUTOINDEX_NOT_SET),
+	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {
 
 }
@@ -17,6 +18,7 @@ Location::Location(void)
 Location::Location(string &configuration_file) 
 	: _deny_methods(false),
 	  _autoindex(parser::AUTOINDEX_NOT_SET),
+	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {
 
 	parser::location(*this, configuration_file);
@@ -37,6 +39,7 @@ Location &Location::operator=(const Location &rhs) {
 	_deny_methods = rhs._deny_methods;
 	_root = rhs._root;
 	_autoindex = rhs._autoindex;
+	_webdav = rhs._webdav;
 	_max_body_size = rhs._max_body_size;
 	_indexes = rhs._indexes;
 	_fastcgi = rhs._fastcgi;
@@ -133,6 +136,26 @@ bitset<2> Location::getAutoIndexBitSet(void) const {
 bool Location::getAutoIndex(void) const {
 
 	return (_autoindex == parser::AUTOINDEX_ON ? true : false);
+}
+
+void Location::setWebDav(string webdav) {
+
+	directive::setWebDav(webdav, _webdav);
+}
+
+void Location::setWebDav(bitset<2> webdav) {
+
+	_webdav = webdav;
+}
+
+bitset<2> Location::getWebDavBitSet(void) const {
+
+	return _webdav;
+}
+
+bool Location::getWebDav() const {
+
+	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
 void Location::setMaxBodySize(string max_body_size) {
@@ -249,7 +272,8 @@ ostream &operator<<(ostream &os, const Location &src) {
 	os << "}" << endl;
 
 	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
-	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << endl;
+	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
+	os << "\t\t\twebdav " << (src.getWebDav() ? "on" : "off") << ";"<< endl;
 	os << "\t\t\tfastcgi_pass " << src.getFastCgi() << ";" << endl;
 	
 	os << "\t\t\tfastcgi_extension ";

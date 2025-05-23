@@ -5,7 +5,6 @@
 #include "WebServ.hpp"
 #include "code.hpp"
 #include "header.hpp"
-#include "logger.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "parser.hpp"

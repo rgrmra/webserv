@@ -193,6 +193,7 @@ void parser::http(Http &http, string &buffer)
 		http.setErrorLog(find("error_log ", buffer, ";"));
 		http.setRoot(find("root ", buffer, ";"));
 		http.setAutoIndex(find("autoindex ", buffer, ";"));
+		http.setWebDav(find("webdav ", buffer, ";"));
 		http.addIndex(find("index ", buffer, ";"));
 		http.addErrorPage(find("error_page ", buffer, ";"));
 
@@ -222,6 +223,7 @@ void parser::server(Server &server, string &buffer)
 		server.addIndex(parser::find("index ", buffer, ";"));
 		server.setMaxBodySize(parser::find("client_max_body_size ", buffer, ";"));
 		server.setAutoIndex(find("autoindex ", buffer, ";"));
+		server.setWebDav(find("web_dav ", buffer, ";"));
 		server.setReturn(parser::find("return ", buffer, ";"));
 
 		if (parser::compare("location ", buffer))
@@ -247,6 +249,7 @@ void parser::location(Location &location, string &buffer)
 		location.setRoot(find("root ", buffer, ";"));
 		location.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
 		location.setAutoIndex(find("autoindex ", buffer, ";"));
+		location.setWebDav(find("web_dav ", buffer, ";"));
 		location.setFastCgi(find("fastcgi_pass ", buffer, ";"));
 		location.addErrorPages(find("error_page ", buffer, ";"));
 		location.setReturn(find("return ", buffer, ";"));

@@ -1,13 +1,13 @@
+#include "Cgi.hpp"
+#include "Connection.hpp"
+#include "Directory.hpp"
+#include "Location.hpp"
+#include "File.hpp"
+#include "code.hpp"
+#include "header.hpp"
 #include "parser.hpp"
 #include "process.hpp"
-#include "URL.hpp"
-#include "Connection.hpp"
-#include "header.hpp"
 #include "response.hpp"
-#include "code.hpp"
-#include "Directory.hpp"
-#include "File.hpp"
-#include "Cgi.hpp"
 
 void process::methodGet(Connection *connection)
 {
@@ -16,25 +16,23 @@ void process::methodGet(Connection *connection)
 
 	connection->addHeader(header::LOCATION, uri->getLocation());
 	
-	if (uri->isDirectory())
-	{
-		if (parser::lastCharacter(uri->getAbsolutePath()) == '/')
-		{
-			if (location.getAutoIndex())
-				return connection->setResource(new Directory(connection));
-
-			return response::builder(connection, code::FORBIDDEN);
-		}
-
-		connection->addHeader(header::LOCATION, uri->getLocation() + '/');
-		return response::builder(connection, code::MOVED_PERMANENTLY);
-	}
-
 	if (uri->isCgi())
 		return connection->setResource(new Cgi(connection));
 
 	if (uri->isFile())
 		return connection->setResource(new File(connection));
+	
+	if (!uri->isDirectory())
+		return response::builder(connection, code::NOT_FOUND);
 
-	response::builder(connection, code::NOT_FOUND);
+	if (parser::lastCharacter(uri->getAbsolutePath()) == '/')
+	{
+		if (location.getAutoIndex())
+			return connection->setResource(new Directory(connection));
+
+		return response::builder(connection, code::FORBIDDEN);
+	}
+
+	connection->addHeader(header::LOCATION, uri->getLocation() + '/');
+	response::builder(connection, code::MOVED_PERMANENTLY);
 }

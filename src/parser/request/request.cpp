@@ -113,10 +113,13 @@ void request::parseHeaders(Connection *connection, std::string &line)
 
 void request::parseBody(Connection *connection, string &line)
 {
+	if ((*connection)[header::HOST].empty())
+		return response::builder(connection, code::BAD_REQUEST);
+
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
 
-	size_t body_size = line.size() ;
+	size_t body_size = line.size();
 	size_t content_length = parser::toSizeT((*connection)[header::CONTENT_LENGTH]);
 
 	if (body_size < content_length)

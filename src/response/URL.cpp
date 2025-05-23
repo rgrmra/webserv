@@ -138,8 +138,9 @@ void URL::processPath(string requested_path)
 			break;
 	}
 
-	if (_isDirectory(location.getRoot() + _path))
-		_file = checkIndex(location, _path);
+	if (_connection->getMethod() == method::GET)
+		if (_isDirectory(location.getRoot() + _path))
+			_file = checkIndex(location, _path);
 
 	size_t pos = _file.find_last_of(".");
 	if (pos != string::npos)
