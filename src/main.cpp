@@ -34,8 +34,6 @@ int main(int argc, char *argv[])
 
 		Mime::getInstance()->configure("./src/parser/mime/mimes.json");
 
-		cout << *http << endl;
-
 		http->start();
 
 	}
