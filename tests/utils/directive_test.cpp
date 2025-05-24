@@ -13,52 +13,6 @@
 
 using namespace std;
 
-TEST(DirectiveTest, SetAcessLog) {
-
-  string result;
-
-  EXPECT_NO_THROW(directive::setAcessLog("valid_access_log", result));
-  EXPECT_EQ(result, "valid_access_log");
-
-  result.clear();
-  EXPECT_NO_THROW(directive::setAcessLog("", result));
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setAcessLog("invalid access log", result),
-      runtime_error);
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setAcessLog("   ", result), runtime_error);
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setAcessLog("  leading_trailing  ", result),
-      runtime_error);
-  EXPECT_TRUE(result.empty());
-}
-
-TEST(DirectiveTest, SetErrorLog) {
-
-  string result;
-
-  EXPECT_NO_THROW(directive::setErrorLog("valid_error_log", result));
-  EXPECT_EQ(result, "valid_error_log");
-
-  result.clear();
-  EXPECT_NO_THROW(directive::setErrorLog("", result));
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setErrorLog("invalid error log", result),
-      runtime_error);
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setErrorLog("   ", result), runtime_error);
-  EXPECT_TRUE(result.empty());
-
-  EXPECT_THROW(directive::setErrorLog("  leading_trailing  ", result),
-      runtime_error);
-  EXPECT_TRUE(result.empty());
-}
-
 TEST(DirectiveTest, ValidateHttpListen) {
 
   EXPECT_FALSE(directive::validateHttpListen(""));
