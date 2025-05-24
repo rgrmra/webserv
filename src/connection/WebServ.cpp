@@ -243,7 +243,6 @@ void WebServ::acceptNewConnection(const int &socket_fd)
 	const string client_ip = getIpByAddr(client_addr);
 
 	logger::debug(client_ip + " connection accepted");
-
 	controlEpoll(client_socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
 	Connection *connection = new Connection(client_socket_fd, host_ip);
