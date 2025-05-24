@@ -1,1 +1,0 @@
-qlqr coisa
