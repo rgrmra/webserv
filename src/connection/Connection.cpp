@@ -127,11 +127,9 @@ string Connection::getMethod(void) const
 	return _method;
 }
 
-// TODO: remove cout
 void Connection::setUri(URL *uri)
 {
 	_uri = uri;
-	cout << *_uri << endl;
 }
 
 URL *Connection::getUri(void) const
