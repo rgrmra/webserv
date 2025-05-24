@@ -119,7 +119,6 @@ int AStream::getStep(void) const
 bool AStream::isTimedOut(void) const
 {
 	size_t elapsed_time = time(NULL) - _time;
-
 	if (elapsed_time >= standard::TIMEOUT)
 		return true;
 
