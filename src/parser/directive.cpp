@@ -224,9 +224,6 @@ void directive::setURI(string uri, string &_uri)
 		throw runtime_error("invalid path: " + uri);
 
 	_uri = parser::formatPath(uri);
-
-	if (parser::lastCharacter(_uri) != '/')
-		_uri += '/';
 }
 
 bool directive::validateHttpMethod(string method)

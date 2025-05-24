@@ -6,7 +6,6 @@
 #include "process.hpp"
 #include "standard.hpp"
 #include <cctype>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
@@ -134,6 +133,14 @@ void URL::processPath(string requested_path)
 	for (; path != paths.end(); path++)
 	{
 		location = server.getLocationByURI(*path);
+		if (!location.empty())
+			break;
+
+		if (parser::lastCharacter(_path) != '/')
+			continue;
+
+		string tmp = (*path).substr(0, (*path).size() - 1);
+		location = server.getLocationByURI(tmp);
 		if (!location.empty())
 			break;
 	}
