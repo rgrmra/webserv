@@ -86,7 +86,7 @@ void Connection::parseRequest(void)
 		if (_code == code::OK && _input.size())
 			return response::builder(this, code::BAD_REQUEST);
 	}
-	
+
 	if (_code.empty())
 		return;
 
@@ -343,7 +343,7 @@ void Connection::sendTimeOut(void)
 {
 	if (_file && dynamic_cast<Cgi *>(_file))
 		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
-	
+
 	response::builder(this, code::GATEWAY_TIMEOUT);
 }
 
