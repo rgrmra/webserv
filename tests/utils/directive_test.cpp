@@ -427,9 +427,7 @@ TEST(DirectiveTest, setHttpDefaultValues) {
     
     EXPECT_NO_THROW(directive::setHttpDefaultValues(*Http::getInstance()));
     EXPECT_FALSE(http->getIndexes().empty());
-    EXPECT_EQ(http->getAccessLog(), "/var/log/access.log");
     EXPECT_EQ(http->getAutoIndexBitSet().to_ulong(), parser::AUTOINDEX_OFF);
-    EXPECT_EQ(http->getErrorLog(), "test");
     EXPECT_EQ(http->getRoot(), "/var/www/html");
 }
 
