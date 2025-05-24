@@ -24,10 +24,10 @@ class AStream : public IStream
 
 		virtual void processInput(const size_t &bytes);
 		virtual void processOutput(const size_t &bytes);
-		
+
 	public:
 		virtual ~AStream(void);
-		
+
 		int getFd(void) const;
 		std::string getId(void) const;
 		void setIp(const std::string &ip);
@@ -39,6 +39,7 @@ class AStream : public IStream
 		virtual void setStep(const int &step);
 		virtual int getStep(void) const;
 		virtual bool isTimedOut(void) const;
+		virtual void updateTime(void);
 };
 
 #endif // ASTREAM_HPP

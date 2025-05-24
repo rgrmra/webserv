@@ -124,3 +124,8 @@ bool AStream::isTimedOut(void) const
 
 	return false;
 }
+
+void AStream::updateTime(void)
+{
+    _time = time(NULL);
+}

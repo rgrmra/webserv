@@ -5,7 +5,7 @@ print_r($_SERVER);
 print_r($_POST);
 $uploadDir = 'uploads/';
 $maxFileSize = 100 * 1024 * 1024; // 2MB
-$allowedTypes = ['jpg', 'png', 'PNG', 'pdf', 'txt', 'JPG', 'csv', 'CSV', 'sql', 'SQL'];
+$allowedTypes = ['jpg', 'png', 'PNG', 'pdf', 'txt', 'JPG', 'csv', 'CSV', 'sql', 'SQL', 'gif'];
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
