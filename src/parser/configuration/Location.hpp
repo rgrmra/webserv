@@ -71,4 +71,4 @@ class Location {
 
 std::ostream &operator<<(std::ostream &os, const Location &src);
 
-#endif /* LOCATION_HPP */
+#endif // LOCATION_HPP
