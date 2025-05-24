@@ -18,12 +18,12 @@ void process::methodDelete(Connection *connection)
 	if (!connection->getLocation().getWebDav())
 		return response::builder(connection, code::FORBIDDEN);
 
+	if (!uri->isFile() && !uri->isDirectory())
+		return response::builder(connection, code::NOT_FOUND);
+
 	if (!uri->isDeletable())
 		return response::builder(connection, code::FORBIDDEN);
 
-	if (!uri->isFile() || !uri->isDirectory())
-		return response::builder(connection, code::NOT_FOUND);
-	
 	if (std::remove(uri->getAbsolutePath().c_str()) == -1)
 		return response::builder(connection, code::INTERNAL_SERVER_ERROR);
 
