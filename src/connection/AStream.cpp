@@ -41,7 +41,7 @@ AStream &AStream::operator=(const AStream &rhs)
 
 	return *this;
 }
-		
+
 AStream::~AStream(void) {}
 
 int AStream::getFd(void) const
@@ -119,7 +119,7 @@ int AStream::getStep(void) const
 bool AStream::isTimedOut(void) const
 {
 	size_t elapsed_time = time(NULL) - _time;
-	
+
 	if (elapsed_time >= standard::TIMEOUT)
 		return true;
 
