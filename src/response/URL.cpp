@@ -43,7 +43,7 @@ URL::URL(Connection *connection) : _connection(connection), _dac(0)
 	if (pos != string::npos)
 	{
 		_path_info = _path.substr(pos, _path.size());
-		
+
 		size_t epos = _path_info.find_first_of("/");
 		_extension = _path_info.substr(0, epos);
 		if (epos != string::npos)
@@ -117,7 +117,7 @@ void URL::processPath(string requested_path)
 	{
 		paths.push_back(requested_path);
 
-		size_t pos = requested_path.find_first_of("/");
+		size_t pos = requested_path.find_last_of("/");
 		if (pos == 0 || requested_path == ".")
 		{
 			paths.push_back("/");
