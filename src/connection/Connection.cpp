@@ -112,7 +112,7 @@ void Connection::processInput(const size_t &bytes)
 
 	if (_step >= step::HEADERS)
 		return;
-	
+
 	if (_input.find("\r") != string::npos || _input.find("\n") != string::npos)
 		return response::builder(this, code::BAD_REQUEST);
 }

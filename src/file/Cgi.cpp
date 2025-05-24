@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
@@ -181,4 +182,6 @@ void Cgi::processInput(const size_t &bytes)
 
 	if (waitpid(_pid, &_status, WNOHANG))
 		sendCGI();
+
+	_connection->updateTime();
 }
