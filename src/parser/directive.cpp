@@ -17,28 +17,6 @@
 
 using namespace std;
 
-void directive::setAcessLog(string access_log, string &_access_log)
-{
-	if (access_log.empty())
-		return;
-
-	if (access_log.find_first_of(" ") != string::npos)
-		throw runtime_error("invalid access_log: " + access_log);
-
-	_access_log = access_log;
-}
-
-void directive::setErrorLog(string error_log, string &_error_log)
-{
-	if (error_log.empty())
-		return;
-
-	if (error_log.find_first_of(" ") != string::npos)
-		throw runtime_error("invalid error_log: " + error_log);
-
-	_error_log = error_log;
-}
-
 bool directive::validateHttpListen(string listen)
 {
 	if (listen.empty())
@@ -513,17 +491,11 @@ void directive::setHttpDefaultValues(Http &http)
 	if (http.getIndexes().size() == 0)
 		http.addIndex(standard::DEFAULT_INDEXES);
 
-	if (http.getAccessLog().empty())
-		http.setAccessLog(standard::ACCESS_LOG);
-
 	if (http.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		http.setAutoIndex(parser::AUTOINDEX_OFF);
 
 	if (http.getWebDavBitSet() == parser::WEB_DAV_NOT_SET)
 		http.setWebDav(parser::WEB_DAV_OFF);
-
-	if (http.getErrorLog().empty())
-		http.setErrorLog(standard::ERROR_LOG);
 
 	if (http.getRoot().empty())
 		http.setRoot(standard::ROOT_DIR);

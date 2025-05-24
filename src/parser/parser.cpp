@@ -189,8 +189,6 @@ void parser::http(Http &http, string &buffer)
 	for (size_t i = buffer.size(); i > 0; --i)
 	{
 		http.setMaxBodySize(find("client_max_body_size ", buffer, ";"));
-		http.setAccessLog(find("access_log ", buffer, ";"));
-		http.setErrorLog(find("error_log ", buffer, ";"));
 		http.setRoot(find("root ", buffer, ";"));
 		http.setAutoIndex(find("autoindex ", buffer, ";"));
 		http.setWebDav(find("webdav ", buffer, ";"));

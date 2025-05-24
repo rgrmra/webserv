@@ -14,7 +14,6 @@ class Http {
 	private:
 		static Http *_instance;
 
-		std::string _access_log;
 		std::string _error_log;
 		std::string _root;
 		std::bitset<2> _autoindex;
@@ -32,10 +31,6 @@ class Http {
 		static Http *getInstance(void);
 
 		void configure(std::string configuration_file);
-		void setAccessLog(std::string access_log);
-		std::string getAccessLog(void) const;
-		void setErrorLog(std::string error_log);
-		std::string getErrorLog(void) const;
 		void setRoot(std::string root);
 		std::string getRoot(void) const;
 		void setAutoIndex(std::string autoindex);
@@ -68,4 +63,4 @@ class Http {
 
 std::ostream &operator<<(std::ostream &os, const Http &src);
 
-#endif /* HTTP_HPP */
+#endif // HTTP_HPP

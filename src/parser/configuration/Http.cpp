@@ -1,10 +1,8 @@
 #include "Http.hpp"
 #include "Mime.hpp"
-#include "WebServ.hpp"
-#include "directive.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
-#include "standard.hpp"
+#include "directive.hpp"
 #include <fstream>
 #include <ostream>
 #include <string>
@@ -17,27 +15,25 @@ Http::Http(void)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0),
-	  _signal(0) {
+	  _signal(0) {}
 
-}
-
-Http::~Http(void) {
-
+Http::~Http(void)
+{
 	delete WebServ::getInstance();
 	delete Mime::getInstance();
 
 }
 
-Http *Http::getInstance(void) {
-
+Http *Http::getInstance(void)
+{
 	if (_instance == NULL)
 		_instance = new Http();
 
 	return _instance;
 }
 
-void Http::configure(std::string filename) {
-
+void Http::configure(std::string filename)
+{
 	if (parser::basename(filename) != ".conf")
 		throw runtime_error("invalid .conf file format: " + filename);
 
@@ -67,9 +63,6 @@ void Http::configure(std::string filename) {
 	parser::erase(buffer, " ;", 1);
 	parser::rerase(buffer, "; ", 1);
 
-	addErrorPage(standard::ERROR_404_PAGE);
-	addErrorPage(standard::ERROR_50X_PAGE);
-
 	parser::http(*this, buffer);
 
 	if (empty())
@@ -80,225 +73,210 @@ void Http::configure(std::string filename) {
 	directive::setHttpDefaultValues(*this);
 }
 
-void Http::setAccessLog(string access_log) {
-
-	directive::setAcessLog(access_log, _access_log);
-}
-
-string Http::getAccessLog(void) const {
-
-	return _access_log;
-}
-
-void Http::setErrorLog(string error_log) {
-
-	directive::setErrorLog(error_log, _error_log);
-}
-
-string Http::getErrorLog(void) const {
-
-	return _error_log;
-}
-
-void Http::setRoot(string root) {
-
+void Http::setRoot(string root)
+{
 	directive::setRoot(root, _root);
 }
 
-string Http::getRoot(void) const {
-
+string Http::getRoot(void) const
+{
 	return _root;
 }
 
-void Http::setAutoIndex(string autoindex) {
-
+void Http::setAutoIndex(string autoindex)
+{
 	directive::setAutoIndex(autoindex, _autoindex);
 }
 
-void Http::setAutoIndex(bitset<2> autoindex) {
-
+void Http::setAutoIndex(bitset<2> autoindex)
+{
 	_autoindex = autoindex;
 }
 
-bitset<2> Http::getAutoIndexBitSet(void) const {
-
+bitset<2> Http::getAutoIndexBitSet(void) const
+{
 	return _autoindex;
 }
 
-bool Http::getAutoIndex() const {
-
+bool Http::getAutoIndex() const
+{
 	return _autoindex == parser::AUTOINDEX_ON ? true : false;
 }
 
-void Http::setWebDav(string webdav) {
-
+void Http::setWebDav(string webdav)
+{
 	directive::setWebDav(webdav, _webdav);
 }
 
-void Http::setWebDav(bitset<2> webdav) {
-
+void Http::setWebDav(bitset<2> webdav)
+{
 	_webdav = webdav;
 }
 
-bitset<2> Http::getWebDavBitSet(void) const {
-
+bitset<2> Http::getWebDavBitSet(void) const
+{
 	return _webdav;
 }
 
-bool Http::getWebDav() const {
-
+bool Http::getWebDav() const
+{
 	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
-void Http::setMaxBodySize(string max_body_size) {
-
+void Http::setMaxBodySize(string max_body_size)
+{
 	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
 
-size_t Http::getMaxBodySize(void) const {
-		
+size_t Http::getMaxBodySize(void) const
+{
 	return _max_body_size;
 }
 
-void Http::addIndex(string index) {
-
+void Http::addIndex(string index)
+{
 	directive::addIndex(index, _indexes);
 
 }
 
-void Http::setIndex(set<string> indexes) {
-
+void Http::setIndex(set<string> indexes)
+{
 	_indexes = indexes;
 }
 
-set<string> Http::getIndexes(void) const {
-
+set<string> Http::getIndexes(void) const
+{
 	return _indexes;
 }
 
-void Http::addErrorPage(string error_page) {
-
+void Http::addErrorPage(string error_page)
+{
 	directive::addErrorPage(error_page, _error_pages);
 }
 
-void Http::setErrorPages(map<string, string> error_pages) {
-
+void Http::setErrorPages(map<string, string> error_pages)
+{
 	_error_pages = error_pages;
 }
 
-map<string, string> Http::getErrorPages(void) const {
-
+map<string, string> Http::getErrorPages(void) const
+{
 	return _error_pages;
 }
 
-string Http::getErrorPageByCode(string code) const {
-
-	if (_error_pages.find(code)->first.empty())
+string Http::getErrorPageByCode(string code) const
+{
+	map<string, string>::const_iterator error_page = _error_pages.find(code);
+	if (error_page ==_error_pages.end())
 		return "";
 
-	return _error_pages.find(code)->second;
+	return error_page->second;
 }
 
-void Http::addServer(Server server) {
-
+void Http::addServer(Server server)
+{
 	directive::addServer(server, _servers);
 }
 
-void Http::setServers(vector<Server> servers) {
-
+void Http::setServers(vector<Server> servers)
+{
 	_servers = servers;
 }
 
-Server Http::getServerByListen(string listen) const {
-
-	list<string> tmp = parser::split(listen, ':');
-
-	if (!directive::validateHttpListen(listen) || tmp.size() != 2)
+Server Http::getServerByListen(string listen) const
+{
+	list<string> host = parser::split(listen, ':');
+	if (!directive::validateHttpListen(listen) || host.size() != 2)
 		return Server();
 
-	vector<Server>::const_iterator it = _servers.begin();
-	for (; it != _servers.end(); it++) {
+	vector<Server>::const_iterator server = _servers.begin();
+	for (; server != _servers.end(); server++)
+	{
+		vector<string> listens = server->getListen();
+		vector<string>::iterator listen = listens.begin();
+		for(; listen != listens.end(); listen++)
+		{
+			list<string> server_host = parser::split(*listen, ':');
+			if (server_host.back() != host.back())
+				continue;
+			
+			if (server_host.front() == "0.0.0.0")
+				return *server;
 
-		vector<string> listens = it->getListen();
-		vector<string>::iterator listensIt = listens.begin();
-		for(; listensIt != listens.end(); listensIt++) {
-			list<string> tmp2 = parser::split(*listensIt, ':');
-			if ((tmp2.front() == "0.0.0.0" || tmp2.front() == tmp.front()) && tmp2.back() == tmp.back())
-				return *it;
+			if (server_host.front() == host.front())
+				return *server;
 		}
 	}
 
 	return Server();
 }
 
-
-Server Http::getServerByName(string name) const {
-
-	list<string> listen = parser::split(name, ':');
-
-	vector<Server>::const_iterator it = _servers.begin();
-	for (; it != _servers.end(); it++) {
-
+Server Http::getServerByName(string name) const
+{
+	list<string> host = parser::split(name, ':');
+	vector<Server>::const_iterator server  = _servers.begin();
+	for (; server != _servers.end(); server++)
+	{
 		set<string> ports;
-		vector<string> listens = it->getListen();
-		vector<string>::iterator listensIt = listens.begin();
-		for (; listensIt != listens.end(); listensIt++) {
+		vector<string> listens = server->getListen();
+		vector<string>::iterator listen = listens.begin();
+		for (; listen != listens.end(); listen++) {
 
-			list<string> tmp = parser::split(*listensIt, ':');
+			list<string> tmp = parser::split(*listen, ':');
 			ports.insert(tmp.back());
 		}
 
-		vector<string> names = it->getNames();
-		vector<string>::iterator namesIt= names.begin();
-		for(; namesIt!= names.end(); namesIt++) {
+		vector<string> names = server->getNames();
+		vector<string>::iterator name= names.begin();
+		for(; name!= names.end(); name++)
+		{
+			if (host.front() != *name)
+				continue;
 
-			if (listen.size() == 1 && listen.front() == *namesIt)
-				return *it;
+			if (ports.find(host.back()) == ports.end())
+				continue;
 
-			if (listen.front() == *namesIt && ports.find(listen.back()) != ports.end())
-				return *it;
+			return *server;
 		}
 	}
 
 	return Server();
 }
 
-vector<Server> Http::getServers(void) const {
-
+vector<Server> Http::getServers(void) const
+{
 	return _servers;
 }
 
-bool Http::empty(void) const {
-
+bool Http::empty(void) const
+{
 	return _servers.empty() || _servers[0].empty();
 }
 
-void Http::start(void) {
-
+void Http::start(void)
+{
 	WebServ::getInstance()->run();
 }
 
-void Http::stop(int signal) {
-
+void Http::stop(int signal)
+{
 	_signal = signal;
 
 	WebServ::getInstance()->stop();
 }
 
-int Http::getSignal(void) {
-
+int Http::getSignal(void)
+{
 	return _signal;
 }
 
-ostream &operator<<(ostream &os, const Http &src) {
-
+ostream &operator<<(ostream &os, const Http &src)
+{
 	os << "http {" << endl;
 	os << "\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
 	os << "\troot " << src.getRoot() << ";" << endl;
 	os << "\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
 	os << "\twebdav " << (src.getWebDav() ? "on" : "off") << ";" << endl;
-	os << "\taccess_log " << src.getAccessLog() << ";" << endl;
-	os << "\terror_log " << src.getErrorLog() << ";" << endl;
 	
 	os << "\tindex";
 	set<string> indexs = src.getIndexes();
