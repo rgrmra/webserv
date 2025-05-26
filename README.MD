@@ -17,6 +17,7 @@ A lightweight, non-blocking HTTP server written in C++98, compliant with HTTP 1.
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
+- [Resources](#resources)
 
 ---
 
