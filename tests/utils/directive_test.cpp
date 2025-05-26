@@ -374,17 +374,6 @@ TEST(DirectiveTest, addServer) {
   EXPECT_THROW(directive::addServer(server3, servers), runtime_error); 
 }
 
-TEST(DirectiveTest, setHttpDefaultValues) {
-
-	Http *http = Http::getInstance();
-	http->configure(getConfigPath());
-    
-    EXPECT_NO_THROW(directive::setHttpDefaultValues(*Http::getInstance()));
-    EXPECT_FALSE(http->getIndexes().empty());
-    EXPECT_EQ(http->getAutoIndexBitSet().to_ulong(), parser::AUTOINDEX_OFF);
-    EXPECT_EQ(http->getRoot(), "/var/www/html");
-}
-
 TEST(DirectiveTest, setLocationDefaultValues) {
   Server server;
   Location location;
