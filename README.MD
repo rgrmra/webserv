@@ -22,7 +22,7 @@ A lightweight, non-blocking HTTP server written in C++98, compliant with HTTP 1.
 
 ## Features
 - **HTTP/1.1 Compliance**: Supports GET, POST, DELETE methods, chunked transfers, and error handling.
-- **Non-Blocking I/O**: Uses `poll()` (or equivalents like `kqueue`/`epoll`) for efficient client-server communication.
+- **Non-Blocking I/O Multiplexing**: Uses `epoll()` for efficient client-server communication.
 - **Static Website Hosting**: Serve static files (HTML, CSS, JS, images) with directory listing options.
 - **File Uploads**: Accept client file uploads via POST requests.
 - **CGI Support**: Execute scripts (e.g., PHP, Python) with proper environment setup.
@@ -35,12 +35,12 @@ A lightweight, non-blocking HTTP server written in C++98, compliant with HTTP 1.
 ## Installation
 
 ### Dependencies
-- C++98-compatible compiler (e.g., `g++`)
+- C++98-compatible compiler (e.g., `g++, clang`)
 - `make`
-- Testing tools: `curl`, web browser, or custom scripts (Python/Go).
+- Testing tools: `curl`, web browser, custom scripts (Python/Go), `siege`.
 
 ### Build Instructions
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/webserv.git
+   git clone https://github.com/rgrmra/webserv.git
    cd webserv
