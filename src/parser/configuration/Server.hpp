@@ -4,7 +4,6 @@
 #include "Location.hpp"
 #include <bitset>
 #include <map>
-#include <ostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -67,7 +66,5 @@ class Server {
 		bool empty(void) const;
 
 };
-
-std::ostream &operator<<(std::ostream &os, const Server &src);
 
 #endif // SERVER_HPP

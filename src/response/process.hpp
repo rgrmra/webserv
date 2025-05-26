@@ -2,7 +2,6 @@
 #define PROCESS_HPP
 
 class Connection;
-class Location;
 class URL;
 
 namespace process

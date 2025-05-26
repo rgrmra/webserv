@@ -1,4 +1,6 @@
 #include "Connection.hpp"
+#include "Location.hpp"
+#include "URL.hpp"
 #include "File.hpp"
 #include "Page.hpp"
 #include "Text.hpp"
@@ -10,7 +12,6 @@
 #include "standard.hpp"
 #include "status.hpp"
 #include "step.hpp"
-#include <map>
 #include <string>
 
 using namespace std;

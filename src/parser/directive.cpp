@@ -1,14 +1,13 @@
-#include "directive.hpp"
 #include "Http.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
+#include "directive.hpp"
 #include "logger.hpp"
 #include "method.hpp"
 #include "parser.hpp"
-#include "size.hpp"
 #include "standard.hpp"
+#include <bitset>
 #include <limits>
-#include <list>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -296,7 +295,7 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size)
 
 	size_t tmp = parser::toSizeT(max_body_size);
 	if (tmp == 0)
-		_max_body_size = numeric_limits<size_t>::max();
+		_max_body_size = std::numeric_limits<size_t>::max();
 	else
 		_max_body_size = tmp;
 
@@ -478,6 +477,13 @@ void directive::addServer(Server server, vector<Server> &_servers)
 				}
 			}
 		}
+	}
+
+	if (server.getLocations().empty())
+	{
+		Location location;
+		location.setURI("/");
+		server.addLocation(location);
 	}
 
 	_servers.push_back(server);

@@ -1,6 +1,5 @@
-#include "Directory.hpp"
 #include "Connection.hpp"
-#include "Resource.hpp"
+#include "Directory.hpp"
 #include "step.hpp"
 #include <algorithm>
 #include <dirent.h>

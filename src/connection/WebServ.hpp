@@ -2,7 +2,6 @@
 #define WEBSERV_HPP
 
 #include <map>
-#include <netdb.h>
 #include <string>
 #include <sys/epoll.h>
 

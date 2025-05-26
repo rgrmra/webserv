@@ -77,6 +77,4 @@ class URL
 		static void decode(std::string &path);
 };
 
-std::ostream &operator<<(std::ostream &os, const URL &src);
-
 #endif // URL_HPP

@@ -1,15 +1,14 @@
-#include "Cgi.hpp"
+#include <Cgi.hpp>
 #include "Connection.hpp"
 #include "Http.hpp"
-#include "WebServ.hpp"
 #include "IStream.hpp"
+#include "Server.hpp"
+#include "WebServ.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
 #include "standard.hpp"
 #include "step.hpp"
-#include <cerrno>
 #include <cstdio>
-#include <exception>
 #include <list>
 #include <map>
 #include <netdb.h>
@@ -21,6 +20,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 using namespace std;
 
@@ -293,6 +293,12 @@ void WebServ::readNoBytes(IStream *connection)
 
 void WebServ::readUnexpectedEOF(IStream *connection)
 {
+	if (connection->getStep() >= step::BODY)
+		return;
+
+	if (!dynamic_cast<Connection *>(connection))
+		return;
+
 	logger::warning(connection->getIp() + " interrupted");
 	closeConnection(connection->getFd());
 }
@@ -314,7 +320,7 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 		return readFailed(connection);
 	else if (bytes_read == 0)
 		return readNoBytes(connection);
-	else if (buffer.at(0) == EOF && connection->getStep() < step::BODY)
+	else if (buffer.at(0) == EOF)
 		return readUnexpectedEOF(connection);
 
 	connection->setData(buffer, bytes_read);
@@ -475,7 +481,7 @@ void WebServ::run(void)
 			1000
 		);
 		if (num_events == -1)
-			return logger::fatal("server was shooting down");
+			return logger::fatal("server was shut down");
 
 		checkEvents(num_events, events);
 		checkTimeOut();
