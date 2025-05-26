@@ -58,36 +58,57 @@ Run the server with an optional configuration file:
 ```bash
 ./webserv [config_file.conf]
 ```
-If no file is provided, the server uses a default configuration (see [`configuration/default.conf`](configuration/default.conf)).
+If no file is provided, the server uses a default configuration (see [`configurations/default.conf`](configurations/default.conf)).
 
 ---
 
 ## Configuration
 Configure ports, routes, error pages, and more using an NGINX-style file. Example:
 ```nginx
-server {
-    listen 8080;
-    server_name localhost;
-    client_max_body_size 10M;
-    
-    location /uploads {
-        root /var/www;
-        methods POST GET;
-        upload_enable on;
-    }
-    
-    location /cgi-bin {
-        root /var/cgi;
-        cgi .py /usr/bin/python3;
-        cgi .php /usr/bin/php-cgi;
-    }
-}
+http{
+	client_max_body_size 10M;
+	autoindex on;
+	root ./var/www/html;
+	server{
+		listen 8090;
+		server_name phpserver;
+		location /
+    	{
+		    web_dav on;
+		    limit_except GET POST {
+			    deny all;
+			}
+			error_page 404 /404.html;
+			fastcgi_pass /usr/bin/php-cgi;
+			fastcgi_extension php;
+		}
+
+		location /deletable {
+			web_dav on;
+			limit_except POST DELETE {
+		        deny all;
+			}
+		}
+
+		location /coffee {
+			return 418;
+		}
+	}
+	server{
+		listen 8092;
+		server_name meusite;
+		location / {
+			root var/www/html;
+		}
+	}
 ```
+
 Key options:
 - `listen`: Port and host (e.g., `127.0.0.1:8080`).
 - `client_max_body_size`: Max upload size.
-- `methods`: Allowed HTTP methods per route.
-- `cgi`: Map file extensions to executables.
+- `limit_except`: Allowed HTTP methods per route.
+- `fastcgi_pass`: Define cgi path.
+- `fastcgi_extension`: Map file extensions to executables.
 
 ---
 
@@ -97,24 +118,16 @@ Key options:
    curl http://localhost:8080
    ```
 2. **Stress Testing**:
-   Use tools like Apache Bench:
+   Use tools like Siege Bench:
    ```bash
-   ab -n 1000 -c 50 http://localhost:8080/
+   siege -b -t 60s http://localhost:8090/
    ```
-3. **Browser Testing**: Open `http://localhost:8080` in a browser.
-
-Sample test scripts are provided in [`tests/`](tests/).
+3. **Browser Testing**: Open `http://localhost:8090` in a browser.
 
 ---
 
 ## Bonus Features
 - **Cookies & Sessions**: Track user sessions using cookies. Example config:
-  ```nginx
-  location /login {
-      cookie_session on;
-      session_timeout 3600; # 1 hour
-  }
-  ```
 - **Multiple CGI Handlers**: Run Python, PHP, and other scripts simultaneously.
 
 ---
@@ -122,11 +135,6 @@ Sample test scripts are provided in [`tests/`](tests/).
 ## Limitations
 - No regex support in route paths.
 - Limited to HTTP/1.1 features outlined in the RFC (no WebSocket or HTTP/2).
-
----
-
-## Contributing
-Pull requests are welcome! Ensure code adheres to C++98 standards and passes all tests.
 
 ---
 
@@ -139,3 +147,7 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 - Inspired by NGINX configuration syntax.
 - RFC 7230/7231 for HTTP standards.
 - 42 School for the project guidelines.
+
+---
+
+## Resources
