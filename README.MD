@@ -124,6 +124,11 @@ Key options:
    ```
 3. **Browser Testing**: Open `http://localhost:8090` in a browser.
 
+4. **Google Test Lib**:
+   ```
+   make test
+   ```
+
 ---
 
 ## Bonus Features
@@ -151,3 +156,30 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 ---
 
 ## Resources
+- [RFC STD](https://www.rfc-editor.org/standards)
+- [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP)
+- [Beej’s Guide to Network Programming](https://amzn.to/4mw0Vqv)
+- [Computer Networks Tanembaum](https://amzn.to/3ZoGh1J)
+- [TCP vs UDP](https://www.avast.com/c-tcp-vs-udp-difference)
+- [Simple Http Server](https://github.com/shuveb/zerohttpd)
+- [Jacob Sorber Video](https://www.youtube.com/watch?v=esXw4bdaZkc)
+- [How the web works: HTTP and CGI explained](https://www.garshol.priv.no/download/text/http-tut.html)
+- [MIME](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+- [HTTP Status Codes](https://umbraco.com/knowledge-base/http-status-codes/)
+- [How to Read an RFC](https://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm)
+- [RFC 9110 - HTTP Semantics ](https://www.rfc-editor.org/info/rfc9110)
+- [RFC 9112 - HTTP/1.1 ](https://www.rfc-editor.org/info/rfc9112) 
+- [RFC 2068 - ABNF](https://www.cs.columbia.edu/sip/syntax/rfc2068.html) 
+- [RFC 3986 -  (URI) Generic Syntax](https://www.ietf.org/rfc/rfc3986)
+- [RFC 6265 - HTTP State Management Mechanism (Cookies)](https://www.rfc-editor.org/rfc/rfc6265)
+- [RFC 3875 - CGI](https://datatracker.ietf.org/doc/html/rfc3875)
+- [Python web Programming](https://www.tutorialspoint.com/python/python_cgi_programming.htm)
+- [CPP web Programming](https://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm)
+- [(Video) Creating a file upload page](https://www.youtube.com/watch?v=_j5spdsJdV8&t=562s)
+- [URL Encoding](https://www.urlencoder.io/learn/#:~:text=A%20URL%20is%20composed%20from,%22%20%2C%20%22~%22%20)
+- [Nginx](https://nginx.org/en/)
+- [(Video) IO Multiplexing](https://www.youtube.com/watch?v=dEHZb9JsmOU)
+- [IO Multiplex](https://www.softprayog.in/programming/io-multiplexing-select-poll-epoll-in-linux)
+- [Tests using CMake](https://www.youtube.com/watch?v=pxJoVRfpRPE)
+- [(Video) Async vs Multithreading](https://www.youtube.com/watch?v=IGv5WYYmyfo)
+- [Nginx Source Code](https://github.com/nginx/nginx)
