@@ -13,24 +13,18 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <sstream>
-#include <string>
-#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
-#include "logger.hpp"
 using namespace std;
 
 Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 {
 	connection->setCode("");
 
-	_sock[0] = -1;
-	_sock[1] = -1;
 	std::memset(_sock, EOF, 2 * sizeof(int));
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, _sock) == -1)

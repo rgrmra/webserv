@@ -1,18 +1,15 @@
-#include "request.hpp"
 #include "Connection.hpp"
+#include "URL.hpp"
 #include "code.hpp"
 #include "directive.hpp"
 #include "header.hpp"
 #include "method.hpp"
 #include "parser.hpp"
-#include "size.hpp"
+#include "request.hpp"
+#include "response.hpp"
 #include "standard.hpp"
 #include "step.hpp"
-#include "response.hpp"
-#include <cstdio>
 #include <cstdlib>
-#include <iostream>
-#include <pthread.h>
 #include <sstream>
 #include <string>
 
@@ -72,7 +69,7 @@ void request::parseHeaders(Connection *connection, std::string &line)
 
 		connection->setUri(new URL(connection));
 
-		if (!connection->getHeadersSize())
+		if (connection->getHost().empty())
 			return response::builder(connection, code::BAD_REQUEST);
 
 		if ((*connection)[header::CONTENT_TYPE].find("multipart/form-data") == 0)
@@ -113,9 +110,6 @@ void request::parseHeaders(Connection *connection, std::string &line)
 
 void request::parseBody(Connection *connection, string &line)
 {
-	if ((*connection)[header::HOST].empty())
-		return response::builder(connection, code::BAD_REQUEST);
-
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
 
@@ -192,7 +186,7 @@ void request::convertToHex(Connection *connection, string &line, size_t &chunck_
 		return response::builder(connection, code::BAD_REQUEST);
 
 	char *rest;
-	chunck_size = strtoul(line.c_str(), &rest, 16);
+	chunck_size = std::strtoul(line.c_str(), &rest, 16);
 	if (rest[0] != '\0')
 		return response::builder(connection, code::BAD_REQUEST);
 }

@@ -1,9 +1,12 @@
 #include "Server.hpp"
+#include "Location.hpp"
 #include "directive.hpp"
 #include "parser.hpp"
+#include <bitset>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
-#include <map>
 #include <vector>
 
 using namespace std;
@@ -191,7 +194,7 @@ string Server::getErrorPageByCode(string code) const
 void Server::addLocation(Location location)
 {
 	if (_locations.find(location.getURI()) != _locations.end())
-			throw runtime_error("duplicated location: " + location.getURI());
+		throw runtime_error("duplicated location: " + location.getURI());
 
 	_locations[location.getURI()] = location;
 }
@@ -233,44 +236,4 @@ string Server::getReturnURI(void) const
 bool Server::empty(void) const
 {
 	return _listen.empty();
-}
-
-ostream &operator<<(ostream &os, const Server &src)
-{
-	os << "\tserver {" << endl;
-
-	vector<string> listens = src.getListen();
-	for (vector<string>::iterator it = listens.begin(); it != listens.end(); it++)
-		os << "\t\tlisten " << *it << ";" << endl;
-
-	os << "\t\tserver_name";
-	vector<string> names = src.getNames();
-	for (vector<string>::iterator it = names.begin(); it != names.end(); it++)
-		os << " " << *it;
-	os << ";" << endl;
-
-	os << "\t\troot " << src.getRoot() << ";" << endl;
-
-	os << "\t\tindex";
-	set<string> indexs = src.getIndexes();
-	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
-		os << " " << *it;
-	os << ";" << endl;
-
-	os << "\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
-	os << "\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
-	os << "\t\twebdav " << (src.getWebDav() ? "on" : "off") << ";" << endl;
-
-	map<string, string> error_pages = src.getErrorPages();
-	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
-		os << "\t\terror_page " << it->first << " " << (*it).second << ";" << endl;
-
-	map<string, Location> locations = src.getLocations();
-	for (map<string, Location>::iterator it = locations.begin(); it != locations.end(); it++)
-		os << it->second << endl;
-
-	os << "\t\treturn " << src.getReturnCode() + " " + src.getReturnURI() << ";" << endl;
-	os << "\t}";
-
-	return os;
 }

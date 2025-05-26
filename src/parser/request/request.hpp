@@ -1,7 +1,9 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include "Connection.hpp"
+#include <string>
+
+class Connection;
 
 namespace request
 {

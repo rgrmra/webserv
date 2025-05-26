@@ -1,16 +1,17 @@
-#include "URL.hpp"
 #include "Connection.hpp"
 #include "Location.hpp"
+#include "Server.hpp"
+#include "URL.hpp"
 #include "method.hpp"
 #include "parser.hpp"
-#include "process.hpp"
 #include "standard.hpp"
-#include <cctype>
+#include <dirent.h>
+#include <list>
+#include <set>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
 
 using namespace std;
 
@@ -386,28 +387,4 @@ void URL::decode(std::string &path)
 	}
 
     path = output;
-}
-
-ostream &operator<<(ostream &os, const URL &src)
-{
-	os << (src.getScheme().size() ? src.getScheme() + "://" : "http://")
-		+ src.getHost() + (src.getPort().size() ? ":" + src.getPort() : "")
-		+ src.getPath() + (src.getPathInfo().size() ? src.getPathInfo() : "")
-		+ (src.getQuery().size() ? "?" + src.getQuery() : "") << endl;
-
-	os << "file: " << src.getFile() << endl;
-	os << "extension: " << src.getExtension() << endl;
-	os << "path_info: " << src.getPathInfo() << endl;
-	os << "query string: " << src.getQuery() << endl;
-	os << "path_translated: " << src.getPathTranslated() << std::endl;
-	os << "location: " << src.getLocation() << endl;
-
-	os << "absolute path: " << src.getAbsolutePath() << endl;
-
-	os << "dac: " << (src.isDirectory() ? "d" : "") << (src.isFile() ? "." : "");
-	os << (src.isReadable() ? "r" : "-") << (src.isWritable() ? "w" : "-");
-	os << (src.isExecutable() ? "x" : "-") << (src.isCgi() ? " cgi" : "");
-	os << (src.isDeletable() ? " deletable" : "");
-
-	return os;
 }

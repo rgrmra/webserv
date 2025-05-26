@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "Environment.hpp"
+#include "Server.hpp"
 #include "URL.hpp"
 #include "code.hpp"
 #include "env.hpp"
@@ -8,7 +9,7 @@
 #include "standard.hpp"
 #include <cstring>
 #include <list>
-#include <string>
+#include <map>
 
 using namespace std;
 
@@ -91,7 +92,7 @@ void Environment::addEnv(const string &key, const string &value)
 {
 	string environment = key + "=" + value;
 	char *env = new char[environment.size() + 1];
-	_env.push_back(strcpy(env, environment.c_str()));
+	_env.push_back(std::strcpy(env, environment.c_str()));
 }
 
 vector<char *> Environment::getEnvironment(void)

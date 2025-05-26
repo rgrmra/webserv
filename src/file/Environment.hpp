@@ -1,8 +1,10 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 
-#include "Cgi.hpp"
+#include <string>
 #include <vector>
+
+class Connection;
 
 class Environment
 {

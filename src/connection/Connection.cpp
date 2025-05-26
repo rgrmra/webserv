@@ -1,20 +1,24 @@
+#include "AStream.hpp"
 #include "Cgi.hpp"
 #include "Connection.hpp"
+#include "Location.hpp"
 #include "Resource.hpp"
+#include "Server.hpp"
 #include "URL.hpp"
 #include "WebServ.hpp"
 #include "code.hpp"
 #include "header.hpp"
+#include "parser.hpp"
 #include "request.hpp"
 #include "response.hpp"
-#include "parser.hpp"
 #include "standard.hpp"
 #include "step.hpp"
-#include <iostream>
+#include <ctime>
+#include <map>
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
-#include <ctime>
+#include <vector>
 
 using namespace std;
 
@@ -373,24 +377,4 @@ bool Connection::operator==(const string &key)
 		return false;
 
 	return true;
-}
-
-ostream &operator<<(ostream &os, const Connection &src) {
-
-	os << "Connection" << endl;
-	os << "client_fd: " << src.getFd() << endl;
-	//os << "IP: " << src.getIp() << endl;
-	os << "hostname: " << src.getHost() << endl;
-	//os << "buffer: " << src.getBuffer() << endl;
-	os << "method: " << src.getMethod() << endl;
-	os << "target: " << src.getTarget() << endl;
-	os << "protocol: " << src.getProtocol() << endl;
-	os << "code: " << src.getCode() << endl;
-	os << "status: " << src.getStatus() << endl;
-	//os << "request headers: " << src.getHeaders() << endl;
-	os << "request body: " << src.getBody() << endl;
-	//os << "http {\n" << src.getServer() << "\n}" << endl;
-	//os << "response: " << src.getResponse() << endl;
-
-	return os;
 }

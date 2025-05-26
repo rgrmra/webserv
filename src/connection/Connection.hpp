@@ -3,15 +3,13 @@
 
 #include "AStream.hpp"
 #include "Location.hpp"
+#include "Resource.hpp"
 #include "Server.hpp"
 #include "URL.hpp"
 #include <ctime>
 #include <map>
 #include <string>
 #include <vector>
-
-class Resource;
-class Http;
 
 class Connection : public AStream {
 	private:
@@ -77,7 +75,5 @@ class Connection : public AStream {
 		bool operator==(const std::string &key);
 
 };
-
-std::ostream &operator<<(std::ostream &os, const Connection &src);
 
 #endif // CONNECTION_HPP

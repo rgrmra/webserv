@@ -1,8 +1,9 @@
-#include "directive.hpp"
 #include "Location.hpp"
+#include <bitset>
+#include "directive.hpp"
 #include "parser.hpp"
-#include <iostream>
-#include <ostream>
+#include <map>
+#include <set>
 #include <string>
 
 using namespace std;
@@ -245,46 +246,4 @@ string Location::getReturnURI() const
 bool Location::empty(void) const
 {
 	return _uri.empty();
-}
-
-ostream &operator<<(ostream &os, const Location &src)
-{
-	os << "\t\tlocation " << src.getURI() << " {" << endl;
-	
-	os << "\t\t\tindex";
-	set<string> indexs = src.getIndexes();
-	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
-		os << " " << *it;
-	os << ";" << endl;
-
-	os << "\t\t\troot " << src.getRoot() << ";" << endl;
-
-	os << "\t\t\tlimit_except";
-	set<string> methods = src.getMethods();
-	for (set<string>::iterator it = methods.begin(); it != methods.end(); it++)
-		os << " " << *it;
-	os << " {";
-	if (src.getDenyMethods())
-		os << "\n\t\t\t\tdeny all;\n\t\t\t";
-	os << "}" << endl;
-
-	os << "\t\t\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
-	os << "\t\t\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
-	os << "\t\t\twebdav " << (src.getWebDav() ? "on" : "off") << ";"<< endl;
-	os << "\t\t\tfastcgi_pass " << src.getFastCgi() << ";" << endl;
-	
-	os << "\t\t\tfastcgi_extension ";
-	set<string> extensions = src.getFastCgiExtension();
-	for(set<string>::iterator it = extensions.begin(); it != extensions.end(); it++)
-		os << *it << " ";
-	os << ";" << endl;
-
-	map<string, string> error_pages = src.getErrorPages();
-	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
-		os << "\t\t\terror_page " << it->first << " " << (*it).second << ";" << endl;
-
-	os << "\t\t\treturn " << src.getReturnCode() << " " << src.getReturnURI() << ";" << endl;
-	os << "\t\t}";
-
-	return os;
 }

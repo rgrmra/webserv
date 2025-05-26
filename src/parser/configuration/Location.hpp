@@ -69,6 +69,4 @@ class Location {
 		bool empty(void) const;
 };
 
-std::ostream &operator<<(std::ostream &os, const Location &src);
-
 #endif // LOCATION_HPP

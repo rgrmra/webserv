@@ -2,10 +2,8 @@
 #define HTTP_HPP
 
 #include "Server.hpp"
-#include "WebServ.hpp"
 #include <bitset>
 #include <map>
-#include <ostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -60,7 +58,5 @@ class Http {
 		void stop(int signal);
 		int getSignal(void);
 };
-
-std::ostream &operator<<(std::ostream &os, const Http &src);
 
 #endif // HTTP_HPP

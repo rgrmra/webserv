@@ -1,11 +1,15 @@
 #include "Http.hpp"
 #include "Mime.hpp"
+#include "WebServ.hpp"
+#include "directive.hpp"
 #include "logger.hpp"
 #include "parser.hpp"
-#include "directive.hpp"
+#include <bitset>
 #include <fstream>
-#include <ostream>
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -21,7 +25,6 @@ Http::~Http(void)
 {
 	delete WebServ::getInstance();
 	delete Mime::getInstance();
-
 }
 
 Http *Http::getInstance(void)
@@ -268,31 +271,4 @@ void Http::stop(int signal)
 int Http::getSignal(void)
 {
 	return _signal;
-}
-
-ostream &operator<<(ostream &os, const Http &src)
-{
-	os << "http {" << endl;
-	os << "\tclient_max_body_size " << src.getMaxBodySize() << ";" << endl;
-	os << "\troot " << src.getRoot() << ";" << endl;
-	os << "\tautoindex " << (src.getAutoIndex() ? "on" : "off") << ";" << endl;
-	os << "\twebdav " << (src.getWebDav() ? "on" : "off") << ";" << endl;
-	
-	os << "\tindex";
-	set<string> indexs = src.getIndexes();
-	for (set<string>::iterator it = indexs.begin(); it != indexs.end(); it++)
-		os << " " << *it;
-	os << ";" << endl;
-
-	map<string, string> error_pages = src.getErrorPages();
-	for (map<string, string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
-		os << "\terror_page " << it->first << " " << (*it).second << ";" << endl;
-
-	vector<Server> servers = src.getServers();
-	for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
-		os << *it << endl;
-
-	os << "}";
-
-	return os;
 }

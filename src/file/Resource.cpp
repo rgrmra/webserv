@@ -1,13 +1,14 @@
-#include "Resource.hpp"
 #include "Connection.hpp"
 #include "Mime.hpp"
+#include "Resource.hpp"
 #include "WebServ.hpp"
 #include <string>
 
 using namespace std;
 
 Resource::Resource(Connection *connection)
-	: AStream(-1, connection->getTarget()), _connection(connection) {}
+	: AStream(-1, connection->getTarget()),
+	  _connection(connection) {}
 
 Resource::Resource(const Resource &src) : AStream(src)
 {
