@@ -58,7 +58,7 @@ Run the server with an optional configuration file:
 ```bash
 ./webserv [config_file.conf]
 ```
-If no file is provided, the server uses a default configuration (see [`configs/default.conf`](configs/default.conf)).
+If no file is provided, the server uses a default configuration (see [`configuration/default.conf`](configuration/default.conf)).
 
 ---
 
