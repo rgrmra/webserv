@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Webserv Configuration Directives</title>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
+	<link href="/cgi/library/css/layout.css" rel="stylesheet">
+</head>
+<body>
+	<h1>Webserv Configuration Directives</h1>
+	<div class="container">
+		<div id="autoindex" class="test-section">
+			<h2>autoindex</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>autoindex <i>on</i> | <i>off</i>;</code></li>
+					<li><strong>Default:</strong> <code>autoindex off;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<big>
+							Enables or disables the directory listing output.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="client_max_body_size" class="test-section">
+			<h2>client_max_body_size</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>client_max_body_size <i>size</i>;</code></li>
+					<li><strong>Default:</strong> <code>client_max_body_size 1M;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<big>
+							Sets the maximum allowed size of the client request body. If the size in a request exceeds the configured value, the 413 (Payload Too Large) error is returned to the client. Please be aware that browsers cannot correctly display this error. Setting size to 0 disables checking of client request body size.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="error_page" class="test-section">
+			<h2>error_page</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>error_page <i>code ... uri</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<big>
+							Defines the URI that will be shown for the specified errors.
+							<pre><code>error_page 404             /404.html;
+error_page 500 502 503 504 /50x.html;</code></pre>
+							This causes an internal redirect to the specified uri.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="fastcgi_pass" class="test-section">
+			<h2>fastcgi_pass</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>fastcgi_pass <i>path</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>location</code></li>
+					<li>
+						<big class="directive">
+							Defines the path to the CGI binary that will handle CGI requests.
+							<pre><code>fastcgi_pass /usr/bin/php-cgi;</pre></code>
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="fastcgi_extension" class="test-section">
+			<h2>fastcgi_extension</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>fastcgi_extension <i>extension ...</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>location</code></li>
+					<li>
+						<big>
+							Specifies the file extensions that should be processed by the CGI binary defined in <code>fastcgi_pass</code>.
+							<pre><code>fastcgi_extension php;</pre></code>
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="http" class="test-section">
+			<h2>http</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>http { <i>...</i> }</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>main</code></li>
+					<li>
+						<big>
+							Provides the configuration file context in which the HTTP server directives are specified.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="index" class="test-section">
+			<h2>index</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>index <i>file ...</i>;</code></li>
+					<li><strong>Default:</strong> <code>index index.html index.html;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<big>
+							Defines files that will be used as an index.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="limit_except" class="test-section">
+			<h2>limit_except</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>limit_except <i>method ...</i> { <i>...</i> }</code></li>
+					<li><strong>Default:</strong> <code>limit_except GET { deny: all; }</code></li>
+					<li><strong>Context:</strong> <code>location</code></li>
+					<li>
+						<big>
+							Limits allowed HTTP methods inside a location. The method parameter can be one of the following: <code>GET</code>, <code>POST</code> or <code>DELETE</code>.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="listen" class="test-section">
+			<h2>listen</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>listen <i>ip</i>:<i>port</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>server</code></li>
+					<li>
+						<big>
+							Defines the IP address and port for the virtual server. If one is missing, defaults are used (<code>0.0.0.0</code> and <code>8080</code>), but both cannot be omitted.
+							<pre><code>listen 9000;
+listen 127.0.0.1;
+listen 127.0.0.1:9000;</code></pre>
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="location" class="test-section">
+			<h2>location</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>location <i>path</i> { <i>...</i> }</code></li>
+					<li><strong>Default:</strong> <code>location / { ... }</code></li>
+					<li><strong>Context:</strong> <code>server</code></li>
+					<li>
+						<big>
+							Applies configuration based on the request URI.<br>
+							The server normalizes paths, resolving sequences like <code>/example/../example</code> to <code>/example</code>.
+						</big>
+					</li>
+				</div>
+		</div>
+		<div id="return" class="test-section">
+			<h2>return</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>return <i>code</i> <i>text</i> | <i>URL</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>server, location</code></li>
+					<li>
+						<div>
+							<big>
+								Stops processing and returns the specified <code>code</code> to a client or redirect to an URL.
+							</big>
+						</div>
+					</li>
+				</div>
+		</div>
+		<div id="root" class="test-section">
+			<h2>root</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>root <i>path</i>;</code></li>
+					<li><strong>Default:</strong> <code>root ./var/www/html;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<div>
+							<big>
+								Sets the root directory for requests. For example, with the following configuration<br>
+								The <code>/data/w3/i/top.gif</code> file will be sent in response to the <code>/i/top.gif</code> request.
+							</big>
+						</div>
+					</li>
+				</div>
+		</div>
+		<div id="server" class="test-section">
+			<h2>server</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>server { <i>...</i> }</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>http</code></li>
+					<li>
+						<div>
+							<big>
+								Sets configuration for a virtual server.
+							</big>
+						</div>
+					</li>
+				</div>
+		</div>
+		<div id="server_name" class="test-section">
+			<h2>server_name</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>server_name <i>name ...</i>;</code></li>
+					<li><strong>Default:</strong> <code></code></li>
+					<li><strong>Context:</strong> <code>server</code></li>
+					<li>
+						<div>
+							<big>
+								Sets names of a virtual server, for example:
+								<pre><code>server_name example.com www.example.com;</code></pre>
+								The first name becomes the primary server name.
+							</big>
+						</div>
+					</li>
+				</div>
+		</div>
+		<div id="web_dav" class="test-section">
+			<h2>web_dav</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>web_dav <i>on</i> | <i>off</i>;</code></li>
+					<li><strong>Default:</strong> <code>web_dav off;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						<div>
+							<big>
+								Enables WebDAV support for the <code>POST</code> and <code>DELETE</code> methods, allowing direct file uploads and deletions.
+							</big>
+						</div>
+					</li>
+				</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -40,7 +40,7 @@
 		{
 			"id": 8,
 			"request": "GET / HTTP/1.1\r\n",
-			"status": "504"
+			"status": "408"
 		},
 		{
 			"id": 9,
@@ -240,12 +240,12 @@
 		{
 			"id": 48,
 			"request": "GET /599 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
-			"status": "500"
+			"status": "599"
 		},
 		{
 			"id": 49,
 			"request": "GET /599t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
-			"status": "500"
+			"status": "599"
 		},
 		{
 			"id": 50,

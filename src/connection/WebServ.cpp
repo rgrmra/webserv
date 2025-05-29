@@ -377,13 +377,7 @@ void WebServ::checkTimeOut(void)
 		const int socket_fd = stream->first;
 
 		if (connection->isTimedOut())
-		{
-			if (connection->getStep() != step::NONE)
-				return connection->sendTimeOut();
-
-			closeConnection(socket_fd);
-			break;
-		}
+			return connection->sendTimeOut();
 
 		if (!connection->isKeepAliveTimedOut())
 			continue;

@@ -86,19 +86,11 @@ static bool checkReturn(Connection *connection)
 	if (return_code.empty())
 		return false;
 
-	if (return_uri.size())
+	if (return_code.at(0) == '3' && return_uri.size())
 		connection->addHeader(header::LOCATION, location.getReturnURI());
 
-	string status = response::getStatusByCode(return_code);
-	if (status.empty())
-	{
-		return_code = code::INTERNAL_SERVER_ERROR;
-		status = status::INTERNAL_SERVER_ERROR;
-		return_uri.clear();	
-	}
-
 	connection->setCode(return_code);
-	connection->setStatus(status);
+	connection->setStatus(response::getStatusByCode(return_code));
 
 	if (return_code.at(0) == '3')
 		connection->setResource(new Page(connection));
@@ -124,6 +116,7 @@ string response::getStatusByCode(const string &code)
 		responses[code::FORBIDDEN] = status::FORBIDDEN;
 		responses[code::NOT_FOUND] = status::NOT_FOUND;
 		responses[code::NOT_ALLOWED] = status::NOT_ALLOWED;
+		responses[code::REQUEST_TIMEOUT] = status::REQUEST_TIMEOUT;
 		responses[code::CONFLICT] = status::CONFLICT;
 		responses[code::LENGTH_REQUIRED] = status::LENGTH_REQUIRED;
 		responses[code::PAYLOAD_TOO_LARGE] = status::PAYLOAD_TOO_LARGE;
