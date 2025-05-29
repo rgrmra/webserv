@@ -291,18 +291,6 @@ void WebServ::readNoBytes(IStream *connection)
 	closeConnection(connection->getFd());
 }
 
-void WebServ::readUnexpectedEOF(IStream *connection)
-{
-	if (connection->getStep() >= step::BODY)
-		return;
-
-	if (!dynamic_cast<Connection *>(connection))
-		return;
-
-	logger::warning(connection->getIp() + " interrupted");
-	closeConnection(connection->getFd());
-}
-
 void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 
 	const int socket_fd = stream->first;
@@ -320,8 +308,6 @@ void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
 		return readFailed(connection);
 	else if (bytes_read == 0)
 		return readNoBytes(connection);
-	else if (buffer.at(0) == EOF)
-		return readUnexpectedEOF(connection);
 
 	connection->setData(buffer, bytes_read);
 
