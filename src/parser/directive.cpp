@@ -552,7 +552,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location)
 		location.setIndexes(server.getIndexes());
 
 	if (location.getDenyMethods() == false)
-		location.setMethods(method::getAllowedMethods());
+		location.addMethod(method::GET);
 
 	if (location.getAutoIndexBitSet() == parser::AUTOINDEX_NOT_SET)
 		location.setAutoIndex(server.getAutoIndexBitSet());

@@ -37,6 +37,9 @@ fclean: 			clean
 					@echo "$(RED)Removing$(RESET) $(NAME)"
 					@rm -rf $(NAME)
 
+tester:
+					@python3 ./scripts/webserv_tester.py ./scripts/configuration.json
+
 re:					fclean all
 
 build:

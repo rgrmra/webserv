@@ -1,0 +1,306 @@
+{
+	"host": "127.0.0.1",
+	"port": 9000,
+	"requests": [
+		{
+			"id": 1,
+			"request": "HEAD / HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "405"
+		},
+		{
+			"id": 2,
+			"request": "GET / HTTP/1.1\nHost: %h:%p\n\n",
+			"status": "400"
+		},
+		{
+			"id": 3,
+			"request": "GET / HTTP/1.1\rHost: %h:%p\r\r",
+			"status": "400"
+		},
+		{
+			"id": 4,
+			"request": "GET / HTTP/1.1\r\n\r\n",
+			"status": "400"
+		},
+		{
+			"id": 5,
+			"request": "GET / HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 6,
+			"request": "GET / HTTP/1.1\r\nHost:\r\n\r\n",
+			"status": "400"
+		},
+		{
+			"id": 7,
+			"request": "GET / HTTP/1.1\r\nHost: %h\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 8,
+			"request": "GET / HTTP/1.1\r\n",
+			"status": "504"
+		},
+		{
+			"id": 9,
+			"request": "POST /index.php HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "403"
+		},
+		{
+			"id": 10,
+			"request": "POST /uploads/file HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "201"
+		},
+		{
+			"id": 11,
+			"request": "POST /uploads/info.txt HTTP/1.1\r\nHost: %h:%p\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nteste\r\n10\r\ntestetestetestes\r\n0\r\n\r\n",
+			"status": "201"
+		},
+		{
+			"id": 12,
+			"request": "GET /uploads/file HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 13,
+			"request": "GET /uploads/info.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 14,
+			"request": "POST /uploads/file HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "409"
+		},
+		{
+			"id": 15,
+			"request": "POST /uploads/info.txt HTTP/1.1\r\nHost: %h:%p\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nteste\r\n10\r\ntestetestetestes\r\n0\r\n\r\n",
+			"status": "409"
+		},
+		{
+			"id": 16,
+			"request": "DELETE /uploads/file HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "204"
+		},
+		{
+			"id": 17,
+			"request": "DELETE /uploads/info.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "204"
+		},
+		{
+			"id": 18,
+			"request": "GET /uploads/info.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "404"
+		},
+		{
+			"id": 19,
+			"request": "GET /method/get/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 20,
+			"request": "GET /method/post/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "405"
+		},
+		{
+			"id": 21,
+			"request": "GET /method/delete/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "405"
+		},
+		{
+			"id": 22,
+			"request": "POST /method/get/ HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "405"
+		},
+		{
+			"id": 23,
+			"request": "POST /method/post/ HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "409"
+		},
+		{
+			"id": 24,
+			"request": "POST /method/delete/ HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "405"
+		},
+		{
+			"id": 25,
+			"request": "DELETE /method/get/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "405"
+		},
+		{
+			"id": 26,
+			"request": "DELETE /method/post/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "405"
+		},
+		{
+			"id": 27,
+			"request": "DELETE /method/delete/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "403"
+		},
+		{
+			"id": 28,
+			"request": "GET /directory HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 29,
+			"request": "GET /directory/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 30,
+			"request": "GET /directory/sub_directory HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 31,
+			"request": "GET /directory/sub_directory/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 32,
+			"request": "GET /directory/sub_directory_off HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 33,
+			"request": "GET /directory/sub_directory_off/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "403"
+		},
+		{
+			"id": 34,
+			"request": "GET /directory/sub_directory/sub_sub_directory HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 35,
+			"request": "GET /directory/sub_directory/sub_sub_directory/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 36,
+			"request": "GET /directory/sub_directory/sub_sub_directory_off HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 37,
+			"request": "GET /directory/sub_directory/sub_sub_directory_off/ HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "403"
+		},
+		{
+			"id": 38,
+			"request": "GET /coffee HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "418"
+		},
+		{
+			"id": 39,
+			"request": "GET /200 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 40,
+			"request": "GET /200t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "200"
+		},
+		{
+			"id": 41,
+			"request": "GET /301 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 42,
+			"request": "GET /301t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 43,
+			"request": "GET /301i HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "301"
+		},
+		{
+			"id": 44,
+			"request": "GET /404 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "404"
+		},
+		{
+			"id": 45,
+			"request": "GET /404t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "404"
+		},
+		{
+			"id": 46,
+			"request": "GET /500 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "500"
+		},
+		{
+			"id": 47,
+			"request": "GET /500t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "500"
+		},
+		{
+			"id": 48,
+			"request": "GET /599 HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "500"
+		},
+		{
+			"id": 49,
+			"request": "GET /599t HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "500"
+		},
+		{
+			"id": 50,
+			"request": "POST /1b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 1\r\n\r\nt",
+			"status": "201"
+		},
+		{
+			"id": 51,
+			"request": "POST /1b/info2.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 2\r\n\r\nte",
+			"status": "413"
+		},
+		{
+			"id": 52,
+			"request": "DELETE /1b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "204"
+		},
+		{
+			"id": 53,
+			"request": "POST /5b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 5\r\n\r\nteste",
+			"status": "201"
+		},
+		{
+			"id": 54,
+			"request": "POST /5b/info2.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 6\r\n\r\ntestet",
+			"status": "413"
+		},
+		{
+			"id": 55,
+			"request": "DELETE /5b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "204"
+		},
+		{
+			"id": 56,
+			"request": "POST /10b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 10\r\n\r\ntesteteste",
+			"status": "201"
+		},
+		{
+			"id": 57,
+			"request": "POST /10b/info2.txt HTTP/1.1\r\nHost: %h:%p\r\nContent-Length: 11\r\n\r\ntestetestet",
+			"status": "413"
+		},
+		{
+			"id": 58,
+			"request": "DELETE /10b/info1.txt HTTP/1.1\r\nHost: %h:%p\r\n\r\n",
+			"status": "204"
+		},
+		{
+			"id": 59,
+			"request": "GET / HTTP/2\r\n",
+			"status": "505"
+		},
+		{
+			"id": 60,
+			"request": "GET /bad_gateway HTTP/1.1\r\nHost: %h%p\r\n\r\n",
+			"status": "502"
+		}
+	]
+}

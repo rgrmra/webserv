@@ -28,7 +28,6 @@ class WebServ
 		void closeConnection(const int &client_fd);
 		void readFailed(IStream *stream);
 		void readNoBytes(IStream *stream);
-		void readUnexpectedEOF(IStream *connection);
 		void inputHandler(std::map<int, IStream *>::iterator &stream);
 		void sendFailed(IStream *stream);
 		void sendNoBytes(IStream *stream);

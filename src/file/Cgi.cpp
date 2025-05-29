@@ -7,6 +7,7 @@
 #include "header.hpp"
 #include "parser.hpp"
 #include "response.hpp"
+#include "size.hpp"
 #include "standard.hpp"
 #include "step.hpp"
 #include <csignal>
@@ -43,6 +44,7 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 		Http::getInstance()->stop(EXIT_SUCCESS);
 
 		dup2(_sock[0], STDOUT_FILENO);
+		dup2(_sock[0], STDERR_FILENO);
 		dup2(_sock[0], STDIN_FILENO);
 		closeSockets();
 
@@ -58,7 +60,7 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 
 		execve(argv.data()[0], argv.data(), envp.getEnvironment().data());
 
-		throw runtime_error("execve failed");
+		throw runtime_error(standard::CGI_FAILED);
 	}
 	close(_sock[0]);
 	_sock[0] = -1;
@@ -136,13 +138,11 @@ void Cgi::sendCGI(void)
 	WebServ *webserv = WebServ::getInstance();
 	webserv->controlEpoll(_fd, 0, EPOLL_CTL_DEL);
 
-	if (WIFEXITED(_status) && WEXITSTATUS(_status) != 0)
-		return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
+	if (_output.find_first_of("\r\n\r\n") != string::npos)
+		parseCgiResponse();
 
-	if (_output.find_first_of("\r\n\r\n") == string::npos)
-		return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
-
-	parseCgiResponse();
+	if (_output.find(standard::CGI_FAILED) != string::npos)
+		return response::builder(_connection, code::BAD_GATEWAY);
 
 	if (*_connection == header::STATUS)
 	{
@@ -176,6 +176,9 @@ void Cgi::processInput(const size_t &bytes)
 
 	if (waitpid(_pid, &_status, WNOHANG))
 		sendCGI();
+
+	if (_output.size() > 1 * size::GIGABYTE)
+		return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
 
 	_connection->updateTime();
 }
