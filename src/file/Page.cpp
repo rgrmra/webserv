@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "Page.hpp"
+#include "Location.hpp"
 #include "step.hpp"
 #include <sstream>
 

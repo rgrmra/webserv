@@ -282,6 +282,10 @@ void Connection::buildResponse(void)
 	}
 	_headers[header::SERVER] = standard::SERVER_SOFTWARE;
 
+	map<string, string>::iterator location = _headers.find(header::LOCATION);
+	if (location->second.empty())
+		_headers.erase(location);
+
 	ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
@@ -344,9 +348,12 @@ bool Connection::isKeepAliveTimedOut(void) const
 void Connection::sendTimeOut(void)
 {
 	if (_file && dynamic_cast<Cgi *>(_file))
+	{
 		WebServ::getInstance()->controlEpoll(_file->getFd(), 0, EPOLL_CTL_DEL);
+		return response::builder(this, code::GATEWAY_TIMEOUT);
+	}
 
-	response::builder(this, code::GATEWAY_TIMEOUT);
+	response::builder(this, code::REQUEST_TIMEOUT);
 }
 
 void Connection::setTime(void)

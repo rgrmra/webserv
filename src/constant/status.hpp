@@ -16,6 +16,7 @@ namespace status
 	static const std::string FORBIDDEN = "Forbidden";
 	static const std::string NOT_FOUND = "Not Found";
 	static const std::string NOT_ALLOWED = "Method Not Allowed";
+	static const std::string REQUEST_TIMEOUT = "Request Timeout";
 	static const std::string CONFLICT = "Conflict";
 	static const std::string LENGTH_REQUIRED = "Length Required";
 	static const std::string PAYLOAD_TOO_LARGE = "Payload Too Large";

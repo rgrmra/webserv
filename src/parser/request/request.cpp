@@ -74,7 +74,7 @@ void request::parseHeaders(Connection *connection, std::string &line)
 
 		if ((*connection)[header::CONTENT_TYPE].find("multipart/form-data") == 0)
 			return;
-		
+
 		if (connection->getMethod() == method::POST
 			&& !(*connection == header::CONTENT_LENGTH)
 			&& !(*connection == header::TRANSFER_ENCONDING))

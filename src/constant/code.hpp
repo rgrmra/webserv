@@ -16,6 +16,7 @@ namespace code
 	static const std::string FORBIDDEN = "403";
 	static const std::string NOT_FOUND = "404";
 	static const std::string NOT_ALLOWED = "405";
+	static const std::string REQUEST_TIMEOUT = "408";
 	static const std::string CONFLICT = "409";
 	static const std::string LENGTH_REQUIRED = "411";
 	static const std::string PAYLOAD_TOO_LARGE = "413";
