@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Nginx Configuration Directives</title>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
+	<link href="cgi/library/css/layout.css" rel="stylesheet">
+</head>
+<body>
+	<h1>Nginx Configuration Directives</h1>
+	<div class="container">
+
+		<div class="test-section">
+			<h2>absolute_redirect</h2>
+			<div class="message">
+				<strong>Syntax:</strong> <code>absolute_redirect on | off;</code><br />
+				<strong>Default:</strong> <code>absolute_redirect on;</code><br />
+				<strong>Context:</strong> <code>http, server, location</code><br />
+				<strong>Introduced in:</strong> <code>1.11.8</code>
+			</div>
+			<p>
+				If disabled, redirects issued by nginx will be relative instead of absolute URLs.
+			</p>
+		</div>
+
+		<div class="test-section">
+			<h2>client_max_body_size</h2>
+				<div class="cookie-list">
+					<li><strong>Syntax:</strong> <code>client_max_body_size</code></li>
+					<li><strong>Default:</strong> <code>client_max_body_size 1M;</code></li>
+					<li><strong>Context:</strong> <code>http, server, location</code></li>
+					<li>
+						Sets the maximum allowed size of the client request body. If the size exceeds the configured value, the 413 (Request Entity Too Large) error is returned.
+					</li>
+				</div>
+		</div>
+
+	</div>
+</body>
+</html>
