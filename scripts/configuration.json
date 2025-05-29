@@ -1,6 +1,6 @@
 {
 	"host": "127.0.0.1",
-	"port": 9001,
+	"port": 9000,
 	"requests": [
 		{
 			"id": 1,
@@ -299,7 +299,7 @@
 		},
 		{
 			"id": 60,
-			"request": "GET /bad_getway HTTP/1.1\r\nHost: %h%p\r\n\r\n",
+			"request": "GET /bad_gateway HTTP/1.1\r\nHost: %h%p\r\n\r\n",
 			"status": "502"
 		}
 	]
