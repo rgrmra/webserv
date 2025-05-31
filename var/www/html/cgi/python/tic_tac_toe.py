@@ -12,7 +12,7 @@ post_data = os.read(0, content_length).decode('utf-8')
 data = urllib.parse.parse_qs(post_data)
 
 current_board = data.get('board', [',,,,,,,,'])[0].split(',')
-current_player = ''.join(data.get('current_player', PLAYER_X))
+current_player = data.get('current_player', [PLAYER_X])[0]
 
 if 'restart' in post_data:
     current_board = [EMPTY] * 9
