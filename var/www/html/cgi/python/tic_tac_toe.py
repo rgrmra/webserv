@@ -1,22 +1,24 @@
-import cgi
-import cgitb
-
-cgitb.enable()
+import os
+import urllib.parse
 
 PLAYER_X = 'close'
 PLAYER_O = 'circle'
 EMPTY = ''
 
-form = cgi.FieldStorage()
+content_length = int(os.environ.get('CONTENT_LENGTH', 0))
 
-current_board = form.getvalue('board', ',,,,,,,,').split(',')
-current_player = form.getvalue('current_player', PLAYER_X)
+post_data = os.read(0, content_length).decode('utf-8')
 
-if 'restart' in form:
+data = urllib.parse.parse_qs(post_data)
+
+current_board = data.get('board', [',,,,,,,,'])[0].split(',')
+current_player = data.get('current_player', [PLAYER_X])[0]
+
+if data.get('restart'):
     current_board = [EMPTY] * 9
     current_player = PLAYER_X
 else:
-    move = form.getvalue('move', None)
+    move = data.get('move', [None])[0]
     if move and move.isdigit():
         move = int(move)
         if 0 <= move < 9 and current_board[move] == EMPTY:
