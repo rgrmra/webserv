@@ -13,15 +13,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-using namespace std;
-
 URL::URL(Connection *connection) : _connection(connection), _dac(0)
 {
-	string uri = connection->getTarget();
+	std::string uri = connection->getTarget();
 
 	_scheme = "http";
 
-	list<string> host = parser::split(connection->getHost(), ':');
+	std::list<std::string> host = parser::split(connection->getHost(), ':');
 	if (host.size())
 		_host = host.front();
 
@@ -29,7 +27,7 @@ URL::URL(Connection *connection) : _connection(connection), _dac(0)
 		_port = host.back();
 
 	size_t pos = uri.find_first_of("?");
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 	{
 		_path = uri.substr(0, pos);
 		_query = uri.substr(pos + 1);
@@ -41,13 +39,13 @@ URL::URL(Connection *connection) : _connection(connection), _dac(0)
 	}
 
 	pos = _path.find_last_of(".");
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 	{
 		_path_info = _path.substr(pos, _path.size());
 
 		size_t epos = _path_info.find_first_of("/");
 		_extension = _path_info.substr(0, epos);
-		if (epos != string::npos)
+		if (epos != std::string::npos)
 			_path_info = _path_info.substr(epos);
 		else
 			_path_info.clear();
@@ -56,7 +54,7 @@ URL::URL(Connection *connection) : _connection(connection), _dac(0)
 	}
 
 	pos = _path.find_last_of("/");
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 		_file = _path.substr(pos + 1, _path.size());
 
 	processPath(_path);
@@ -86,17 +84,17 @@ URL &URL::operator=(const URL &rhs)
 
 URL::~URL(void) {}
 
-string URL::checkIndex(const Location &location, string &path)
+std::string URL::checkIndex(const Location &location, std::string &path)
 {
 	if (parser::lastCharacter(path) != '/')
 		return "";
 
-	const set<string> &indexes = location.getIndexes();
+	const std::set<std::string> &indexes = location.getIndexes();
 
 	if (_connection->getMethod() == method::DELETE)
 		return "";
 
-	set<string>::const_iterator index = indexes.begin();
+	std::set<std::string>::const_iterator index = indexes.begin();
 	for (; index != indexes.end(); ++index)
 	{
 		if (!_isFile(location.getRoot() + path + *index))
@@ -108,12 +106,12 @@ string URL::checkIndex(const Location &location, string &path)
 	return "";
 }
 
-void URL::processPath(string requested_path)
+void URL::processPath(std::string requested_path)
 {
 	Server server = _connection->getServer();
 	_path = parser::formatPath(requested_path);
 
-	list<string> paths;
+	std::list<std::string> paths;
 	while (requested_path.size())
 	{
 		paths.push_back(requested_path);
@@ -130,7 +128,7 @@ void URL::processPath(string requested_path)
 
 	Location location;
 
-	list<string>::iterator path = paths.begin();
+	std::list<std::string>::iterator path = paths.begin();
 	for (; path != paths.end(); path++)
 	{
 		location = server.getLocationByURI(*path);
@@ -140,7 +138,7 @@ void URL::processPath(string requested_path)
 		if (parser::lastCharacter(_path) != '/')
 			continue;
 
-		string tmp = (*path).substr(0, (*path).size() - 1);
+		std::string tmp = (*path).substr(0, (*path).size() - 1);
 		location = server.getLocationByURI(tmp);
 		if (!location.empty())
 			break;
@@ -151,7 +149,7 @@ void URL::processPath(string requested_path)
 			_file = checkIndex(location, _path);
 
 	size_t pos = _file.find_last_of(".");
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 		_extension = _file.substr(pos, _file.size());
 
 	_connection->setLocation(location);
@@ -159,7 +157,7 @@ void URL::processPath(string requested_path)
 	checkDAC(location.getRoot() + _path);
 }
 
-bool URL::_isDirectory(const string &path)
+bool URL::_isDirectory(const std::string &path)
 {
 	struct stat info;
 
@@ -169,7 +167,7 @@ bool URL::_isDirectory(const string &path)
 	return false;
 }
 
-bool URL::_isFile(const string &path)
+bool URL::_isFile(const std::string &path)
 {
 	struct stat info;
 
@@ -179,7 +177,7 @@ bool URL::_isFile(const string &path)
 	return false;
 }
 
-bool URL::_isReadable(const string &path)
+bool URL::_isReadable(const std::string &path)
 {
 	if (access(path.c_str(), R_OK) == 0)
 		return true;
@@ -187,7 +185,7 @@ bool URL::_isReadable(const string &path)
 	return false;
 }
 
-bool URL::_isWritable(const string &path)
+bool URL::_isWritable(const std::string &path)
 {
 	if (access(path.c_str(), W_OK) == 0)
 		return true;
@@ -195,7 +193,7 @@ bool URL::_isWritable(const string &path)
 	return false;
 }
 
-bool URL::_isExecutable(const string &path)
+bool URL::_isExecutable(const std::string &path)
 {
 	if (access(path.c_str(), X_OK) == 0)
 		return true;
@@ -211,7 +209,7 @@ bool URL::_isDirectoryEmpty(const std::string &path)
 
 	for (struct dirent *entry = readdir(dir); entry; entry = readdir(dir))
 	{
-		const string &name = entry->d_name;
+		const std::string &name = entry->d_name;
 		if (name == "." || name == "..")
 			continue;
 
@@ -223,9 +221,9 @@ bool URL::_isDirectoryEmpty(const std::string &path)
 	return true;
 }
 
-bool URL::_isDeletable(const string &path)
+bool URL::_isDeletable(const std::string &path)
 {
-	const string &parent_directory = path.substr(0, path.size() - _file.size());
+	const std::string &parent_directory = path.substr(0, path.size() - _file.size());
 
 	if (!_isWritable(parent_directory))
 		return false;
@@ -242,7 +240,7 @@ bool URL::_isDeletable(const string &path)
 	return false;
 }
 
-void URL::checkDAC(const string &path)
+void URL::checkDAC(const std::string &path)
 {
 	if (_isFile(path))
 		_dac |= FILE;
@@ -265,47 +263,47 @@ void URL::checkDAC(const string &path)
 		_dac |= DELETE;
 }
 
-string URL::getScheme(void) const
+std::string URL::getScheme(void) const
 {
 	return _scheme;
 }
 
-string URL::getHost(void) const
+std::string URL::getHost(void) const
 {
 	return _host;
 }
 
-string URL::getPort(void) const
+std::string URL::getPort(void) const
 {
 	return _port;
 }
 
-string URL::getPath(void) const
+std::string URL::getPath(void) const
 {
 	return _path;
 }
 
-string URL::getQuery(void) const
+std::string URL::getQuery(void) const
 {
 	return _query;
 }
 
-string URL::getFile(void) const
+std::string URL::getFile(void) const
 {
 	return _file;
 }
 
-string URL::getPathInfo(void) const
+std::string URL::getPathInfo(void) const
 {
 	return _path_info;
 }
 
-string URL::getPathTranslated(void) const
+std::string URL::getPathTranslated(void) const
 {
 	return _connection->getLocation().getRoot() + _path + _path_info;
 }
 
-string URL::getExtension(void) const
+std::string URL::getExtension(void) const
 {
 	return _extension;
 }
@@ -369,18 +367,18 @@ void URL::decode(std::string &path)
 			continue;
 		}
 
-		const string &encoding = path.substr(i + 1, 2);
+		const std::string &encoding = path.substr(i + 1, 2);
 
-		if (encoding.find_first_not_of(standard::HEXADECIMAL) != string::npos)
+		if (encoding.find_first_not_of(standard::HEXADECIMAL) != std::string::npos)
 		{
 			output += '%';
 			continue;
 		}
 
-		istringstream iss(encoding);
+		std::istringstream iss(encoding);
 		int value;
 
-		iss >> hex >> value;
+		iss >> std::hex >> value;
 		output += static_cast<char>(value);
 
 		i += 2;

@@ -11,18 +11,16 @@
 #include <list>
 #include <map>
 
-using namespace std;
-
 Environment::Environment(Connection *connection)
 {
 	URL *url = connection->getUri();
 	Server &server = connection->getServer();
 
-	string server_name;
+	std::string server_name;
 	if (server.getNames().size())
 		server_name = server.getNames()[0];
 
-	list<string> tmp = parser::split(connection->getId(), ':');
+	std::list<std::string> tmp = parser::split(connection->getId(), ':');
 	addEnv(env::GATEWAY_INTERFACE, standard::GATEWAY_INTERFACE);
 	addEnv(env::QUERY_STRING, connection->getUri()->getQuery());
 	addEnv(env::REMOTE_ADDR, connection->getId());
@@ -42,14 +40,14 @@ Environment::Environment(Connection *connection)
 		addEnv(env::PATH_TRANSLATED, url->getPathTranslated());
 	}
 
-	map<string, string> headers = connection->getHeaders();
-	map<string, string>::const_iterator header = headers.begin();
+	std::map<std::string, std::string> headers = connection->getHeaders();
+	std::map<std::string, std::string>::const_iterator header = headers.begin();
 	for (; header != headers.end(); ++header)
 	{
-		string key = header->first;
-		string value = header->second;
+		std::string key = header->first;
+		std::string value = header->second;
 
-		string transformed_key = parser::toUpper(key);
+		std::string transformed_key = parser::toUpper(key);
 		parser::replace(transformed_key, '-', '_');
 
 		if (transformed_key == env::CONTENT_LENGTH)
@@ -81,21 +79,21 @@ Environment &Environment::operator=(const Environment &rhs)
 
 Environment::~Environment(void)
 {
-	vector<char *>::iterator environment = _env.begin();
+	std::vector<char *>::iterator environment = _env.begin();
 	for (; environment != _env.end(); ++environment)
 		delete[] *environment;
 
 	_env.clear();
 }
 
-void Environment::addEnv(const string &key, const string &value)
+void Environment::addEnv(const std::string &key, const std::string &value)
 {
-	string environment = key + "=" + value;
+	std::string environment = key + "=" + value;
 	char *env = new char[environment.size() + 1];
 	_env.push_back(std::strcpy(env, environment.c_str()));
 }
 
-vector<char *> Environment::getEnvironment(void)
+std::vector<char *> Environment::getEnvironment(void)
 {
 	return _env;
 }

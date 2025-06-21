@@ -14,11 +14,9 @@
 #include "step.hpp"
 #include <string>
 
-using namespace std;
-
 void response::printLog(Connection *connection)
 {
-	const string &message = connection->getIp() + " ["
+	const std::string &message = connection->getIp() + " ["
 		+ connection->getCode() + "]: "
 		+ connection->getMethod() + " "
 		+ connection->getTarget() + " - "
@@ -34,8 +32,8 @@ static void buildHeaderAndBody(Connection *connection)
 {
 	connection->setStep(step::BODY);
 
-	const string &header_connection = (*connection)[header::CONNECTION];
-	const string &header_location = (*connection)[header::LOCATION];
+	const std::string &header_connection = (*connection)[header::CONNECTION];
+	const std::string &header_location = (*connection)[header::LOCATION];
 
 	connection->setProtocol(standard::PROTOCOL);
 	connection->setHeaders(standard::EMPTY_HEADER);
@@ -49,12 +47,12 @@ static void buildHeaderAndBody(Connection *connection)
 
 static bool checkErrorPages(Connection *connection)
 {
-	const string &code = connection->getCode();
-	const string &page = connection->getLocation().getErrorPageByCode(code);
+	const std::string &code = connection->getCode();
+	const std::string &page = connection->getLocation().getErrorPageByCode(code);
 	if (page.empty())
 		return false;
 
-	const string &path = connection->getTarget();
+	const std::string &path = connection->getTarget();
 
 	connection->setTarget(page);
 	URL *uri = new URL(connection);
@@ -80,8 +78,8 @@ static bool checkErrorPages(Connection *connection)
 static bool checkReturn(Connection *connection)
 {
 	const Location &location = connection->getLocation();
-	string return_code = location.getReturnCode();
-	string return_uri = location.getReturnURI();
+	std::string return_code = location.getReturnCode();
+	std::string return_uri = location.getReturnURI();
 
 	if (return_code.empty())
 		return false;
@@ -102,7 +100,7 @@ static bool checkReturn(Connection *connection)
 	return true;
 }
 
-string response::getStatusByCode(const string &code)
+std::string response::getStatusByCode(const std::string &code)
 {
 	if (responses.empty())
 	{
@@ -133,16 +131,16 @@ string response::getStatusByCode(const string &code)
 		responses[code::INSUFFICIENT_STORAGE] = status::INSUFFICIENT_STORAGE;
 	}
 
-	map<string, string>::iterator response = responses.find(code);
+	std::map<std::string, std::string>::iterator response = responses.find(code);
 	if (response == responses.end())
 		return "";
 	
 	return response->second;
 }
 
-void response::builder(Connection *connection, string code)
+void response::builder(Connection *connection, std::string code)
 {
-	string status = getStatusByCode(code);
+	std::string status = getStatusByCode(code);
 	if (status.empty())
 		return builder(connection, code::INTERNAL_SERVER_ERROR);
 

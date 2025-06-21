@@ -8,55 +8,54 @@
 #include "standard.hpp"
 #include <bitset>
 #include <limits>
+#include <list>
 #include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-using namespace std;
-
-bool directive::validateHttpListen(string listen)
+bool directive::validateHttpListen(std::string listen)
 {
 	if (listen.empty())
 		return false;
 
-	if (listen.find_first_not_of(".:0123456789") != string::npos)
+	if (listen.find_first_not_of(".:0123456789") != std::string::npos)
 		return false;
 
 	if (listen.at(0) == ':' || parser::lastCharacter(listen) == ':')
 		return false;
 
-	if (listen.find("::") != string::npos)
+	if (listen.find("::") != std::string::npos)
 		return false;
 
-	list<string> tmp = parser::split(listen, ':');
+	std::list<std::string> tmp = parser::split(listen, ':');
 	if (tmp.size() > 2)
 		return false;
 
 	return true;
 }
 
-bool directive::validateHttpHost(string host)
+bool directive::validateHttpHost(std::string host)
 {
 	if (host.empty())
 		return false;
 
-	if (host.find_first_not_of(".0123456789") != string::npos)
+	if (host.find_first_not_of(".0123456789") != std::string::npos)
 		return false;
 
-	if (host.find("..") != string::npos)
+	if (host.find("..") != std::string::npos)
 		return false;
 
 	if (host.at(0) == '.' || parser::lastCharacter(host) == '.')
 		return false;
 
-	list<string> octets = parser::split(host, '.');
+	std::list<std::string> octets = parser::split(host, '.');
 
 	if (octets.size() != 4)
 		return false;
 
-	list<string>::iterator it = octets.begin();
+	std::list<std::string>::iterator it = octets.begin();
 	for (; it != octets.end(); ++it)
 		if (parser::toSizeT(*it) > 255)
 			return false;
@@ -64,12 +63,12 @@ bool directive::validateHttpHost(string host)
 	return true;
 }
 
-bool directive::validateHttpPort(string port)
+bool directive::validateHttpPort(std::string port)
 {
 	if (port.empty())
 		return false;
 
-	if (port.find_first_not_of("0123456789") != string::npos)
+	if (port.find_first_not_of("0123456789") != std::string::npos)
 		return false;
 
 	size_t port_value = parser::toSizeT(port);
@@ -80,42 +79,42 @@ bool directive::validateHttpPort(string port)
 	return true;
 }
 
-void directive::addListen(string listen, vector<string> &_listen)
+void directive::addListen(std::string listen, std::vector<std::string> &_listen)
 {
 	if (listen.empty())
 		return;
 
-	string host = standard::HOST;
-	string port = standard::PORT;
+	std::string host = standard::HOST;
+	std::string port = standard::PORT;
 
 	if (not directive::validateHttpListen(listen))
-		throw runtime_error("invalid listen: " + listen);
+		throw std::runtime_error("invalid listen: " + listen);
 
-	list<string> tmp = parser::split(listen, ':');
+	std::list<std::string> tmp = parser::split(listen, ':');
 
 	if (tmp.size() >= 1 && directive::validateHttpPort(tmp.back()))
 		port = tmp.back();
 	else if (tmp.size() == 1 && directive::validateHttpHost(tmp.back()))
 		host = tmp.back();
 	else
-		throw runtime_error("invalid listen: " + listen);
+		throw std::runtime_error("invalid listen: " + listen);
 
 	if (tmp.size() == 2 && directive::validateHttpHost(tmp.front()))
 		host = tmp.front();
 	else if (tmp.size() == 2)
-		throw runtime_error("invalid host: " + tmp.front());
+		throw std::runtime_error("invalid host: " + tmp.front());
 
 	listen = host + ":" + port;
 
-	vector<string>::iterator it = _listen.begin();
+	std::vector<std::string>::iterator it = _listen.begin();
 	for (; it != _listen.end(); ++it)
 		if (*it == listen)
-			throw runtime_error("duplicated listen: " + listen);
+			throw std::runtime_error("duplicated listen: " + listen);
 
 	_listen.push_back(listen);
 }
 
-bool directive::validateName(string name)
+bool directive::validateName(std::string name)
 {
 	if (name.empty())
 		return false;
@@ -126,7 +125,7 @@ bool directive::validateName(string name)
 	if (name.at(0) == '.' || parser::lastCharacter(name) == '.')
 		return false;
 
-	for (string::iterator it = name.begin(); it != name.end(); it++)
+	for (std::string::iterator it = name.begin(); it != name.end(); it++)
 	{
 		if (!isalnum(*it) && *it != '-' && *it != '.')
 			return false;
@@ -141,41 +140,41 @@ bool directive::validateName(string name)
 	return true;
 }
 
-void directive::addName(string name, vector<string> &_name)
+void directive::addName(std::string name, std::vector<std::string> &_name)
 {
 	if (name.empty())
 		return;
 
-	list<string> names = parser::split(name, ' ');
+	std::list<std::string> names = parser::split(name, ' ');
 
-	for (list<string>::iterator it = names.begin(); it != names.end(); it++) {
+	for (std::list<std::string>::iterator it = names.begin(); it != names.end(); it++) {
 		if (!directive::validateName(*it))
-			throw runtime_error("invalid server name: " + *it);
+			throw std::runtime_error("invalid server name: " + *it);
 
 		_name.push_back(parser::toLower(*it));
 	}
 }
 
-bool directive::isValidRequestTarget(const string& target)
+bool directive::isValidRequestTarget(const std::string& target)
 {
 	return isValidAbsolutePath(target) || isValidAbsoluteURI(target);
 }
 
-bool directive::isValidAbsolutePath(const string& target)
+bool directive::isValidAbsolutePath(const std::string& target)
 {
 	if (target.empty() || target[0] != '/')
 		return false;
 
-	if (target.find_first_not_of(standard::ALLOWED_CHARACTERS) != string::npos)
+	if (target.find_first_not_of(standard::ALLOWED_CHARACTERS) != std::string::npos)
 		return false;
 
 	return true;
 }
 
-bool directive::isValidAbsoluteURI(const string& target)
+bool directive::isValidAbsoluteURI(const std::string& target)
 {
 	size_t schemeEnd = target.find("://");
-	if (schemeEnd == string::npos)
+	if (schemeEnd == std::string::npos)
 		return false;
 
 	for (size_t i = 0; i < schemeEnd; ++i)
@@ -192,22 +191,22 @@ bool directive::isValidAbsoluteURI(const string& target)
 	return isValidAbsolutePath(target.substr(pathStart));
 }
 
-void directive::setURI(string uri, string &_uri)
+void directive::setURI(std::string uri, std::string &_uri)
 {
 	if (uri.empty())
 		return;
 
 	if (!directive::isValidAbsolutePath(uri))
-		throw runtime_error("invalid path: " + uri);
+		throw std::runtime_error("invalid path: " + uri);
 
 	_uri = parser::formatPath(uri);
 }
 
-bool directive::validateHttpMethod(string method)
+bool directive::validateHttpMethod(std::string method)
 {
-	set<string> &allowed_methods = method::getAllowedMethods();
+	std::set<std::string> &allowed_methods = method::getAllowedMethods();
 
-	set<string>::iterator it = allowed_methods.begin();
+	std::set<std::string>::iterator it = allowed_methods.begin();
 	for (; it != allowed_methods.end(); it++)
 		if (*it == method)
 			return true;
@@ -215,26 +214,26 @@ bool directive::validateHttpMethod(string method)
 	return false;
 }
 
-void directive::addMethod(string method, set<string> &_allow_methods)
+void directive::addMethod(std::string method, std::set<std::string> &_allow_methods)
 {
 	if (method.empty())
 		return;
 
-	list<string> methods = parser::split(method, ' ');
+	std::list<std::string> methods = parser::split(method, ' ');
 
 	_allow_methods.clear();
 
-	list<string>::iterator it = methods.begin();
+	std::list<std::string>::iterator it = methods.begin();
 	for (; it != methods.end(); it++)
 	{
 		if (not validateHttpMethod(*it))
-			throw runtime_error("invalid method: " + *it);
+			throw std::runtime_error("invalid method: " + *it);
 
 		_allow_methods.insert(*it);
 	}
 }
 
-void directive::setDenyMethods(string deny_methods, bool &_deny_methods)
+void directive::setDenyMethods(std::string deny_methods, bool &_deny_methods)
 {
 	if (deny_methods.empty())
 		return;
@@ -242,21 +241,21 @@ void directive::setDenyMethods(string deny_methods, bool &_deny_methods)
 	if (deny_methods == "all")
 		_deny_methods = true;
 	else
-		throw runtime_error("invalid deny: " + deny_methods);
+		throw std::runtime_error("invalid deny: " + deny_methods);
 }
 
-void directive::setRoot(string root, string &_root)
+void directive::setRoot(std::string root, std::string &_root)
 {
 	if (root.empty())
 		return;
 
-	if (root.find_first_of(" ") != string::npos)
-		throw runtime_error("invalid root: " + root);
+	if (root.find_first_of(" ") != std::string::npos)
+		throw std::runtime_error("invalid root: " + root);
 
 	_root = root;
 }
 
-void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex)
+void directive::setAutoIndex(std::string autoindex, std::bitset<2> &_autoindex)
 {
 	if (autoindex.empty())
 		return;
@@ -266,10 +265,10 @@ void directive::setAutoIndex(string autoindex, bitset<2> &_autoindex)
 	else if (autoindex == "off")
 		_autoindex = parser::AUTOINDEX_OFF;
 	else
-		throw runtime_error("invalid autoindex: " + autoindex);
+		throw std::runtime_error("invalid autoindex: " + autoindex);
 }
 
-void directive::setWebDav(string webdav, bitset<2> &_webdav)
+void directive::setWebDav(std::string webdav, std::bitset<2> &_webdav)
 {
 	if (webdav.empty())
 		return;
@@ -279,18 +278,18 @@ void directive::setWebDav(string webdav, bitset<2> &_webdav)
 	else if (webdav == "off")
 		_webdav= parser::WEB_DAV_OFF;
 	else
-		throw runtime_error("invalid webdav: " + webdav);
+		throw std::runtime_error("invalid webdav: " + webdav);
 }
 
-void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size)
+void directive::setMaxBodySize(std::string max_body_size, size_t &_max_body_size)
 {
 	if (max_body_size.empty())
 		return;
 
 	size_t pos = max_body_size.find_first_not_of("0123456789");
 
-	string format;
-	if (pos != string::npos)
+	std::string format;
+	if (pos != std::string::npos)
 		format = max_body_size.substr(pos, max_body_size.size() - pos);
 
 	size_t tmp = parser::toSizeT(max_body_size);
@@ -308,24 +307,24 @@ void directive::setMaxBodySize(string max_body_size, size_t &_max_body_size)
 	else if (format == "G")
 		_max_body_size *= size::GIGABYTE;
 	else
-		throw runtime_error("invalid value to max_body_size: " + max_body_size);
+		throw std::runtime_error("invalid value to max_body_size: " + max_body_size);
 }
 
-void directive::addIndex(string index, set<string> &_index)
+void directive::addIndex(std::string index, std::set<std::string> &_index)
 {
 	if (index.empty())
 		return;
 
-	list<string> indexes = parser::split(index, ' ');
+	std::list<std::string> indexes = parser::split(index, ' ');
 
 	_index.clear();
 
-	list<string>::iterator it = indexes.begin();
+	std::list<std::string>::iterator it = indexes.begin();
 	for (; it != indexes.end(); it++)
 		_index.insert(*it);
 }
 
-void directive::setFastCgi(string fastcgi, string &_fastcgi)
+void directive::setFastCgi(std::string fastcgi, std::string &_fastcgi)
 {
 	if (fastcgi.empty())
 		return;
@@ -333,55 +332,55 @@ void directive::setFastCgi(string fastcgi, string &_fastcgi)
 	_fastcgi = fastcgi;
 }
 
-void directive::setFastCgiExtension(string extensions, set<string> &_extensions)
+void directive::setFastCgiExtension(std::string extensions, std::set<std::string> &_extensions)
 {
 	if (extensions.empty())
 		return;
 
 	_extensions.clear();
 
-	list<string> tmp = parser::split(extensions, ' ');
+	std::list<std::string> tmp = parser::split(extensions, ' ');
 
-	for (list<string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+	for (std::list<std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
 		_extensions.insert((it->at(0) == '.' ? *it : "." + *it));
 }
 
-void directive::addErrorPage(string error_page, map<string, string> &_error_pages)
+void directive::addErrorPage(std::string error_page, std::map<std::string, std::string> &_error_pages)
 {
 	if (error_page.empty())
 		return;
 
-	list<string> tmp = parser::split(error_page, ' ');
+	std::list<std::string> tmp = parser::split(error_page, ' ');
 
 	if (tmp.size() < 2)
-		throw runtime_error("invalid error page: " + error_page);
+		throw std::runtime_error("invalid error page: " + error_page);
 
 	if (tmp.back().at(0) != '.' && tmp.back().at(0) != '/')
 		tmp.back() = "./" + tmp.back();
 
-	string path = tmp.back();
+	std::string path = tmp.back();
 	tmp.pop_back();
 
-	for (list<string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+	for (std::list<std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
 	{
 		if (not directive::validateHttpCode(*it))
-			throw runtime_error("invalid error code: " + *it);
+			throw std::runtime_error("invalid error code: " + *it);
 
 		_error_pages[*it] = path;
 	}
 }
 
-void directive::mergeErrorPages(map<string, string> error_pages, map<string, string> &_error_pages)
+void directive::mergeErrorPages(std::map<std::string, std::string> error_pages, std::map<std::string, std::string> &_error_pages)
 {
-	map<string, string>::iterator it = error_pages.begin();
+	std::map<std::string, std::string>::iterator it = error_pages.begin();
 	for (; it != error_pages.end(); it++)
 		if (_error_pages[it->first].empty())
 			_error_pages[it->first] = it->second;
 }
 
-bool directive::validateHttpCode(string code)
+bool directive::validateHttpCode(std::string code)
 {
-	if (code.find_first_not_of("0123456789") != string::npos)
+	if (code.find_first_not_of("0123456789") != std::string::npos)
 		return false;
 
 	size_t tmp = parser::toSizeT(code);
@@ -391,30 +390,30 @@ bool directive::validateHttpCode(string code)
 	return true;
 }
 
-static bool validateReturn(string &tmp)
+static bool validateReturn(std::string &tmp)
 {
 	if (tmp.empty())
 		return true;
 
-	string quote = string(1, tmp.at(0));
+	std::string quote = std::string(1, tmp.at(0));
 	if (quote.at(0) != '\'' && quote.at(0) != '\"')
 		return true;
 
 	size_t first = tmp.find_first_of(quote);
 	size_t last = tmp.find_last_of(quote);
-	if (first == string::npos && last == string::npos)
+	if (first == std::string::npos && last == std::string::npos)
 		return true;
 
-	if (first == string::npos || last == string::npos)
+	if (first == std::string::npos || last == std::string::npos)
 		return false;
 
 	first++;
 
-	string text = tmp.substr(first, last - first);
+	std::string text = tmp.substr(first, last - first);
 	if (text.size() != tmp.size() - 2)
 		return false;
 
-	if (text.find_first_of(quote) != string::npos)
+	if (text.find_first_of(quote) != std::string::npos)
 		return false;
 
 	tmp = text;
@@ -422,18 +421,18 @@ static bool validateReturn(string &tmp)
 	return true;
 }
 
-void directive::setReturn(string value, string &_code, string &_uri)
+void directive::setReturn(std::string value, std::string &_code, std::string &_uri)
 {
 	if (value.empty())
 		return;
 
-	list<string> tmp = parser::split(value, ' ');
+	std::list<std::string> tmp = parser::split(value, ' ');
 
 	if (tmp.size() < 1 || tmp.size() > 2)
-		throw runtime_error("invalid return: " + value);
+		throw std::runtime_error("invalid return: " + value);
 
 	if (not directive::validateHttpCode(tmp.front()))
-		throw runtime_error("invalid return code: " + tmp.front());
+		throw std::runtime_error("invalid return code: " + tmp.front());
 
 	_code = tmp.front();
 
@@ -441,27 +440,27 @@ void directive::setReturn(string value, string &_code, string &_uri)
 		return _uri.clear();
 
 	if (!validateReturn(tmp.back()))
-		throw runtime_error("invalid return uri/text: " + tmp.back());
+		throw std::runtime_error("invalid return uri/text: " + tmp.back());
 
 	_uri = tmp.back();
 }
 
-void directive::addServer(Server server, vector<Server> &_servers)
+void directive::addServer(Server server, std::vector<Server> &_servers)
 {
-	vector<Server>::iterator serverIt = _servers.begin();
+	std::vector<Server>::iterator serverIt = _servers.begin();
 	for (; serverIt != _servers.end(); serverIt++)
 	{
-		vector<string> exitenListen = serverIt->getListen();
-		vector<string>::iterator exitenListenIt = exitenListen.begin();
+		std::vector<std::string> exitenListen = serverIt->getListen();
+		std::vector<std::string>::iterator exitenListenIt = exitenListen.begin();
 		for (; exitenListenIt != exitenListen.end(); exitenListenIt++)
 		{
-			list<string> tmp = parser::split(*exitenListenIt, ':');
+			std::list<std::string> tmp = parser::split(*exitenListenIt, ':');
 
-			vector<string> newListen = server.getListen();
-			vector<string>::iterator newListenIt = newListen.begin();
+			std::vector<std::string> newListen = server.getListen();
+			std::vector<std::string>::iterator newListenIt = newListen.begin();
 			for (; newListenIt != newListen.end(); newListenIt++)
 			{
-				list<string> tmp2 = parser::split(*newListenIt, ':');
+				std::list<std::string> tmp2 = parser::split(*newListenIt, ':');
 				if (tmp2.front() != standard::HOST
 					&& tmp.front() == tmp2.front()
 					&& tmp.back() == tmp2.back())
@@ -506,8 +505,8 @@ void directive::setHttpDefaultValues(Http &http)
 	if (http.getRoot().empty())
 		http.setRoot(standard::ROOT_DIR);
 
-	vector<Server> servers = http.getServers();
-	vector<Server>::iterator it = servers.begin();
+	std::vector<Server> servers = http.getServers();
+	std::vector<Server>::iterator it = servers.begin();
 	for (; it != servers.end(); it++)
 		directive::setServerDefaultValues(http, *it);
 
@@ -531,12 +530,12 @@ void directive::setServerDefaultValues(Http &http, Server &server)
 	if (server.getWebDavBitSet() == parser::WEB_DAV_NOT_SET)
 		server.setWebDav(http.getWebDavBitSet());
 
-	map<string, string> error_pages = server.getErrorPages();
+	std::map<std::string, std::string> error_pages = server.getErrorPages();
 	directive::mergeErrorPages(http.getErrorPages(), error_pages);
 	server.setErrorPages(error_pages);
 
-	map<string, Location> locations = server.getLocations();
-	map<string, Location>::iterator it = locations.begin();
+	std::map<std::string, Location> locations = server.getLocations();
+	std::map<std::string, Location>::iterator it = locations.begin();
 	for (; it != locations.end(); it++)
 		directive::setLocationDefaultValues(server, it->second);
 
@@ -563,7 +562,7 @@ void directive::setLocationDefaultValues(Server &server, Location &location)
 	if (location.getMaxBodySize() == 0)
 		location.setMaxBodySize(parser::toString(server.getMaxBodySize()));
 
-	map<string, string> error_pages = location.getErrorPages();
+	std::map<std::string, std::string> error_pages = location.getErrorPages();
 	directive::mergeErrorPages(server.getErrorPages(), error_pages);
 	location.setErrorPages(error_pages);
 

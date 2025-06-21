@@ -2,7 +2,6 @@
 #define URL_HPP
 
 #include <string>
-#include <ostream>
 
 class Connection;
 class Location;

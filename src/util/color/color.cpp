@@ -1,59 +1,57 @@
 #include "color.hpp"
 #include <string>
 
-using namespace std;
-
-string color::red(void)
+std::string color::red(void)
 {
 	return "\001\033[0;91m";
 }
 
-string color::red(const string &message)
+std::string color::red(const std::string &message)
 {
 	return red() + message + color::reset();
 }
 
-string color::green(void)
+std::string color::green(void)
 {
 	return "\001\033[0;92m";
 }
 
-string color::green(const string &message)
+std::string color::green(const std::string &message)
 {
 	return green() + message + color::reset();
 }
 
-string color::yellow(void)
+std::string color::yellow(void)
 {
 	return "\001\033[0;93m";
 }
 
-string color::yellow(const string &message)
+std::string color::yellow(const std::string &message)
 {
 	return yellow() + message + color::reset();
 }
 
-string color::blue(void)
+std::string color::blue(void)
 {
 	return "\001\033[0;94m";
 }
 
-string color::blue(const string &message)
+std::string color::blue(const std::string &message)
 {
 	return blue() + message + color::reset();
 }
 
-string color::magenta(void)
+std::string color::magenta(void)
 {
 	return "\001\033[0;95m";
 }
 
-string color::magenta(const string &message)
+std::string color::magenta(const std::string &message)
 {
 	return magenta() + message + color::reset();
 }
 
-string color::reset(void)
+std::string color::reset(void)
 {
 	return "\001\033[0;m";
 }

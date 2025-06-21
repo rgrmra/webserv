@@ -3,8 +3,7 @@
 #include "step.hpp"
 #include <algorithm>
 #include <dirent.h>
-
-using namespace std;
+#include <string>
 
 Directory::Directory(Connection *connection) : Resource(connection)
 {
@@ -12,7 +11,7 @@ Directory::Directory(Connection *connection) : Resource(connection)
 	
 	DIR *dir;
 	struct dirent *ent;
-	const string &directory = connection->getUri()->getPath();
+	const std::string &directory = connection->getUri()->getPath();
 
 	_output = std::string(
 			"<html>\n"
@@ -23,7 +22,7 @@ Directory::Directory(Connection *connection) : Resource(connection)
 			"<body class=\"bg-gray-100 text-gray-900 min-h-screen\">\n"
 			"<div class=\"container mx-auto p-4\">\n"
 			"<div class=\"bg-white text-gray-900 rounded-lg shadow-lg p-8 max-w-3xl w-full mx-auto mt-8\">\n"
-			"<h1 class=\"text-3xl font-bold mb-4\">Index of " + directory + "</h1>\n"
+			"<h2 class=\"text-lg font-bold\">Index of " + directory + "</h2>\n"
 			"<div class=\"space-y-2\">\n");
 
 	std::vector<std::string> entries;
@@ -45,7 +44,7 @@ Directory::Directory(Connection *connection) : Resource(connection)
 
 	std::sort(entries.begin(), entries.end());
 
-	vector<string>::iterator entry = entries.begin();
+	std::vector<std::string>::iterator entry = entries.begin();
 	for (; entry != entries.end(); ++entry)
 	{
 		_output += "<a "

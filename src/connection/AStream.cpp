@@ -9,8 +9,6 @@ std::string _id;
 std::string _buffer;
 std::time_t _time;
 
-using namespace std;
-
 AStream::AStream(const int &fd, const std::string &id)
 	: _fd(fd),
 	  _id(id),
@@ -93,7 +91,7 @@ std::string AStream::getData(const size_t &bytes)
 	if (_output.empty())
 		return "";
 
-	const string data = _output.substr(0, bytes);
+	const std::string data = _output.substr(0, bytes);
 	_output.erase(0, bytes);
 
 	_time = time(NULL);

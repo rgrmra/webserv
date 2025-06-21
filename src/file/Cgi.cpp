@@ -20,8 +20,6 @@
 #include <unistd.h>
 #include <vector>
 
-using namespace std;
-
 Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 {
 	connection->setCode("");
@@ -48,10 +46,10 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 		dup2(_sock[0], STDIN_FILENO);
 		closeSockets();
 
-		string fastcgi = connection->getLocation().getFastCgi().c_str();
-		string script = connection->getUri()->getAbsolutePath();
+		std::string fastcgi = connection->getLocation().getFastCgi().c_str();
+		std::string script = connection->getUri()->getAbsolutePath();
 
-		vector<char *> argv;
+		std::vector<char *> argv;
 		argv.push_back(const_cast<char *>(fastcgi.c_str()));
 		argv.push_back(const_cast<char *>(script.c_str()));
 		argv.push_back(NULL);
@@ -60,7 +58,7 @@ Cgi::Cgi(Connection *connection) : Resource(connection), _status(0), _pid(-1)
 
 		execve(argv.data()[0], argv.data(), envp.getEnvironment().data());
 
-		throw runtime_error(standard::CGI_FAILED);
+		throw std::runtime_error(standard::CGI_FAILED);
 	}
 	close(_sock[0]);
 	_sock[0] = -1;
@@ -108,8 +106,8 @@ void Cgi::closeSockets(void) {
 
 void Cgi::parseCgiResponse(void)
 {
-	istringstream iss(_output);
-	string line;
+	std::istringstream iss(_output);
+	std::string line;
 
 	_connection->setHeaders(standard::EMPTY_HEADER);
 
@@ -121,11 +119,11 @@ void Cgi::parseCgiResponse(void)
 			break;
 
 		size_t separator = line.find_first_of(":");
-		if (separator == string::npos)
+		if (separator == std::string::npos)
 			return response::builder(_connection, code::INTERNAL_SERVER_ERROR);
 
-		string key = line.substr(0, separator);
-		string value = line.substr(separator + 1);
+		std::string key = line.substr(0, separator);
+		std::string value = line.substr(separator + 1);
 
 		parser::trim(value, " \t\v\r");
 
@@ -138,20 +136,20 @@ void Cgi::sendCGI(void)
 	WebServ *webserv = WebServ::getInstance();
 	webserv->controlEpoll(_fd, 0, EPOLL_CTL_DEL);
 
-	if (_output.find_first_of("\r\n\r\n") != string::npos)
+	if (_output.find_first_of("\r\n\r\n") != std::string::npos)
 		parseCgiResponse();
 
-	if (_output.find(standard::CGI_FAILED) != string::npos)
+	if (_output.find(standard::CGI_FAILED) != std::string::npos)
 		return response::builder(_connection, code::BAD_GATEWAY);
 
 	if (*_connection == header::STATUS)
 	{
-		string status = (*_connection)[header::STATUS];
+		std::string status = (*_connection)[header::STATUS];
 
 		parser::trim(status, " \t\v\r");
 
 		size_t pos = status.find_first_of(" ");
-		if (pos != string::npos)
+		if (pos != std::string::npos)
 		{
 			_connection->setCode(status.substr(0, pos));
 			_connection->setStatus(status.substr(pos + 1));

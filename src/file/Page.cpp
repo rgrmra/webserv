@@ -1,19 +1,17 @@
 #include "Connection.hpp"
 #include "Page.hpp"
-#include "Location.hpp"
 #include "step.hpp"
+#include <string>
 #include <sstream>
-
-using namespace std;
 
 Page::Page(Connection *connection) : Resource(connection)
 {
 	_type = "text/html";
 
-	const string &code = connection->getCode();
-	const string &status = connection->getStatus();
+	const std::string &code = connection->getCode();
+	const std::string &status = connection->getStatus();
 
-	ostringstream oss;
+	std::ostringstream oss;
 	oss << "<html>\n"
 		"<head><title>" + code + " " + status + "</title></head>\n"
 		"<body>\n"

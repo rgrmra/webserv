@@ -3,12 +3,9 @@
 #include "Mime.hpp"
 #include <csignal>
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <sys/wait.h>
-
-using namespace std;
 
 static void handle_signal(int signal)
 {
@@ -28,7 +25,7 @@ int main(int argc, char *argv[])
 		if (argc > 2)
 			throw std::runtime_error("too many configuration files");
 
-		string file = (argv[1] ? argv[1] : "./configurations/default.conf");
+		std::string file = (argv[1] ? argv[1] : "./configurations/default.conf");
 
 		http->configure(file);
 

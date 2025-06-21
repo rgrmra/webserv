@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 Http *Http::_instance = NULL;
 
 Http::Http(void)
@@ -38,17 +36,17 @@ Http *Http::getInstance(void)
 void Http::configure(std::string filename)
 {
 	if (parser::basename(filename) != ".conf")
-		throw runtime_error("invalid .conf file format: " + filename);
+		throw std::runtime_error("invalid .conf file format: " + filename);
 
-	ifstream file(filename.c_str());
+	std::ifstream file(filename.c_str());
 	if (not file)
-		throw runtime_error("failed to open configuration file: " + filename);
+		throw std::runtime_error("failed to open configuration file: " + filename);
 
-	string buffer;
+	std::string buffer;
 
-	for (string line; getline(file, line); buffer.append(line)) {
+	for (std::string line; getline(file, line); buffer.append(line)) {
 		
-		if (line.find("#") != string::npos)
+		if (line.find("#") != std::string::npos)
 			line = line.substr(0, line.find_first_of("#"));
 
 		parser::trim(line, " \n\t\r\v\f");
@@ -69,34 +67,34 @@ void Http::configure(std::string filename)
 	parser::http(*this, buffer);
 
 	if (empty())
-		throw runtime_error("no server avaliable");
+		throw std::runtime_error("no server avaliable");
 
 	logger::info("configuration file parsed: " + filename);
 
 	directive::setHttpDefaultValues(*this);
 }
 
-void Http::setRoot(string root)
+void Http::setRoot(std::string root)
 {
 	directive::setRoot(root, _root);
 }
 
-string Http::getRoot(void) const
+std::string Http::getRoot(void) const
 {
 	return _root;
 }
 
-void Http::setAutoIndex(string autoindex)
+void Http::setAutoIndex(std::string autoindex)
 {
 	directive::setAutoIndex(autoindex, _autoindex);
 }
 
-void Http::setAutoIndex(bitset<2> autoindex)
+void Http::setAutoIndex(std::bitset<2> autoindex)
 {
 	_autoindex = autoindex;
 }
 
-bitset<2> Http::getAutoIndexBitSet(void) const
+std::bitset<2> Http::getAutoIndexBitSet(void) const
 {
 	return _autoindex;
 }
@@ -106,17 +104,17 @@ bool Http::getAutoIndex() const
 	return _autoindex == parser::AUTOINDEX_ON ? true : false;
 }
 
-void Http::setWebDav(string webdav)
+void Http::setWebDav(std::string webdav)
 {
 	directive::setWebDav(webdav, _webdav);
 }
 
-void Http::setWebDav(bitset<2> webdav)
+void Http::setWebDav(std::bitset<2> webdav)
 {
 	_webdav = webdav;
 }
 
-bitset<2> Http::getWebDavBitSet(void) const
+std::bitset<2> Http::getWebDavBitSet(void) const
 {
 	return _webdav;
 }
@@ -126,7 +124,7 @@ bool Http::getWebDav() const
 	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
-void Http::setMaxBodySize(string max_body_size)
+void Http::setMaxBodySize(std::string max_body_size)
 {
 	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
@@ -136,40 +134,40 @@ size_t Http::getMaxBodySize(void) const
 	return _max_body_size;
 }
 
-void Http::addIndex(string index)
+void Http::addIndex(std::string index)
 {
 	directive::addIndex(index, _indexes);
 
 }
 
-void Http::setIndex(set<string> indexes)
+void Http::setIndex(std::set<std::string> indexes)
 {
 	_indexes = indexes;
 }
 
-set<string> Http::getIndexes(void) const
+std::set<std::string> Http::getIndexes(void) const
 {
 	return _indexes;
 }
 
-void Http::addErrorPage(string error_page)
+void Http::addErrorPage(std::string error_page)
 {
 	directive::addErrorPage(error_page, _error_pages);
 }
 
-void Http::setErrorPages(map<string, string> error_pages)
+void Http::setErrorPages(std::map<std::string, std::string> error_pages)
 {
 	_error_pages = error_pages;
 }
 
-map<string, string> Http::getErrorPages(void) const
+std::map<std::string, std::string> Http::getErrorPages(void) const
 {
 	return _error_pages;
 }
 
-string Http::getErrorPageByCode(string code) const
+std::string Http::getErrorPageByCode(std::string code) const
 {
-	map<string, string>::const_iterator error_page = _error_pages.find(code);
+	std::map<std::string, std::string>::const_iterator error_page = _error_pages.find(code);
 	if (error_page ==_error_pages.end())
 		return "";
 
@@ -181,25 +179,25 @@ void Http::addServer(Server server)
 	directive::addServer(server, _servers);
 }
 
-void Http::setServers(vector<Server> servers)
+void Http::setServers(std::vector<Server> servers)
 {
 	_servers = servers;
 }
 
-Server Http::getServerByListen(string listen) const
+Server Http::getServerByListen(std::string listen) const
 {
-	list<string> host = parser::split(listen, ':');
+	std::list<std::string> host = parser::split(listen, ':');
 	if (!directive::validateHttpListen(listen) || host.size() != 2)
 		return Server();
 
-	vector<Server>::const_iterator server = _servers.begin();
+	std::vector<Server>::const_iterator server = _servers.begin();
 	for (; server != _servers.end(); server++)
 	{
-		vector<string> listens = server->getListen();
-		vector<string>::iterator listen = listens.begin();
+		std::vector<std::string> listens = server->getListen();
+		std::vector<std::string>::iterator listen = listens.begin();
 		for(; listen != listens.end(); listen++)
 		{
-			list<string> server_host = parser::split(*listen, ':');
+			std::list<std::string> server_host = parser::split(*listen, ':');
 			if (server_host.back() != host.back())
 				continue;
 			
@@ -214,23 +212,23 @@ Server Http::getServerByListen(string listen) const
 	return Server();
 }
 
-Server Http::getServerByName(string name) const
+Server Http::getServerByName(std::string name) const
 {
-	list<string> host = parser::split(name, ':');
-	vector<Server>::const_iterator server  = _servers.begin();
+	std::list<std::string> host = parser::split(name, ':');
+	std::vector<Server>::const_iterator server  = _servers.begin();
 	for (; server != _servers.end(); server++)
 	{
-		set<string> ports;
-		vector<string> listens = server->getListen();
-		vector<string>::iterator listen = listens.begin();
+		std::set<std::string> ports;
+		std::vector<std::string> listens = server->getListen();
+		std::vector<std::string>::iterator listen = listens.begin();
 		for (; listen != listens.end(); listen++) {
 
-			list<string> tmp = parser::split(*listen, ':');
+			std::list<std::string> tmp = parser::split(*listen, ':');
 			ports.insert(tmp.back());
 		}
 
-		vector<string> names = server->getNames();
-		vector<string>::iterator name= names.begin();
+		std::vector<std::string> names = server->getNames();
+		std::vector<std::string>::iterator name= names.begin();
 		for(; name!= names.end(); name++)
 		{
 			if (host.front() != *name)
@@ -246,7 +244,7 @@ Server Http::getServerByName(string name) const
 	return Server();
 }
 
-vector<Server> Http::getServers(void) const
+std::vector<Server> Http::getServers(void) const
 {
 	return _servers;
 }

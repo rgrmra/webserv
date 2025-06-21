@@ -6,14 +6,12 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
-const char &parser::lastCharacter(const string &text) {
+const char &parser::lastCharacter(const std::string &text) {
 	return text.at(text.size() - 1);
 }
 
-size_t parser::toSizeT(const string &value) {
-	stringstream ss;
+size_t parser::toSizeT(const std::string &value) {
+	std::stringstream ss;
 	size_t tmp = 0;
 
 	ss << value;
@@ -22,64 +20,64 @@ size_t parser::toSizeT(const string &value) {
 	return tmp;
 }
 
-string parser::toString(const size_t &value) {
-	stringstream ss;
+std::string parser::toString(const size_t &value) {
+	std::stringstream ss;
 
 	ss << value;
 
 	return ss.str();
 }
 
-string parser::toUpper(string text) {
+std::string parser::toUpper(std::string text) {
 	for (size_t i = 0; i < text.size(); i++)
 		text.at(i) = toupper(text.at(i));
 
 	return text;
 }
 
-string parser::toLower(string text) {
+std::string parser::toLower(std::string text) {
 	for (size_t i = 0; i < text.size(); i++)
 		text.at(i) = tolower(text.at(i));
 
 	return text;
 }
 
-void parser::replace(string &buffer, const char &from, const char &to) {
+void parser::replace(std::string &buffer, const char &from, const char &to) {
 	for (size_t i = 0; i < buffer.length(); i++)
 		if (buffer.at(i) == from)
 			buffer.at(i) = to;
 }
 
-void parser::erase(string &buffer, const string &text, const size_t &quantity) {
+void parser::erase(std::string &buffer, const std::string &text, const size_t &quantity) {
 	size_t pos = buffer.find(text);
 
-	while (pos != string::npos) {
+	while (pos != std::string::npos) {
 		buffer.erase(pos, quantity);
 
 		pos = buffer.find(text);
 	}
 }
 
-void parser::rerase(string &buffer, const string &text,
+void parser::rerase(std::string &buffer, const std::string &text,
 										const size_t &quantity) {
 	size_t pos = buffer.find(text);
 
-	while (pos != string::npos) {
+	while (pos != std::string::npos) {
 		buffer.erase(pos + text.size() - quantity, quantity);
 
 		pos = buffer.find(text);
 	}
 }
 
-void parser::trim(string &buffer, const string &set) {
-	if (buffer.find_first_not_of(set) == string::npos)
+void parser::trim(std::string &buffer, const std::string &set) {
+	if (buffer.find_first_not_of(set) == std::string::npos)
 		return buffer.clear();
 
 	buffer = buffer.substr(buffer.find_first_not_of(set), buffer.size());
 	buffer = buffer.substr(0, buffer.find_last_not_of(set) + 1);
 }
 
-bool parser::compare(const string &key, string &buffer) {
+bool parser::compare(const std::string &key, std::string &buffer) {
 	if (buffer.empty())
 		return false;
 
@@ -89,7 +87,7 @@ bool parser::compare(const string &key, string &buffer) {
 	return false;
 }
 
-string parser::find(const string &key, string &buffer, const string &delimiter)
+std::string parser::find(const std::string &key, std::string &buffer, const std::string &delimiter)
 {
 	if (buffer.empty())
 		return "";
@@ -101,30 +99,30 @@ string parser::find(const string &key, string &buffer, const string &delimiter)
 
 	size_t pos = buffer.find(delimiter);
 
-	if (pos == string::npos)
+	if (pos == std::string::npos)
 		return "";
 
-	string tmp = buffer.substr(0, pos);
+	std::string tmp = buffer.substr(0, pos);
 	buffer.erase(0, pos + 1);
 
 	return tmp;
 }
 
-list<string> parser::split(string text, const char &delimiter)
+std::list<std::string> parser::split(std::string text, const char &delimiter)
 {
-	list<string> tmp;
+	std::list<std::string> tmp;
 
 	while (text.size())
 	{
-		parser::trim(text, string(1, delimiter));
-		size_t pos = text.find_first_of(string(1, delimiter));
+		parser::trim(text, std::string(1, delimiter));
+		size_t pos = text.find_first_of(std::string(1, delimiter));
 
-		if (not text.empty() && pos == string::npos)
+		if (not text.empty() && pos == std::string::npos)
 		{
 			tmp.push_back(text.substr(0, text.size()));
 			text.erase(0, text.size());
 		}
-		else if (not text.empty() && pos != string::npos)
+		else if (not text.empty() && pos != std::string::npos)
 		{
 			tmp.push_back(text.substr(0, pos));
 			text.erase(0, pos);
@@ -134,25 +132,25 @@ list<string> parser::split(string text, const char &delimiter)
 	return tmp;
 }
 
-string parser::basename(const string &text)
+std::string parser::basename(const std::string &text)
 {
 	if (text.empty())
 		return "";
 
 	size_t pos = text.find_last_of(".");
 
-	if (pos == string::npos)
+	if (pos == std::string::npos)
 		return "";
 
 	return text.substr(pos, text.size() - pos);
 }
 
-string parser::formatPath(const string &path)
+std::string parser::formatPath(const std::string &path)
 {
-	list<string> new_files;
-	list<string> files = parser::split(path, '/');
+	std::list<std::string> new_files;
+	std::list<std::string> files = parser::split(path, '/');
 
-	list<string>::iterator file = files.begin();
+	std::list<std::string>::iterator file = files.begin();
 	for (; file != files.end(); ++file) {
 
 		if (*file == ".")
@@ -168,7 +166,7 @@ string parser::formatPath(const string &path)
 		new_files.push_back(*file);
 	}
 
-	string new_path;
+	std::string new_path;
 
 	for (file = new_files.begin(); file != new_files.end(); ++file)
 		new_path += "/" + *file;
@@ -176,14 +174,14 @@ string parser::formatPath(const string &path)
 	return new_path + (parser::lastCharacter(path) == '/' ? "/" : "");
 }
 
-void parser::http(Http &http, string &buffer)
+void parser::http(Http &http, std::string &buffer)
 {
 	if (parser::compare("http{", buffer))
 	{
 		buffer.erase(0, 5);
 
 		size_t npos = buffer.find_last_of("}");
-		if (npos != string::npos)
+		if (npos != std::string::npos)
 			buffer.erase(npos, 1);
 	}
 
@@ -206,10 +204,10 @@ void parser::http(Http &http, string &buffer)
 		}
 	}
 
-	throw runtime_error("failed to parse http at: " + buffer);
+	throw std::runtime_error("failed to parse http at: " + buffer);
 }
 
-void parser::server(Server &server, string &buffer)
+void parser::server(Server &server, std::string &buffer)
 {
 	buffer.erase(0, 7);
 
@@ -235,10 +233,10 @@ void parser::server(Server &server, string &buffer)
 		}
 	}
 
-	throw runtime_error("failed to parser server at: " + buffer);
+	throw std::runtime_error("failed to parser server at: " + buffer);
 }
 
-void parser::location(Location &location, string &buffer)
+void parser::location(Location &location, std::string &buffer)
 {
 	location.setURI(find("location ", buffer, "{"));
 
@@ -264,9 +262,9 @@ void parser::location(Location &location, string &buffer)
 		}
 	}
 
-	throw runtime_error("failed to parse location at: " + buffer);
+	throw std::runtime_error("failed to parse location at: " + buffer);
 }
-void parser::limit_except(Location &location, string &buffer)
+void parser::limit_except(Location &location, std::string &buffer)
 {
 	for (size_t i = buffer.size(); i > 0; --i)
 	{
@@ -284,5 +282,5 @@ void parser::limit_except(Location &location, string &buffer)
 		}
 	}
 
-	throw runtime_error("failed to parse limit_except at: " + buffer);
+	throw std::runtime_error("failed to parse limit_except at: " + buffer);
 }

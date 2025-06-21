@@ -9,14 +9,12 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 Server::Server(void)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {}
 
-Server::Server(string &configuration_file)
+Server::Server(std::string &configuration_file)
 	: _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0)
@@ -24,7 +22,7 @@ Server::Server(string &configuration_file)
 	parser::server(*this, configuration_file);
 
 	if (this->empty())
-		throw runtime_error("no listen defined");
+		throw std::runtime_error("no listen defined");
 }
 
 Server::Server(const Server &src)
@@ -54,65 +52,65 @@ Server &Server::operator=(const Server &rhs)
 
 Server::~Server(void) {}
 
-void Server::addListen(string listen)
+void Server::addListen(std::string listen)
 {
 	directive::addListen(listen, _listen);
 }
 
-void Server::setListen(vector<string> listen)
+void Server::setListen(std::vector<std::string> listen)
 {
 	if (listen.empty())
 	{
-		stringstream ss;
+		std::stringstream ss;
 		ss << "no listen avaliable to server_name \"";
 		ss << (_names.size() ? _names[0] : "") + "\"";
-		throw runtime_error(ss.str());
+		throw std::runtime_error(ss.str());
 	}
 
 	_listen = listen;
 }
 
-vector<string> Server::getListen(void) const
+std::vector<std::string> Server::getListen(void) const
 {
 	return _listen;
 }
 
-void Server::addName(string name)
+void Server::addName(std::string name)
 {
 	directive::addName(name, _names);
 }
 
-void Server::setNames(vector<string> names)
+void Server::setNames(std::vector<std::string> names)
 {
 	_names = names;
 }
 
-vector<string> Server::getNames(void) const
+std::vector<std::string> Server::getNames(void) const
 {
 	return _names;
 }
 
-void Server::setRoot(string root)
+void Server::setRoot(std::string root)
 {
 	directive::setRoot(root, _root);
 }
 
-string Server::getRoot(void) const
+std::string Server::getRoot(void) const
 {
 	return _root;
 }
 
-void Server::setAutoIndex(string autoindex)
+void Server::setAutoIndex(std::string autoindex)
 {
 	directive::setAutoIndex(autoindex, _autoindex);
 }
 
-void Server::setAutoIndex(bitset<2> autoindex)
+void Server::setAutoIndex(std::bitset<2> autoindex)
 {
 	_autoindex = autoindex;
 }
 
-bitset<2> Server::getAutoIndexBitSet(void) const
+std::bitset<2> Server::getAutoIndexBitSet(void) const
 {
 	return _autoindex;
 }
@@ -122,17 +120,17 @@ bool Server::getAutoIndex(void) const
 	return _autoindex == parser::AUTOINDEX_ON ? true : false;
 }
 
-void Server::setWebDav(string webdav)
+void Server::setWebDav(std::string webdav)
 {
 	directive::setWebDav(webdav, _webdav);
 }
 
-void Server::setWebDav(bitset<2> webdav)
+void Server::setWebDav(std::bitset<2> webdav)
 {
 	_webdav = webdav;
 }
 
-bitset<2> Server::getWebDavBitSet(void) const
+std::bitset<2> Server::getWebDavBitSet(void) const
 {
 	return _webdav;
 }
@@ -142,7 +140,7 @@ bool Server::getWebDav() const
 	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
-void Server::setMaxBodySize(string max_body_size)
+void Server::setMaxBodySize(std::string max_body_size)
 {
 	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
@@ -152,39 +150,39 @@ size_t Server::getMaxBodySize(void) const
 	return _max_body_size;
 }
 
-void Server::addIndex(string index)
+void Server::addIndex(std::string index)
 {
 	directive::addIndex(index, _indexes);
 }
 
-void Server::setIndexes(set<string> indexes)
+void Server::setIndexes(std::set<std::string> indexes)
 {
 	_indexes = indexes;
 }
 
-set<string> Server::getIndexes(void) const
+std::set<std::string> Server::getIndexes(void) const
 {
 	return _indexes;
 }
 
-void Server::addErrorPage(string error_page)
+void Server::addErrorPage(std::string error_page)
 {
 	directive::addErrorPage(error_page, _error_pages);
 }
 
-void Server::setErrorPages(map<string, string> error_pages)
+void Server::setErrorPages(std::map<std::string, std::string> error_pages)
 {
 	_error_pages = error_pages;
 }
 
-map<string, string> Server::getErrorPages(void) const
+std::map<std::string, std::string> Server::getErrorPages(void) const
 {
 	return _error_pages;
 }
 
-string Server::getErrorPageByCode(string code) const
+std::string Server::getErrorPageByCode(std::string code) const
 {
-	map<string, string>::const_iterator error_page = _error_pages.find(code);
+	std::map<std::string, std::string>::const_iterator error_page = _error_pages.find(code);
 	if (error_page == _error_pages.end())
 		return "";
 
@@ -194,41 +192,41 @@ string Server::getErrorPageByCode(string code) const
 void Server::addLocation(Location location)
 {
 	if (_locations.find(location.getURI()) != _locations.end())
-		throw runtime_error("duplicated location: " + location.getURI());
+		throw std::runtime_error("duplicated location: " + location.getURI());
 
 	_locations[location.getURI()] = location;
 }
 
-void Server::setLocations(map<string, Location> locations)
+void Server::setLocations(std::map<std::string, Location> locations)
 {
 	_locations = locations;
 }
 
-Location Server::getLocationByURI(string uri) const
+Location Server::getLocationByURI(std::string uri) const
 {
-	map<string, Location>::const_iterator location = _locations.find(uri);
+	std::map<std::string, Location>::const_iterator location = _locations.find(uri);
 	if (location == _locations.end())
 		return Location();
 
 	return location->second;
 }
 
-map<string, Location> Server::getLocations(void) const
+std::map<std::string, Location> Server::getLocations(void) const
 {
 	return _locations;
 }
 
-void Server::setReturn(string value)
+void Server::setReturn(std::string value)
 {
 	directive::setReturn(value, _return_code, _return_uri);
 }
 
-string Server::getReturnCode(void) const
+std::string Server::getReturnCode(void) const
 {
 	return _return_code;
 }
 
-string Server::getReturnURI(void) const
+std::string Server::getReturnURI(void) const
 {
 	return _return_uri;
 }

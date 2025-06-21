@@ -20,9 +20,7 @@
 #include <sys/epoll.h>
 #include <vector>
 
-using namespace std;
-
-Connection::Connection(const int &fd, const string &ip)
+Connection::Connection(const int &fd, const std::string &ip)
 	: AStream(fd, ip),
 	  _uri(NULL),
 	  _file(NULL) {}
@@ -70,8 +68,8 @@ Connection::~Connection(void)
 
 void Connection::parseRequest(void)
 {
-	istringstream iss(_input);
-	string line;
+	std::istringstream iss(_input);
+	std::string line;
 
 	while (getline(iss, line) && !line.empty() && _code.empty())
 	{
@@ -84,7 +82,7 @@ void Connection::parseRequest(void)
 		request::parseRequest(this, line);
 
 		size_t pos = _input.find("\r\n");
-		if (pos != string::npos)
+		if (pos != std::string::npos)
 			_input = _input.substr(pos + 2);
 
 		if (_code == code::OK && _input.size())
@@ -97,12 +95,12 @@ void Connection::parseRequest(void)
 	_input.clear();
 }
 
-void Connection::setHost(const string &host)
+void Connection::setHost(const std::string &host)
 {
 	_host = host;
 }
 
-string Connection::getHost(void) const
+std::string Connection::getHost(void) const
 {
 	return _host;
 }
@@ -111,22 +109,22 @@ void Connection::processInput(const size_t &bytes)
 {
 	(void) bytes;
 
-	if (_input.find("\r\n") != string::npos || _step == step::HEADERS)
+	if (_input.find("\r\n") != std::string::npos || _step == step::HEADERS)
 		parseRequest();
 
 	if (_step >= step::HEADERS)
 		return;
 
-	if (_input.find("\r") != string::npos || _input.find("\n") != string::npos)
+	if (_input.find("\r") != std::string::npos || _input.find("\n") != std::string::npos)
 		return response::builder(this, code::BAD_REQUEST);
 }
 
-void Connection::setMethod(const string &method)
+void Connection::setMethod(const std::string &method)
 {
 	_method = method;
 }
 
-string Connection::getMethod(void) const
+std::string Connection::getMethod(void) const
 {
 	return _method;
 }
@@ -141,82 +139,82 @@ URL *Connection::getUri(void) const
 	return _uri;
 }
 
-void Connection::setTarget(const string &target)
+void Connection::setTarget(const std::string &target)
 {
 	_target = target;
 }
 
-string Connection::getTarget(void) const
+std::string Connection::getTarget(void) const
 {
 	return _target;
 }
 
-void Connection::setProtocol(const string &protocol)
+void Connection::setProtocol(const std::string &protocol)
 {
 	_protocol = protocol;
 }
 
-string Connection::getProtocol(void) const
+std::string Connection::getProtocol(void) const
 {
 	return _protocol;
 }
 
-void Connection::setCode(const string &code)
+void Connection::setCode(const std::string &code)
 {
 	_code = code;
 }
 
-string Connection::getCode(void) const
+std::string Connection::getCode(void) const
 {
 	return _code;
 }
 
-void Connection::setStatus(const string &status)
+void Connection::setStatus(const std::string &status)
 {
 	_status = status;
 }
 
-string Connection::getStatus(void) const
+std::string Connection::getStatus(void) const
 {
 	return _status;
 }
 
-void Connection::addHeader(const string &key, const string &value)
+void Connection::addHeader(const std::string &key, const std::string &value)
 {
 	_headers[key] = value;
 }
 
-void Connection::addHeader(const string &key, const size_t &value)
+void Connection::addHeader(const std::string &key, const size_t &value)
 {
 	_headers[key] = parser::toString(value);
 }
 
-void Connection::setHeaders(const map<string, string> &headers)
+void Connection::setHeaders(const std::map<std::string, std::string> &headers)
 {
 	_headers = headers;
 }
 
-string Connection::getHeaderByKey(const string &key) const
+std::string Connection::getHeaderByKey(const std::string &key) const
 {
-	map<string, string>::const_iterator header = _headers.find(key);
+	std::map<std::string, std::string>::const_iterator header = _headers.find(key);
 	if (header->first == key)
 		return header->second;
 
 	return "";
 }
 
-map<string, string> Connection::getHeaders(void) const
+std::map<std::string, std::string> Connection::getHeaders(void) const
 {
 	return _headers;
 }
 
 size_t Connection::getHeadersSize(void) const
 {
-	ostringstream oss;
+	std::ostringstream oss;
 
-	map<string, string>::const_iterator header = _headers.begin();
+	std::map<std::string, std::string>::const_iterator header = _headers.begin();
 	for (; header != _headers.end(); header++)
-		oss << header->first << ": " << header->second << endl;
+		oss << header->first << ": " << header->second << std::endl;
 
 	return oss.str().size();
 }
@@ -226,12 +224,12 @@ void Connection::addBody(const std::string &body)
 	_body.append(body);
 }
 
-void Connection::setBody(const string &body)
+void Connection::setBody(const std::string &body)
 {
 	_body = body;
 }
 
-string Connection::getBody(void) const
+std::string Connection::getBody(void) const
 {
 	return _body;
 }
@@ -282,14 +280,14 @@ void Connection::buildResponse(void)
 	}
 	_headers[header::SERVER] = standard::SERVER_SOFTWARE;
 
-	map<string, string>::iterator location = _headers.find(header::LOCATION);
+	std::map<std::string, std::string>::iterator location = _headers.find(header::LOCATION);
 	if (location->second.empty())
 		_headers.erase(location);
 
-	ostringstream oss;
+	std::ostringstream oss;
 	oss <<  _protocol + " " + _code + " " + _status + "\r\n";
 
-	map<string, string>::iterator header = _headers.begin();
+	std::map<std::string, std::string>::iterator header = _headers.begin();
 	for (; header != _headers.end(); header++)
 		oss << header->first + ": " + header->second + "\r\n";
 
@@ -369,16 +367,16 @@ void Connection::setTime(void)
 
 std::string Connection::operator[](const std::string &key)
 {
-	static string empty;
+	static std::string empty;
 
-	map<string, string>::iterator header = _headers.find(key);
+	std::map<std::string, std::string>::iterator header = _headers.find(key);
 	if (header->first == key)
 		return header->second;
 
 	return empty ;
 }
 
-bool Connection::operator==(const string &key)
+bool Connection::operator==(const std::string &key)
 {
 	if (_headers.find(key) == _headers.end())
 		return false;

@@ -13,9 +13,7 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
-void request::parseRequest(Connection *connection, string &line)
+void request::parseRequest(Connection *connection, std::string &line)
 {
 	if (connection->getStep() == step::NONE)
 		return parseStartLine(connection, line);
@@ -27,17 +25,17 @@ void request::parseRequest(Connection *connection, string &line)
 		return parseBody(connection, line);
 }
 
-void request::parseStartLine(Connection *connection, string &line)
+void request::parseStartLine(Connection *connection, std::string &line)
 {
-	string method, target, protocol;
+	std::string method, target, protocol;
 
-	if (line.find_first_not_of(" \t\v\r") == string::npos)
+	if (line.find_first_not_of(" \t\v\r") == std::string::npos)
 		return;
 
 	if (line.find_first_not_of(" \t\v") != 0)
 		return response::builder(connection, code::BAD_REQUEST);
 
-	istringstream startline(line);
+	std::istringstream startline(line);
 	if (!(startline >> method >> target >> protocol))
 		return response::builder(connection, code::BAD_REQUEST);
 
@@ -90,11 +88,11 @@ void request::parseHeaders(Connection *connection, std::string &line)
 	}
 
 	size_t separator = line.find_first_of(":");
-	if (separator == string::npos)
+	if (separator == std::string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
-	string key = line.substr(0, separator);
-	string value = line.substr(separator + 1);
+	std::string key = line.substr(0, separator);
+	std::string value = line.substr(separator + 1);
 
 	URL::decode(value);
 
@@ -108,7 +106,7 @@ void request::parseHeaders(Connection *connection, std::string &line)
 	connection->addHeader(key, value);
 }
 
-void request::parseBody(Connection *connection, string &line)
+void request::parseBody(Connection *connection, std::string &line)
 {
 	if (*connection == header::TRANSFER_ENCONDING)
 		return parseTransferEncoding(connection, line);
@@ -131,7 +129,7 @@ void request::parseBody(Connection *connection, string &line)
 	response::builder(connection, code::OK);
 }
 
-void request::checkTransferEncodingEnd(Connection *connection, string &buffer)
+void request::checkTransferEncodingEnd(Connection *connection, std::string &buffer)
 {
 	if (buffer.size() < 4)
 		return;
@@ -144,15 +142,15 @@ void request::checkTransferEncodingEnd(Connection *connection, string &buffer)
 	return response::builder(connection, code::OK);
 }
 
-void request::parseTransferEncoding(Connection *connection, string &buffer)
+void request::parseTransferEncoding(Connection *connection, std::string &buffer)
 {
 	if (buffer.empty())
 		return;
 
-	string chunk_size_value = buffer.substr(0, buffer.find("\r\n"));
+	std::string chunk_size_value = buffer.substr(0, buffer.find("\r\n"));
 	size_t chunk_size_length = chunk_size_value.size() + 2;
 
-	if (chunk_size_value.find_first_not_of(standard::HEXADECIMAL) != string::npos)
+	if (chunk_size_value.find_first_not_of(standard::HEXADECIMAL) != std::string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	if (chunk_size_value == "0")
@@ -163,7 +161,7 @@ void request::parseTransferEncoding(Connection *connection, string &buffer)
 	if (connection->getCode().size())
 		return;
 
-	string chunk_line_value = buffer.substr(chunk_size_length, chunk_line_length);
+	std::string chunk_line_value = buffer.substr(chunk_size_length, chunk_line_length);
 
 	if (chunk_line_value.size() != chunk_line_length)
 		return;
@@ -180,9 +178,9 @@ void request::parseTransferEncoding(Connection *connection, string &buffer)
 	return parseTransferEncoding(connection, buffer);
 }
 
-void request::convertToHex(Connection *connection, string &line, size_t &chunck_size)
+void request::convertToHex(Connection *connection, std::string &line, size_t &chunck_size)
 {
-	if (line.find_first_not_of(standard::HEXADECIMAL) != string::npos)
+	if (line.find_first_not_of(standard::HEXADECIMAL) != std::string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	char *rest;
@@ -191,7 +189,7 @@ void request::convertToHex(Connection *connection, string &line, size_t &chunck_
 		return response::builder(connection, code::BAD_REQUEST);
 }
 
-void request::validateHeader(Connection *connection, string &key, string &value)
+void request::validateHeader(Connection *connection, std::string &key, std::string &value)
 {
 	if (key == header::CONTENT_LENGTH)
 		return validateContentLength(connection, value);
@@ -203,19 +201,19 @@ void request::validateHeader(Connection *connection, string &key, string &value)
 		return validateTransferEncoding(connection, value);
 }
 
-void request::validateContentLength(Connection *connection, string &value)
+void request::validateContentLength(Connection *connection, std::string &value)
 {
 	if (connection->getMethod() != method::POST)
 		return response::builder(connection, code::BAD_REQUEST);
 
-	if (value.find_first_not_of(standard::DECIMAL) != string::npos)
+	if (value.find_first_not_of(standard::DECIMAL) != std::string::npos)
 		return response::builder(connection, code::BAD_REQUEST);
 
 	if (*connection == header::TRANSFER_ENCONDING)
 		return response::builder(connection, code::BAD_REQUEST);
 }
 
-void request::validateHost(Connection *connection, string &value)
+void request::validateHost(Connection *connection, std::string &value)
 {
 	Http *http = Http::getInstance();
 	Server server = http->getServerByListen(value);
@@ -232,7 +230,7 @@ void request::validateHost(Connection *connection, string &value)
 	connection->setServer(server);
 }
 
-void request::validateTransferEncoding(Connection *connection, string &value)
+void request::validateTransferEncoding(Connection *connection, std::string &value)
 {
 	if (connection->getMethod() != method::POST)
 		return response::builder(connection, code::BAD_REQUEST);

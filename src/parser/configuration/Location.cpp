@@ -6,15 +6,13 @@
 #include <set>
 #include <string>
 
-using namespace std;
-
 Location::Location(void)
 	: _deny_methods(false),
 	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _webdav(parser::WEB_DAV_NOT_SET),
 	  _max_body_size(0) {}
 
-Location::Location(string &configuration_file) 
+Location::Location(std::string &configuration_file) 
 	: _deny_methods(false),
 	  _autoindex(parser::AUTOINDEX_NOT_SET),
 	  _webdav(parser::WEB_DAV_NOT_SET),
@@ -57,46 +55,46 @@ bool Location::operator==(const Location &rhs) const
 	return _uri == rhs._uri;
 }
 
-void Location::setURI(string uri)
+void Location::setURI(std::string uri)
 {
 	directive::setURI(uri, _uri);
 }
 
-string Location::getURI(void) const
+std::string Location::getURI(void) const
 {
 	return _uri;
 }
 
-set<string> Location::getIndexes(void) const
+std::set<std::string> Location::getIndexes(void) const
 {
 	return _indexes;
 }
 
-void Location::addMethod(string method)
+void Location::addMethod(std::string method)
 {
 	directive::addMethod(method, _allow_methods);
 }
 
-void Location::setMethods(set<string> methods)
+void Location::setMethods(std::set<std::string> methods)
 {
 	_allow_methods = methods;
 }
 
-string Location::getMethod(string method) const
+std::string Location::getMethod(std::string method) const
 {
-	set<string>::iterator tmp = _allow_methods.find(method);
+	std::set<std::string>::iterator tmp = _allow_methods.find(method);
 	if (tmp == _allow_methods.end())
 		return "";
 
 	return *tmp;
 }
 
-set<string> Location::getMethods(void) const
+std::set<std::string> Location::getMethods(void) const
 {
 	return _allow_methods;
 }
 
-void Location::setDenyMethods(string deny_methods)
+void Location::setDenyMethods(std::string deny_methods)
 {
 	directive::setDenyMethods(deny_methods, _deny_methods);
 }
@@ -106,27 +104,27 @@ bool Location::getDenyMethods(void) const
 	return _deny_methods;
 }
 
-void Location::setRoot(string root)
+void Location::setRoot(std::string root)
 {
 	directive::setRoot(root, _root);
 }
 
-string Location::getRoot(void) const
+std::string Location::getRoot(void) const
 {
 	return _root;
 }
 
-void Location::setAutoIndex(string autoindex)
+void Location::setAutoIndex(std::string autoindex)
 {
 	directive::setAutoIndex(autoindex, _autoindex);
 }
 
-void Location::setAutoIndex(bitset<2> autoindex)
+void Location::setAutoIndex(std::bitset<2> autoindex)
 {
 	_autoindex = autoindex;
 }
 
-bitset<2> Location::getAutoIndexBitSet(void) const
+std::bitset<2> Location::getAutoIndexBitSet(void) const
 {
 	return _autoindex;
 }
@@ -136,17 +134,17 @@ bool Location::getAutoIndex(void) const
 	return (_autoindex == parser::AUTOINDEX_ON ? true : false);
 }
 
-void Location::setWebDav(string webdav)
+void Location::setWebDav(std::string webdav)
 {
 	directive::setWebDav(webdav, _webdav);
 }
 
-void Location::setWebDav(bitset<2> webdav)
+void Location::setWebDav(std::bitset<2> webdav)
 {
 	_webdav = webdav;
 }
 
-bitset<2> Location::getWebDavBitSet(void) const
+std::bitset<2> Location::getWebDavBitSet(void) const
 {
 	return _webdav;
 }
@@ -156,7 +154,7 @@ bool Location::getWebDav() const
 	return _webdav == parser::WEB_DAV_ON ? true : false;
 }
 
-void Location::setMaxBodySize(string max_body_size)
+void Location::setMaxBodySize(std::string max_body_size)
 {
 	directive::setMaxBodySize(max_body_size, _max_body_size);
 }
@@ -166,12 +164,12 @@ size_t Location::getMaxBodySize(void) const
 	return _max_body_size;
 }
 
-void Location::addIndex(string index)
+void Location::addIndex(std::string index)
 {
 	directive::addIndex(index, _indexes);
 }
 
-void Location::setIndexes(set<string> indexes)
+void Location::setIndexes(std::set<std::string> indexes)
 {
 	_indexes = indexes;
 }
@@ -186,17 +184,17 @@ void Location::setFastCgiExtension(std::string extensions)
 	directive::setFastCgiExtension(extensions, _extensions);
 }
 
-string Location::getFastCgi(void) const
+std::string Location::getFastCgi(void) const
 {
 	return _fastcgi;
 }
 
-set<string> Location::getFastCgiExtension(void) const
+std::set<std::string> Location::getFastCgiExtension(void) const
 {
 	return _extensions;
 }
 
-bool Location::isCgi(string extension) const
+bool Location::isCgi(std::string extension) const
 {
 	if (_extensions.find(extension) == _extensions.end())
 		return false;
@@ -204,41 +202,41 @@ bool Location::isCgi(string extension) const
 	return true;
 }
 
-void Location::addErrorPages(string error_page)
+void Location::addErrorPages(std::string error_page)
 {
 	directive::addErrorPage(error_page, _error_pages);
 }
 
-void Location::setErrorPages(map<string, string> error_pages)
+void Location::setErrorPages(std::map<std::string, std::string> error_pages)
 {
 	_error_pages = error_pages;
 }
 
-map<string, string> Location::getErrorPages(void) const
+std::map<std::string, std::string> Location::getErrorPages(void) const
 {
 	return _error_pages;
 }
 
-string Location::getErrorPageByCode(string code) const
+std::string Location::getErrorPageByCode(std::string code) const
 {
-	map<string, string>::const_iterator error_page  = _error_pages.find(code);
+	std::map<std::string, std::string>::const_iterator error_page  = _error_pages.find(code);
 	if (error_page == _error_pages.end())
 		return "";
 
 	return error_page->second;
 }
 
-void Location::setReturn(string value)
+void Location::setReturn(std::string value)
 {
 	directive::setReturn(value, _return_code, _return_uri);
 }
 
-string Location::getReturnCode() const
+std::string Location::getReturnCode() const
 {
 	return _return_code;
 }
 
-string Location::getReturnURI() const
+std::string Location::getReturnURI() const
 {
 	return _return_uri;
 }

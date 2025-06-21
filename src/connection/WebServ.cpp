@@ -22,8 +22,6 @@
 #include <unistd.h>
 #include <vector>
 
-using namespace std;
-
 WebServ *WebServ::_instance = NULL;
 
 WebServ::WebServ(void) : _epoll_fd(-1) {}
@@ -32,11 +30,11 @@ WebServ::~WebServ(void)
 {
 	while (_connections.begin() != _connections.end())
 	{
-		map<int, IStream *>::iterator ic = _connections.begin();
+		std::map<int, IStream *>::iterator ic = _connections.begin();
 		closeConnection(ic->first);
 	}
 
-	map<string, int>::iterator socket = _sockets.begin();
+	std::map<std::string, int>::iterator socket = _sockets.begin();
 	for (; socket != _sockets.end(); ++socket)
 		if (socket->second != -1)
 			close(socket->second);
@@ -53,15 +51,15 @@ WebServ *WebServ::getInstance(void) {
 	return _instance;
 }
 
-void WebServ::removeBindedPorts(const string &port)
+void WebServ::removeBindedPorts(const std::string &port)
 {
-	set<string> sockets_to_remove;
+	std::set<std::string> sockets_to_remove;
 
-	map<string, int>::iterator socket = _sockets.begin();
+	std::map<std::string, int>::iterator socket = _sockets.begin();
 	for (; socket != _sockets.end(); ++socket)
 	{
 
-		list<string> tmp2 = parser::split(socket->first, ':');
+		std::list<std::string> tmp2 = parser::split(socket->first, ':');
 		if (port != tmp2.back())
 			continue;
 
@@ -70,17 +68,17 @@ void WebServ::removeBindedPorts(const string &port)
 		sockets_to_remove.insert(socket->first);
 	}
 
-	set<string>::iterator socket_to_remove = sockets_to_remove.begin();
+	std::set<std::string>::iterator socket_to_remove = sockets_to_remove.begin();
 	for(; socket_to_remove != sockets_to_remove.end(); ++socket_to_remove)
 		_sockets.erase(_sockets.find(*socket_to_remove));
 }
 
-bool WebServ::isBinded(const string &host)
+bool WebServ::isBinded(const std::string &host)
 {
 	if (_sockets.find(host) != _sockets.end())
 		return true;
 
-	list<string> host_part = parser::split(host, ':');
+	std::list<std::string> host_part = parser::split(host, ':');
 	if (_sockets.find("0.0.0.0:" + host_part.back()) != _sockets.end())
 		return true;
 
@@ -92,7 +90,7 @@ bool WebServ::isBinded(const string &host)
 	return false;
 }
 
-struct addrinfo *WebServ::getAddrInfo(const string &host)
+struct addrinfo *WebServ::getAddrInfo(const std::string &host)
 {
 	struct addrinfo addrinfo_config = (struct addrinfo){};
 	struct addrinfo *addrinfo_result = NULL;
@@ -101,18 +99,18 @@ struct addrinfo *WebServ::getAddrInfo(const string &host)
 	addrinfo_config.ai_socktype = SOCK_STREAM;
 	addrinfo_config.ai_flags = AI_PASSIVE;
 
-	list<string> host_part = parser::split(host, ':');
+	std::list<std::string> host_part = parser::split(host, ':');
 
 	const char *ip = host_part.front().c_str();
 	const char *port = host_part.back().c_str();
 
 	if (getaddrinfo(ip, port, &addrinfo_config, &addrinfo_result))
-		throw runtime_error("getaddrinfo failed");
+		throw std::runtime_error("getaddrinfo failed");
 
 	return addrinfo_result;
 }
 
-int WebServ::createSocket(const string &host)
+int WebServ::createSocket(const std::string &host)
 {
 	struct addrinfo *addrinfo_result = getAddrInfo(host);
 
@@ -122,7 +120,7 @@ int WebServ::createSocket(const string &host)
 		addrinfo_result->ai_protocol
 	);
 	if (socket_fd == -1)
-		throw runtime_error("failed to create socket on: " + host);
+		throw std::runtime_error("failed to create socket on: " + host);
 
 	int option = 1;
 
@@ -138,7 +136,7 @@ int WebServ::createSocket(const string &host)
 		close(socket_fd);
 		freeaddrinfo(addrinfo_result);
 
-		throw runtime_error("failed to set socket option on: " + host);
+		throw std::runtime_error("failed to std::set socket option on: " + host);
 	}
 
 	const int bind_status = bind(
@@ -151,7 +149,7 @@ int WebServ::createSocket(const string &host)
 		close(socket_fd);
 		freeaddrinfo(addrinfo_result);
 
-		throw runtime_error("failed to bind on: " + host);
+		throw std::runtime_error("failed to bind on: " + host);
 	}
 
 	freeaddrinfo(addrinfo_result);
@@ -161,7 +159,7 @@ int WebServ::createSocket(const string &host)
 	{
 		close(socket_fd);
 
-		throw runtime_error("failed to listen on: " + host);
+		throw std::runtime_error("failed to listen on: " + host);
 	}
 
 	return socket_fd;
@@ -185,17 +183,17 @@ void WebServ::controlEpoll(const int &socket_fd, const int &flag, const int &opt
 	if (epoll_ctl_status == 0)
 		return;
 
-	stringstream ss;
+	std::stringstream ss;
 	ss << "failed to configure epoll_ctl for socket: " << socket_fd;
 
 	logger::error(ss.str());
 }
 
-static string getIpByAddr(struct sockaddr_in &addr)
+static std::string getIpByAddr(struct sockaddr_in &addr)
 {
 	const int ip = htonl(addr.sin_addr.s_addr);
 
-	stringstream ss;
+	std::stringstream ss;
 	ss << ((ip & 0xFF000000) >> 24) << ".";
 	ss << ((ip & 0x00FF0000) >> 16) << ".";
 	ss << ((ip & 0x0000FF00) >> 8) << ".";
@@ -205,7 +203,7 @@ static string getIpByAddr(struct sockaddr_in &addr)
 	return ss.str();
 }
 
-string WebServ::getIpByFileDescriptor(const int &socket_fd)
+std::string WebServ::getIpByFileDescriptor(const int &socket_fd)
 {
 	struct sockaddr_in addr = (sockaddr_in){};
 	socklen_t addr_len = sizeof(addr);
@@ -217,7 +215,7 @@ string WebServ::getIpByFileDescriptor(const int &socket_fd)
 	);
 	if (getsockname_status == -1)
 	{
-		stringstream ss;
+		std::stringstream ss;
 		ss << "failed to getsockname for socket: " << socket_fd;
 
 		logger::error(ss.str());
@@ -239,8 +237,8 @@ void WebServ::acceptNewConnection(const int &socket_fd)
 	if (client_socket_fd == -1)
 		return logger::fatal("accept failed");
 
-	const string host_ip = getIpByFileDescriptor(client_socket_fd);
-	const string client_ip = getIpByAddr(client_addr);
+	const std::string host_ip = getIpByFileDescriptor(client_socket_fd);
+	const std::string client_ip = getIpByAddr(client_addr);
 
 	logger::debug(client_ip + " connection accepted");
 	controlEpoll(client_socket_fd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
@@ -253,7 +251,7 @@ void WebServ::acceptNewConnection(const int &socket_fd)
 
 void WebServ::closeConnection(const int &socket_fd)
 {
-	map<const int, IStream *>::iterator connection;
+	std::map<const int, IStream *>::iterator connection;
 	connection = _connections.find(socket_fd);
 	if (connection == _connections.end())
 		return;
@@ -291,12 +289,12 @@ void WebServ::readNoBytes(IStream *connection)
 	closeConnection(connection->getFd());
 }
 
-void WebServ::inputHandler(map<int, IStream *>::iterator &stream) {
+void WebServ::inputHandler(std::map<int, IStream *>::iterator &stream) {
 
 	const int socket_fd = stream->first;
 	IStream *connection = stream->second;
 
-	vector<char> buffer(standard::BUFFER_SIZE);
+	std::vector<char> buffer(standard::BUFFER_SIZE);
 
 	int bytes_read = recv(
 		socket_fd,
@@ -343,7 +341,7 @@ void WebServ::sendNoBytes(IStream *connection)
 	}
 }
 
-void WebServ::outputHandler(map<int, IStream *>::iterator &stream)
+void WebServ::outputHandler(std::map<int, IStream *>::iterator &stream)
 {
 	const int socket_fd = stream->first;
 	IStream *connection = stream->second;
@@ -351,7 +349,7 @@ void WebServ::outputHandler(map<int, IStream *>::iterator &stream)
 	if (connection->getStep() < step::RESPONSE)
 		return controlEpoll(socket_fd, EPOLLIN | EPOLLOUT | EPOLLET, EPOLL_CTL_MOD);
 
-	const string data = connection->getData(standard::BUFFER_SIZE);
+	const std::string data = connection->getData(standard::BUFFER_SIZE);
 
 	int bytes_send = send(socket_fd, data.c_str(), data.size(), MSG_NOSIGNAL);
 	if (bytes_send == -1)
@@ -367,7 +365,7 @@ void WebServ::checkTimeOut(void)
 	if (_connections.empty())
 		return;
 
-	map<int, IStream *>::iterator stream = _connections.begin();
+	std::map<int, IStream *>::iterator stream = _connections.begin();
 	for (; stream!= _connections.end(); ++stream)
 	{
 		Connection *connection = dynamic_cast<Connection *>(stream->second);
@@ -389,13 +387,13 @@ void WebServ::checkTimeOut(void)
 
 void WebServ::connectHosts(void)
 {
-	vector<Server> servers = Http::getInstance()->getServers();
+	std::vector<Server> servers = Http::getInstance()->getServers();
 
-	vector<Server>::iterator server = servers.begin();
+	std::vector<Server>::iterator server = servers.begin();
 	for (; server != servers.end(); ++server)
 	{
-		vector<string> hosts = server->getListen();
-		vector<string>::iterator host = hosts.begin();
+		std::vector<std::string> hosts = server->getListen();
+		std::vector<std::string>::iterator host = hosts.begin();
 		for (; host != hosts.end(); ++host)
 		{
 			if (isBinded(*host))
@@ -410,9 +408,9 @@ void WebServ::createEpoll(void)
 {
 	_epoll_fd = epoll_create(1);
 	if (_epoll_fd < 0)
-		throw runtime_error("failed to create an epoll");
+		throw std::runtime_error("failed to create an epoll");
 
-	map<string, int>::iterator socket = _sockets.begin();
+	std::map<std::string, int>::iterator socket = _sockets.begin();
 	for (; socket != _sockets.end(); ++socket)
 	{
 		controlEpoll(socket->second, EPOLLIN, EPOLL_CTL_ADD);
@@ -428,7 +426,7 @@ void WebServ::checkEvents(const int &num_events, epoll_event *events)
 
 		try
 		{
-			map<int, IStream *>::iterator stream = _connections.find(socket_fd);
+			std::map<int, IStream *>::iterator stream = _connections.find(socket_fd);
 			if (stream == _connections.end())
 				acceptNewConnection(socket_fd);
 			else if (events[i].events & (EPOLLIN | EPOLLET))
@@ -436,9 +434,9 @@ void WebServ::checkEvents(const int &num_events, epoll_event *events)
 			else if (events[i].events & (EPOLLOUT | EPOLLET))
 				outputHandler(stream);
 		}
-		catch (exception &e)
+		catch (std::exception &e)
 		{
-			string error = "disconecting client by: ";
+			std::string error = "disconecting client by: ";
 			logger::error(error + e.what());
 			closeConnection(socket_fd);
 		}
@@ -484,7 +482,7 @@ void WebServ::addStream(IStream *stream)
 
 void WebServ::delStream(const int &socket_fd)
 {
-	map<int, IStream *>::iterator stream = _connections.find(socket_fd);
+	std::map<int, IStream *>::iterator stream = _connections.find(socket_fd);
 	if (stream == _connections.end())
 		return;
 

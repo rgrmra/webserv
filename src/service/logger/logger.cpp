@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 static const std::string getTime(void)
 {
 	time_t rawtime = time(&rawtime);
@@ -17,12 +15,12 @@ static const std::string getTime(void)
 	return buffer;
 }
 
-static void print(const string &color, const string &level, const string &message)
+static void print(const std::string &color, const std::string &level, const std::string &message)
 {
-	cout << color + getTime() + " " + level + ": " + message << color::reset() << endl;
+	std::cout << color + getTime() + " " + level + ": " + message << color::reset() << std::endl;
 }
 
-void logger::debug(const string &message)
+void logger::debug(const std::string &message)
 {
 	if (not LOGGER_DEBUG)
 		return;
@@ -30,22 +28,22 @@ void logger::debug(const string &message)
 	print(color::blue(), "DEBUG", message);
 }
 
-void logger::info(const string &message)
+void logger::info(const std::string &message)
 {
 	print(color::green(), "INFO", message);
 }
 
-void logger::warning(const string &message)
+void logger::warning(const std::string &message)
 {
 	print(color::yellow(), "WARNING", message);
 }
 
-void logger::error(const string &message)
+void logger::error(const std::string &message)
 {
 	print(color::red(), "ERROR", message);
 }
 
-void logger::fatal(const string &message)
+void logger::fatal(const std::string &message)
 {
 	print(color::magenta(), "FATAL", message);
 }
